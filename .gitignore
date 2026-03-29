@@ -1,0 +1,31 @@
+# Composer
+/vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node (if ever used)
+node_modules/
+
+# Build files
+dist/
+build/
+
+# Uploaded files
+public/uploads/
+
+# Database dumps
+*.sql
