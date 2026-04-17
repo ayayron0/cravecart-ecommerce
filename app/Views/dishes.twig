@@ -1,0 +1,103 @@
+{% extends 'layout.twig' %}
+
+{% block title %}Menu — CraveCart{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        {# Page header + search #}
+        <div class="row align-items-center mb-4 g-3">
+            <div class="col-md-6">
+                <h2 class="fw-bold mb-0">Our Menu</h2>
+            </div>
+            <div class="col-md-6">
+                <form class="d-flex gap-2" action="/dishes" method="get">
+                    <input type="text" class="form-control" name="q"
+                           value="{{ query ?? '' }}" placeholder="Search dishes...">
+                    <button class="btn text-white" style="background-color:#e63946;" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {# Category filter pills #}
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            {% set cats = ['All', 'Pizza', 'Burgers', 'Sushi', 'Tacos', 'Noodles', 'Salads', 'Desserts', 'Drinks'] %}
+            {% for c in cats %}
+            <a href="/dishes?category={{ c|lower == 'all' ? '' : c|lower }}"
+               class="btn btn-sm rounded-pill {{ (activeCategory ?? 'all') == c|lower ? 'text-white' : 'btn-outline-secondary' }}"
+               style="{{ (activeCategory ?? 'all') == c|lower ? 'background-color:#e63946; border-color:#e63946;' : '' }}">
+                {{ c }}
+            </a>
+            {% endfor %}
+        </div>
+
+        {# Dish grid #}
+        {% if dishes is defined and dishes|length > 0 %}
+        <div class="row g-4">
+            {% for dish in dishes %}
+            <div class="col-sm-6 col-lg-4 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:150px; font-size:3.5rem;">
+                        {{ dish.emoji ?? '🍽️' }}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge mb-2" style="background-color:#e63946; width:fit-content;">{{ dish.category }}</span>
+                        <h6 class="fw-bold">{{ dish.name }}</h6>
+                        <p class="small text-muted flex-grow-1">{{ dish.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="fw-bold" style="color:#e63946;">${{ dish.price }}</span>
+                            <span class="small text-muted"><i class="bi bi-star-fill text-warning"></i> {{ dish.rating }}</span>
+                        </div>
+                        <a href="/cart/add/{{ dish.id }}" class="btn btn-sm btn-outline-danger mt-3">
+                            <i class="bi bi-cart-plus me-1"></i> Add to Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+
+        {# Placeholder cards shown when no real data yet #}
+        <div class="row g-4">
+            {% set placeholders = [
+                {name:'Margherita Pizza',   price:'12.99', rating:'4.8', category:'Pizza',   emoji:'🍕', description:'Classic tomato, mozzarella & basil.'},
+                {name:'Smash Burger',       price:'10.50', rating:'4.7', category:'Burgers',  emoji:'🍔', description:'Double smash patty with secret sauce.'},
+                {name:'Salmon Roll',        price:'14.00', rating:'4.9', category:'Sushi',    emoji:'🍣', description:'Fresh salmon with avocado & cucumber.'},
+                {name:'Chicken Tacos',      price:'9.99',  rating:'4.6', category:'Tacos',    emoji:'🌮', description:'Spiced chicken with pico de gallo.'},
+                {name:'Ramen Bowl',         price:'13.50', rating:'4.8', category:'Noodles',  emoji:'🍜', description:'Rich tonkotsu broth with soft-boiled egg.'},
+                {name:'Caesar Salad',       price:'8.50',  rating:'4.5', category:'Salads',   emoji:'🥗', description:'Crispy romaine, croutons & parmesan.'},
+                {name:'Chocolate Lava Cake',price:'6.99',  rating:'4.9', category:'Desserts', emoji:'🍰', description:'Warm chocolate cake with molten centre.'},
+                {name:'Mango Smoothie',     price:'5.50',  rating:'4.7', category:'Drinks',   emoji:'🥤', description:'Fresh mango blended with coconut milk.'}
+            ] %}
+            {% for dish in placeholders %}
+            <div class="col-sm-6 col-lg-4 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:150px; font-size:3.5rem;">
+                        {{ dish.emoji }}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <span class="badge mb-2" style="background-color:#e63946; width:fit-content;">{{ dish.category }}</span>
+                        <h6 class="fw-bold">{{ dish.name }}</h6>
+                        <p class="small text-muted flex-grow-1">{{ dish.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="fw-bold" style="color:#e63946;">${{ dish.price }}</span>
+                            <span class="small text-muted"><i class="bi bi-star-fill text-warning"></i> {{ dish.rating }}</span>
+                        </div>
+                        <a href="/cart/add/1" class="btn btn-sm btn-outline-danger mt-3">
+                            <i class="bi bi-cart-plus me-1"></i> Add to Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+{% endblock %}

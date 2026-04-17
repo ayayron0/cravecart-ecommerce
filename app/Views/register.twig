@@ -1,0 +1,74 @@
+{% extends 'layout.twig' %}
+
+{% block title %}Create Account — CraveCart{% endblock %}
+
+{% block content %}
+<section class="py-5" style="min-height: calc(100vh - 200px); background:#f8f9fa;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <div class="text-center mb-4">
+                        <h3 class="fw-bold">Create an account</h3>
+                        <p class="text-muted small">Join CraveCart and start ordering</p>
+                    </div>
+
+                    {% if errors is defined and errors %}
+                        <div class="alert alert-danger">
+                            <ul class="mb-0 ps-3">
+                                {% for error in errors %}
+                                    <li class="small">{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <form action="/register" method="post">
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="first_name" class="form-label fw-semibold small">First name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name"
+                                       value="{{ old.first_name ?? '' }}" placeholder="John" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="last_name" class="form-label fw-semibold small">Last name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name"
+                                       value="{{ old.last_name ?? '' }}" placeholder="Doe" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold small">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   value="{{ old.email ?? '' }}" placeholder="you@example.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label fw-semibold small">Phone number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone"
+                                   value="{{ old.phone ?? '' }}" placeholder="+1 555 000 0000">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-semibold small">Password</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="At least 8 characters" required minlength="8">
+                        </div>
+                        <div class="mb-4">
+                            <label for="password_confirm" class="form-label fw-semibold small">Confirm password</label>
+                            <input type="password" class="form-control" id="password_confirm" name="password_confirm"
+                                   placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
+                            Create Account
+                        </button>
+                    </form>
+
+                    <hr class="my-4">
+                    <p class="text-center small mb-0">
+                        Already have an account?
+                        <a href="{{ basePath }}/login" class="fw-semibold text-decoration-none" style="color:#e63946;">Sign in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

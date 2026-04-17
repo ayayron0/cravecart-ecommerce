@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CraveCart{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        *, *::before, *::after { font-family: 'Poppins', sans-serif; }
+
+        :root {
+            --cc-red:    #e63946;
+            --cc-dark:   #111827;
+            --cc-navy:   #1d2d44;
+            --cc-grey:   #f3f4f6;
+        }
+
+        body { background: #fff; color: #111827; }
+
+        /* ── Navbar ── */
+        .cc-nav { background: var(--cc-dark); }
+        .cc-nav .navbar-brand strong { color: var(--cc-red); }
+        .cc-nav .nav-link { color: rgba(255,255,255,.75) !important; font-weight: 500; font-size: .9rem; transition: color .2s; }
+        .cc-nav .nav-link:hover { color: #fff !important; }
+        .cc-nav .btn-login  { border: 1.5px solid rgba(255,255,255,.35); color: #fff; border-radius: 8px; font-size: .85rem; font-weight: 500; padding: 6px 16px; transition: .2s; }
+        .cc-nav .btn-login:hover { background: rgba(255,255,255,.1); }
+        .cc-nav .btn-signup { background: var(--cc-red); color: #fff; border-radius: 8px; font-size: .85rem; font-weight: 600; padding: 6px 18px; border: none; transition: .2s; }
+        .cc-nav .btn-signup:hover { background: #c1121f; }
+
+        /* ── Cards ── */
+        .cc-card { border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,.07); transition: transform .25s, box-shadow .25s; }
+        .cc-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,.13); }
+
+        /* ── Buttons ── */
+        .btn-cc { background: var(--cc-red); color: #fff; border: none; border-radius: 10px; font-weight: 600; padding: 10px 26px; transition: .2s; }
+        .btn-cc:hover { background: #c1121f; color: #fff; }
+        .btn-cc-outline { border: 2px solid var(--cc-red); color: var(--cc-red); border-radius: 10px; font-weight: 600; padding: 9px 24px; transition: .2s; background: transparent; }
+        .btn-cc-outline:hover { background: var(--cc-red); color: #fff; }
+
+        /* ── Breadcrumb ── */
+        .cc-breadcrumb { background: transparent; padding: 0; }
+        .cc-breadcrumb .breadcrumb-item + .breadcrumb-item::before { color: #9ca3af; }
+        .cc-breadcrumb a { color: var(--cc-red); text-decoration: none; font-weight: 500; }
+
+        /* ── Badge ── */
+        .badge-cc { background: var(--cc-red); color: #fff; border-radius: 6px; font-weight: 500; font-size: .72rem; padding: 4px 10px; }
+        .badge-available  { background: #d1fae5; color: #065f46; border-radius: 6px; font-size: .7rem; padding: 3px 9px; font-weight: 500; }
+        .badge-seasonal   { background: #fef3c7; color: #92400e; border-radius: 6px; font-size: .7rem; padding: 3px 9px; font-weight: 500; }
+        .badge-unavailable{ background: #fee2e2; color: #991b1b; border-radius: 6px; font-size: .7rem; padding: 3px 9px; font-weight: 500; }
+
+        /* ── Footer ── */
+        .cc-footer { background: var(--cc-dark); color: #9ca3af; }
+        .cc-footer h6 { color: #fff; font-weight: 700; }
+        .cc-footer a   { color: #9ca3af; text-decoration: none; transition: color .2s; }
+        .cc-footer a:hover { color: var(--cc-red); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% include 'common/header.twig' %}
+    <main>{% block content %}{% endblock %}</main>
+    {% include 'common/footer.twig' %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

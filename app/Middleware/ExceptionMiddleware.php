@@ -16,8 +16,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Exception\HttpException;
 use Slim\Exception\HttpNotFoundException;
-use Slim\Views\PhpRenderer;
 use Throwable;
+use Twig\Environment;
 
 final class ExceptionMiddleware implements MiddlewareInterface
 {
@@ -25,12 +25,12 @@ final class ExceptionMiddleware implements MiddlewareInterface
     private JsonRenderer $renderer;
     private ?LoggerInterface $logger;
     private bool $displayErrorDetails;
-    private PhpRenderer $viewRenderer;
+    private Environment $viewRenderer;
 
     public function __construct(
         ResponseFactoryInterface $responseFactory,
         JsonRenderer $jsonRenderer,
-        PhpRenderer $viewRenderer,
+        Environment $viewRenderer,
         ?LoggerInterface $logger = null,
         bool $displayErrorDetails = false,
     ) {
@@ -100,7 +100,8 @@ final class ExceptionMiddleware implements MiddlewareInterface
 
         // Use custom 404 view for HttpNotFoundException.
         if ($exception instanceof HttpNotFoundException) {
-            return $this->viewRenderer->render($response, 'errors/404.php');
+            $response->getBody()->write($this->viewRenderer->render('errors/404.twig'));
+            return $response;
         }
 
         $message = sprintf(

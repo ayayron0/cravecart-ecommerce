@@ -1,0 +1,28 @@
+<nav class="navbar navbar-expand-lg cc-nav py-3">
+    <div class="container">
+        <a class="navbar-brand" href="{{ basePath }}/">
+            <span style="color:#fff; font-weight:800; font-size:1.35rem; letter-spacing:-.5px;">
+                Crave<strong>Cart</strong>
+            </span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#ccNav" style="color:#fff;">
+            <i class="bi bi-list fs-4" style="color:#fff;"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="ccNav">
+            <ul class="navbar-nav mx-auto gap-1">
+                <li class="nav-item"><a class="nav-link px-3" href="{{ basePath }}/">Home</a></li>
+                <li class="nav-item"><a class="nav-link px-3" href="{{ basePath }}/browse/food">Food</a></li>
+                <li class="nav-item"><a class="nav-link px-3" href="{{ basePath }}/browse/desserts">Desserts</a></li>
+                <li class="nav-item"><a class="nav-link px-3" href="{{ basePath }}/browse/drinks">Drinks</a></li>
+            </ul>
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ basePath }}/cart" class="position-relative" style="color:#fff; text-decoration:none;">
+                    <i class="bi bi-bag fs-5"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="background:#e63946; font-size:.6rem;">0</span>
+                </a>
+                <a href="{{ basePath }}/login"    class="btn-login">Sign In</a>
+                <a href="{{ basePath }}/register" class="btn-signup">Get Started</a>
+            </div>
+        </div>
+    </div>
+</nav>

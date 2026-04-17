@@ -29,7 +29,7 @@ class HomeController extends BaseController
 
         //dd($data);
         //var_dump($this->session); exit;
-        return $this->render($response, 'homeView.php', $data);
+        return $this->render($response, 'home.twig', $data);
     }
 
     public function error(Request $request, Response $response, array $args): Response

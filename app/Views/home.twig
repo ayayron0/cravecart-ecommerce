@@ -1,0 +1,261 @@
+{% extends 'layout.twig' %}
+{% block title %}CraveCart — What are you craving?{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero */
+    .cc-hero {
+        background: linear-gradient(145deg, #111827 0%, #1d2d44 60%, #0f3460 100%);
+        min-height: 88vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .cc-hero::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: radial-gradient(ellipse at 70% 50%, rgba(230,57,70,.15) 0%, transparent 60%);
+    }
+    .cc-hero-tag {
+        display: inline-block;
+        background: rgba(230,57,70,.18);
+        color: #ff8f94;
+        border: 1px solid rgba(230,57,70,.3);
+        border-radius: 50px;
+        font-size: .82rem;
+        font-weight: 600;
+        padding: 6px 18px;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+    }
+    .cc-hero h1 {
+        font-size: clamp(2.8rem, 6vw, 5rem);
+        font-weight: 900;
+        line-height: 1.08;
+        color: #fff;
+        letter-spacing: -.03em;
+    }
+    .cc-hero h1 span { color: var(--cc-red); }
+    .cc-hero p.subtitle {
+        color: rgba(255,255,255,.65);
+        font-size: 1.15rem;
+        font-weight: 400;
+        max-width: 500px;
+        line-height: 1.7;
+    }
+
+    /* Category cards */
+    .cat-card {
+        border-radius: 20px;
+        min-height: 280px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform .3s, box-shadow .3s;
+        text-decoration: none;
+        color: #fff;
+    }
+    .cat-card:hover { transform: translateY(-8px); box-shadow: 0 24px 48px rgba(0,0,0,.25); color: #fff; }
+    .cat-card .cat-emoji {
+        font-size: 4rem;
+        position: absolute;
+        top: 1.5rem; right: 1.8rem;
+        opacity: .85;
+        line-height: 1;
+    }
+    .cat-card .cat-label {
+        font-size: 1.65rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -.03em;
+        margin-bottom: .4rem;
+    }
+    .cat-card .cat-desc { font-size: .88rem; opacity: .8; margin-bottom: 1.1rem; font-weight: 400; }
+    .cat-card .cat-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,.18);
+        border: 1px solid rgba(255,255,255,.25);
+        backdrop-filter: blur(4px);
+        color: #fff;
+        border-radius: 8px;
+        padding: 7px 16px;
+        font-size: .85rem;
+        font-weight: 600;
+        width: fit-content;
+        transition: background .2s;
+    }
+    .cat-card:hover .cat-link { background: rgba(255,255,255,.28); }
+
+    .cat-food     { background: linear-gradient(135deg, #b91c1c 0%, #e63946 55%, #ff6b6b 100%); }
+    .cat-desserts { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 55%, #ec4899 100%); }
+    .cat-drinks   { background: linear-gradient(135deg, #0369a1 0%, #0284c7 55%, #38bdf8 100%); }
+
+    /* Cuisine preview strip */
+    .cuisine-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 50px;
+        padding: 8px 20px;
+        font-weight: 600;
+        font-size: .9rem;
+        color: #111827;
+        text-decoration: none;
+        transition: .2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .cuisine-pill:hover { border-color: var(--cc-red); color: var(--cc-red); box-shadow: 0 4px 16px rgba(230,57,70,.15); }
+
+    /* Steps */
+    .step-icon {
+        width: 64px; height: 64px;
+        border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem;
+        margin: 0 auto 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# ── Hero ── #}
+<section class="cc-hero">
+    <div class="container position-relative z-1">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <div class="cc-hero-tag">🔥 Order in minutes</div>
+                <h1>What are you<br><span>craving?</span></h1>
+                <p class="subtitle mt-3 mb-4">
+                    Discover authentic food from around the world —<br>
+                    Pakistani, Japanese, Italian, French and more.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="#categories" class="btn-cc" style="font-size:1rem; padding:12px 32px; border-radius:12px;">
+                        Browse Menu <i class="bi bi-arrow-down ms-1"></i>
+                    </a>
+                    <a href="{{ basePath }}/register" class="btn-cc-outline" style="font-size:1rem; padding:11px 28px; border-radius:12px; border-color:rgba(255,255,255,.3); color:#fff;">
+                        Join Free
+                    </a>
+                </div>
+                <div class="d-flex gap-4 mt-5 flex-wrap">
+                    <div>
+                        <p class="mb-0 fw-800 fs-4" style="color:#fff; font-weight:800;">19+</p>
+                        <p class="mb-0 small" style="color:rgba(255,255,255,.55);">Dishes</p>
+                    </div>
+                    <div style="width:1px; background:rgba(255,255,255,.15);"></div>
+                    <div>
+                        <p class="mb-0 fw-800 fs-4" style="color:#fff; font-weight:800;">4</p>
+                        <p class="mb-0 small" style="color:rgba(255,255,255,.55);">Cuisines</p>
+                    </div>
+                    <div style="width:1px; background:rgba(255,255,255,.15);"></div>
+                    <div>
+                        <p class="mb-0 fw-800 fs-4" style="color:#fff; font-weight:800;">30 min</p>
+                        <p class="mb-0 small" style="color:rgba(255,255,255,.55);">Avg. delivery</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 d-none d-lg-flex justify-content-center align-items-center">
+                <div style="font-size:11rem; line-height:1; filter: drop-shadow(0 20px 40px rgba(0,0,0,.4)); animation: float 4s ease-in-out infinite;">🍽️</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ── Category Cards ── #}
+<section id="categories" class="py-5" style="background:#f8f8f8;">
+    <div class="container py-3">
+        <div class="text-center mb-5">
+            <p class="mb-1" style="color:var(--cc-red); font-weight:700; font-size:.9rem; text-transform:uppercase; letter-spacing:.1em;">Start Here</p>
+            <h2 style="font-weight:800; font-size:2.2rem; letter-spacing:-.03em;">Pick a category</h2>
+            <p class="text-muted" style="max-width:400px; margin:0 auto;">Then choose your cuisine and explore the menu.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <a href="{{ basePath }}/browse/food" class="cat-card cat-food d-block">
+                    <span class="cat-emoji">🍛</span>
+                    <p class="cat-label">Food</p>
+                    <p class="cat-desc">Biryanis, pizzas, sushi rolls & more main dishes.</p>
+                    <span class="cat-link">Explore <i class="bi bi-arrow-right"></i></span>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ basePath }}/browse/desserts" class="cat-card cat-desserts d-block">
+                    <span class="cat-emoji">🍰</span>
+                    <p class="cat-label">Desserts</p>
+                    <p class="cat-desc">Gulab jamun, mochi, crème brûlée & lava cakes.</p>
+                    <span class="cat-link">Explore <i class="bi bi-arrow-right"></i></span>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ basePath }}/browse/drinks" class="cat-card cat-drinks d-block">
+                    <span class="cat-emoji">🥤</span>
+                    <p class="cat-label">Drinks</p>
+                    <p class="cat-desc">Mango lassi, matcha latte, café au lait & more.</p>
+                    <span class="cat-link">Explore <i class="bi bi-arrow-right"></i></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ── Cuisine Quick-Links ── #}
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-4">
+                <p class="mb-1" style="color:var(--cc-red); font-weight:700; font-size:.9rem; text-transform:uppercase; letter-spacing:.1em;">Our Cuisines</p>
+                <h2 class="mb-2" style="font-weight:800; letter-spacing:-.03em;">A world of flavour</h2>
+                <p class="text-muted">Four authentic cuisines, each with their own dishes, desserts and drinks.</p>
+            </div>
+            <div class="col-lg-8">
+                <div class="d-flex flex-wrap gap-3 justify-content-lg-end">
+                    <a href="{{ basePath }}/browse/food/pakistani"  class="cuisine-pill">🇵🇰 Pakistani</a>
+                    <a href="{{ basePath }}/browse/food/japanese"   class="cuisine-pill">🇯🇵 Japanese</a>
+                    <a href="{{ basePath }}/browse/food/italian"    class="cuisine-pill">🇮🇹 Italian</a>
+                    <a href="{{ basePath }}/browse/food/french"     class="cuisine-pill">🇫🇷 French</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ── How It Works ── #}
+<section class="py-5" style="background:#f8f8f8;">
+    <div class="container py-3">
+        <div class="text-center mb-5">
+            <p class="mb-1" style="color:var(--cc-red); font-weight:700; font-size:.9rem; text-transform:uppercase; letter-spacing:.1em;">Simple as that</p>
+            <h2 style="font-weight:800; font-size:2.2rem; letter-spacing:-.03em;">How it works</h2>
+        </div>
+        <div class="row g-4 text-center">
+            {% for step in [
+                {num:'01', icon:'🍽️', bg:'#fee2e2', title:'Pick a Category',   desc:'Food, Desserts, or Drinks — your call.'},
+                {num:'02', icon:'🌍', bg:'#f3e8ff', title:'Choose a Cuisine',   desc:'Pakistani, Japanese, Italian or French.'},
+                {num:'03', icon:'🛒', bg:'#dbeafe', title:'Add to Cart',        desc:'Pick your dishes and add them to your order.'},
+                {num:'04', icon:'🚴', bg:'#dcfce7', title:'Delivered Fast',     desc:'Hot, fresh and at your door in 30 minutes.'}
+            ] %}
+            <div class="col-sm-6 col-lg-3">
+                <div class="step-icon" style="background:{{ step.bg }};">{{ step.icon }}</div>
+                <p class="mb-1 fw-bold" style="font-size:1rem;">{{ step.title }}</p>
+                <p class="text-muted small mb-0">{{ step.desc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<style>
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+</style>
+{% endblock %}

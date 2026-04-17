@@ -18,7 +18,6 @@ $settings = require __DIR__ . '/../config/settings.php';
 try {
     $db_config = $settings['db'];
     
-    // First, connect without specifying database to create it if needed
     $pdo_no_db = new PDO(
         'mysql:host=' . $db_config['host'] . ';charset=utf8mb4',
         $db_config['username'],
@@ -26,7 +25,6 @@ try {
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
     
-    // Create database if it doesn't exist
     try {
         $pdo_no_db->exec("CREATE DATABASE IF NOT EXISTS `" . $db_config['database'] . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
         echo "✅ Database '" . $db_config['database'] . "' created or already exists.\n";
@@ -34,7 +32,6 @@ try {
         echo "⚠️ Database creation skipped (may already exist): " . $e->getMessage() . "\n";
     }
     
-    // Now connect to the specific database
     $pdo = new PDO(
         'mysql:host=' . $db_config['host'] . ';dbname=' . $db_config['database'] . ';charset=utf8mb4',
         $db_config['username'],
@@ -45,7 +42,7 @@ try {
     echo "Connected to database.\n";
 
     // -------------------------------------------------------
-    // Create tables using the provided schema
+    // Create tables
     // -------------------------------------------------------
 
     // Users table
@@ -61,7 +58,7 @@ try {
     ");
     echo "✅ Created Users table.\n";
 
-    // Cuisines table
+    // Cuisines table (no FK, top level after category)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS Cuisines (
             cuisine_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -71,14 +68,12 @@ try {
     ");
     echo "✅ Created Cuisines table.\n";
 
-    // Categories table (with cuisine_id FK)
+    // Categories table (no cuisine_id FK anymore)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS Categories (
             category_id INT AUTO_INCREMENT PRIMARY KEY,
-            cuisine_id INT,
             name VARCHAR(100) NOT NULL UNIQUE,
-            description VARCHAR(255),
-            CONSTRAINT fk_Categories_Cuisines FOREIGN KEY (cuisine_id) REFERENCES Cuisines(cuisine_id) ON DELETE SET NULL
+            description VARCHAR(255)
         )
     ");
     echo "✅ Created Categories table.\n";
@@ -114,16 +109,18 @@ try {
     ");
     echo "✅ Created Orders table.\n";
 
-    // Dishes table
+    // Dishes table (now has BOTH cuisine_id and category_id FKs)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS Dishes (
             dish_id INT AUTO_INCREMENT PRIMARY KEY,
+            cuisine_id INT NOT NULL,
             category_id INT NOT NULL,
             name VARCHAR(150) NOT NULL,
             description VARCHAR(500),
             price DECIMAL(10,2) NOT NULL,
             image_url VARCHAR(500),
             availability VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (availability IN ('available', 'unavailable', 'seasonal', 'out of stock')),
+            CONSTRAINT fk_Dishes_Cuisines FOREIGN KEY (cuisine_id) REFERENCES Cuisines(cuisine_id),
             CONSTRAINT fk_Dishes_Categories FOREIGN KEY (category_id) REFERENCES Categories(category_id)
         )
     ");
@@ -212,11 +209,9 @@ try {
         INSERT INTO Users (name, email, password_hash, role)
         VALUES (:name, :email, :password_hash, :role)
     ");
-
     foreach ($users as $user) {
         $stmt->execute($user);
     }
-
     echo "Seeded Users.\n";
 
     // Cuisines
@@ -232,82 +227,83 @@ try {
         INSERT INTO Cuisines (name, description)
         VALUES (:name, :description)
     ");
-
     foreach ($cuisines as $cuisine) {
         $stmt->execute($cuisine);
     }
-
     echo "Seeded Cuisines.\n";
 
     // Categories
     // category_id: 1=Food, 2=Desserts, 3=Drinks
-    // cuisine_id is NULL as categories span all cuisines
     $categories = [
-        ['cuisine_id' => null, 'name' => 'Food',     'description' => 'Main dishes from various cuisines'],
-        ['cuisine_id' => null, 'name' => 'Desserts',  'description' => 'Sweet treats and cakes'],
-        ['cuisine_id' => null, 'name' => 'Drinks',    'description' => 'Cold and hot beverages'],
+        ['name' => 'Food',     'description' => 'Main dishes from various cuisines'],
+        ['name' => 'Desserts', 'description' => 'Sweet treats and cakes'],
+        ['name' => 'Drinks',   'description' => 'Cold and hot beverages'],
     ];
 
     $stmt = $pdo->prepare("
-        INSERT INTO Categories (cuisine_id, name, description)
-        VALUES (:cuisine_id, :name, :description)
+        INSERT INTO Categories (name, description)
+        VALUES (:name, :description)
     ");
-
     foreach ($categories as $category) {
         $stmt->execute($category);
     }
-
     echo "Seeded Categories.\n";
 
     // Dishes
-    // All food dishes use category_id: 1 (Food)
-    // Desserts use category_id: 2, Drinks use category_id: 3
+    // cuisine_id: 1=Pakistani, 2=Japanese, 3=Italian, 4=French
+    // category_id: 1=Food, 2=Desserts, 3=Drinks
     $dishes = [
-        // Pakistani dishes (category_id: 1 - Food)
-        ['category_id' => 1, 'name' => 'Chicken Biryani',        'description' => 'Fragrant basmati rice with spiced chicken and caramelized onions',    'price' => 14.99, 'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 1, 'name' => 'Beef Karahi',             'description' => 'Tender beef cooked in a wok with tomatoes, ginger, and fresh spices', 'price' => 16.99, 'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 1, 'name' => 'Chicken Tikka',           'description' => 'Marinated chicken grilled on skewers with mint chutney',              'price' => 13.49, 'image_url' => null, 'availability' => 'available'],
+        // Pakistani - Food
+        ['cuisine_id' => 1, 'category_id' => 1, 'name' => 'Chicken Biryani',        'description' => 'Fragrant basmati rice with spiced chicken and caramelized onions',    'price' => 14.99, 'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 1, 'category_id' => 1, 'name' => 'Beef Karahi',             'description' => 'Tender beef cooked in a wok with tomatoes, ginger, and fresh spices', 'price' => 16.99, 'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 1, 'category_id' => 1, 'name' => 'Chicken Tikka',           'description' => 'Marinated chicken grilled on skewers with mint chutney',              'price' => 13.49, 'image_url' => null, 'availability' => 'available'],
 
-        // Japanese dishes (category_id: 1 - Food)
-        ['category_id' => 1, 'name' => 'Salmon Roll (8 pcs)',     'description' => 'Fresh salmon with cucumber and avocado',                              'price' => 15.99, 'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 1, 'name' => 'Spicy Tuna Roll (8 pcs)', 'description' => 'Spicy tuna mix with sesame seeds',                                   'price' => 14.99, 'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 1, 'name' => 'Dragon Roll (8 pcs)',     'description' => 'Shrimp tempura topped with avocado and eel sauce',                   'price' => 17.99, 'image_url' => null, 'availability' => 'seasonal'],
+        // Japanese - Food
+        ['cuisine_id' => 2, 'category_id' => 1, 'name' => 'Salmon Roll (8 pcs)',     'description' => 'Fresh salmon with cucumber and avocado',                              'price' => 15.99, 'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 2, 'category_id' => 1, 'name' => 'Spicy Tuna Roll (8 pcs)', 'description' => 'Spicy tuna mix with sesame seeds',                                   'price' => 14.99, 'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 2, 'category_id' => 1, 'name' => 'Dragon Roll (8 pcs)',     'description' => 'Shrimp tempura topped with avocado and eel sauce',                   'price' => 17.99, 'image_url' => null, 'availability' => 'seasonal'],
 
-        // Italian dishes (category_id: 1 - Food)
-        ['category_id' => 1, 'name' => 'Margherita Pizza',        'description' => 'Classic tomato sauce, mozzarella, and fresh basil',                  'price' => 11.99, 'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 1, 'name' => 'Pepperoni Pizza',         'description' => 'Loaded with pepperoni and mozzarella cheese',                        'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 1, 'name' => 'Spaghetti Carbonara',     'description' => 'Creamy egg sauce with pancetta and parmesan',                        'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
+        // Italian - Food
+        ['cuisine_id' => 3, 'category_id' => 1, 'name' => 'Margherita Pizza',        'description' => 'Classic tomato sauce, mozzarella, and fresh basil',                  'price' => 11.99, 'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 3, 'category_id' => 1, 'name' => 'Pepperoni Pizza',         'description' => 'Loaded with pepperoni and mozzarella cheese',                        'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 3, 'category_id' => 1, 'name' => 'Spaghetti Carbonara',     'description' => 'Creamy egg sauce with pancetta and parmesan',                        'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
 
-        // French dishes (category_id: 1 - Food)
-        ['category_id' => 1, 'name' => 'Croque Monsieur',         'description' => 'Toasted ham and cheese sandwich with béchamel sauce',                'price' => 12.49, 'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 1, 'name' => 'French Onion Soup',       'description' => 'Slow-cooked onion soup with a gruyère cheese crouton',               'price' => 10.99, 'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 1, 'name' => 'Beef Bourguignon',        'description' => 'Braised beef in red wine with mushrooms and pearl onions',           'price' => 18.99, 'image_url' => null, 'availability' => 'available'],
+        // French - Food
+        ['cuisine_id' => 4, 'category_id' => 1, 'name' => 'Croque Monsieur',         'description' => 'Toasted ham and cheese sandwich with béchamel sauce',                'price' => 12.49, 'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 4, 'category_id' => 1, 'name' => 'French Onion Soup',       'description' => 'Slow-cooked onion soup with a gruyère cheese crouton',               'price' => 10.99, 'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 4, 'category_id' => 1, 'name' => 'Beef Bourguignon',        'description' => 'Braised beef in red wine with mushrooms and pearl onions',           'price' => 18.99, 'image_url' => null, 'availability' => 'available'],
 
-        // Desserts (category_id: 2)
-        ['category_id' => 2, 'name' => 'Chocolate Lava Cake',     'description' => 'Warm chocolate cake with a gooey center, served with ice cream',     'price' => 7.99,  'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 2, 'name' => 'Gulab Jamun',             'description' => 'Soft milk-solid dumplings soaked in rose-flavored sugar syrup',      'price' => 5.99,  'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 2, 'name' => 'Mochi Ice Cream',         'description' => 'Japanese rice cake filled with creamy ice cream',                    'price' => 6.49,  'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 2, 'name' => 'Crème Brûlée',            'description' => 'Classic French vanilla custard with a caramelized sugar crust',      'price' => 8.49,  'image_url' => null, 'availability' => 'available'],
+        // Pakistani - Desserts
+        ['cuisine_id' => 1, 'category_id' => 2, 'name' => 'Gulab Jamun',             'description' => 'Soft milk-solid dumplings soaked in rose-flavored sugar syrup',      'price' => 5.99,  'image_url' => null, 'availability' => 'available'],
 
-        // Drinks (category_id: 3)
-        ['category_id' => 3, 'name' => 'Fresh Lemonade',          'description' => 'Freshly squeezed lemonade with mint',                                'price' => 3.99,  'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 3, 'name' => 'Mango Lassi',             'description' => 'Chilled yogurt-based mango drink with a hint of cardamom',           'price' => 4.99,  'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 3, 'name' => 'Matcha Latte',            'description' => 'Japanese green tea powder with steamed milk',                        'price' => 5.49,  'image_url' => null, 'availability' => 'available'],
-        ['category_id' => 3, 'name' => 'Café au Lait',            'description' => 'French-style coffee with equal parts brewed coffee and steamed milk', 'price' => 4.49,  'image_url' => null, 'availability' => 'available'],
+        // Japanese - Desserts
+        ['cuisine_id' => 2, 'category_id' => 2, 'name' => 'Mochi Ice Cream',         'description' => 'Japanese rice cake filled with creamy ice cream',                    'price' => 6.49,  'image_url' => null, 'availability' => 'available'],
+
+        // French - Desserts
+        ['cuisine_id' => 4, 'category_id' => 2, 'name' => 'Crème Brûlée',            'description' => 'Classic French vanilla custard with a caramelized sugar crust',      'price' => 8.49,  'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 4, 'category_id' => 2, 'name' => 'Chocolate Lava Cake',     'description' => 'Warm chocolate cake with a gooey center, served with ice cream',     'price' => 7.99,  'image_url' => null, 'availability' => 'available'],
+
+        // Pakistani - Drinks
+        ['cuisine_id' => 1, 'category_id' => 3, 'name' => 'Mango Lassi',             'description' => 'Chilled yogurt-based mango drink with a hint of cardamom',           'price' => 4.99,  'image_url' => null, 'availability' => 'available'],
+
+        // Japanese - Drinks
+        ['cuisine_id' => 2, 'category_id' => 3, 'name' => 'Matcha Latte',            'description' => 'Japanese green tea powder with steamed milk',                        'price' => 5.49,  'image_url' => null, 'availability' => 'available'],
+
+        // French - Drinks
+        ['cuisine_id' => 4, 'category_id' => 3, 'name' => 'Café au Lait',            'description' => 'French-style coffee with equal parts brewed coffee and steamed milk', 'price' => 4.49,  'image_url' => null, 'availability' => 'available'],
+        ['cuisine_id' => 4, 'category_id' => 3, 'name' => 'Fresh Lemonade',          'description' => 'Freshly squeezed lemonade with mint',                                'price' => 3.99,  'image_url' => null, 'availability' => 'available'],
     ];
 
     $stmt = $pdo->prepare("
-        INSERT INTO Dishes (category_id, name, description, price, image_url, availability)
-        VALUES (:category_id, :name, :description, :price, :image_url, :availability)
+        INSERT INTO Dishes (cuisine_id, category_id, name, description, price, image_url, availability)
+        VALUES (:cuisine_id, :category_id, :name, :description, :price, :image_url, :availability)
     ");
-
     foreach ($dishes as $dish) {
         $stmt->execute($dish);
     }
-
     echo "Seeded Dishes.\n";
 
-    // Delivery Addresses (for users 2, 3, 4)
+    // Delivery Addresses
     $addresses = [
         ['user_id' => 2, 'street' => '123 Maple Street',   'city' => 'Montreal', 'postal_code' => 'H2X 1Y4'],
         ['user_id' => 3, 'street' => '456 Oak Avenue',     'city' => 'Gatineau', 'postal_code' => 'J8T 3R2'],
@@ -318,11 +314,9 @@ try {
         INSERT INTO Delivery_Address (user_id, street, city, postal_code)
         VALUES (:user_id, :street, :city, :postal_code)
     ");
-
     foreach ($addresses as $address) {
         $stmt->execute($address);
     }
-
     echo "Seeded Delivery_Address.\n";
 
     // Orders
@@ -360,11 +354,9 @@ try {
         INSERT INTO Orders (user_id, address_id, subtotal, taxes, total, status, notes)
         VALUES (:user_id, :address_id, :subtotal, :taxes, :total, :status, :notes)
     ");
-
     foreach ($orders as $order) {
         $stmt->execute($order);
     }
-
     echo "Seeded Orders.\n";
 
     // Order_Dish
@@ -385,11 +377,9 @@ try {
         INSERT INTO Order_Dish (order_id, dish_id, quantity, item_price)
         VALUES (:order_id, :dish_id, :quantity, :item_price)
     ");
-
     foreach ($orderDishes as $item) {
         $stmt->execute($item);
     }
-
     echo "Seeded Order_Dish.\n";
 
     echo "\n✅ Database seeded successfully!\n";
