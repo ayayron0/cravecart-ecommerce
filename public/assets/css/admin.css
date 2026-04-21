@@ -1,0 +1,134 @@
+/* ============================================================
+   admin.css — Styles for all admin panel pages
+   Loaded by Admin/layout.twig so it applies to every admin page.
+   ============================================================ */
+
+/* Layout */
+.admin-wrapper { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.admin-sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: #111827;
+    color: #9ca3af;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+}
+.admin-sidebar .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 32px; padding: 0 8px;
+}
+.admin-sidebar .sidebar-logo .cc-dot {
+    background: #e63946; color: #fff;
+    border-radius: 50%; width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: .8rem; flex-shrink: 0;
+}
+.admin-sidebar .sidebar-logo span { color: #fff; font-weight: 800; font-size: 1rem; }
+.admin-sidebar .sidebar-logo small { color: #6b7280; font-size: .72rem; display: block; }
+
+.sidebar-label {
+    font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: #4b5563;
+    padding: 0 10px; margin: 20px 0 6px;
+}
+.sidebar-label-bottom { margin-top: auto; }
+
+.sidebar-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    color: #9ca3af; text-decoration: none;
+    font-size: .88rem; font-weight: 500;
+    transition: background .2s, color .2s;
+}
+.sidebar-link:hover { background: #1f2937; color: #fff; }
+.sidebar-link.active { background: #e63946; color: #fff; }
+.sidebar-link i { font-size: 1rem; }
+.sidebar-link-danger { color: #ef4444; }
+.sidebar-link-danger:hover { color: #ef4444; }
+
+/* Main content area */
+.admin-main {
+    flex: 1;
+    background: #f9fafb;
+    display: flex;
+    flex-direction: column;
+}
+.admin-topbar {
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.admin-topbar h5 { margin: 0; font-weight: 700; font-size: 1rem; }
+.admin-content { padding: 28px; flex: 1; }
+
+/* ── Orders page ── */
+.status-badge {
+    padding: 4px 12px; border-radius: 50px;
+    font-size: .75rem; font-weight: 600;
+}
+.status-processing  { background: #fef3c7; color: #92400e; }
+.status-wrapping    { background: #dbeafe; color: #1e40af; }
+.status-shipped     { background: #ede9fe; color: #5b21b6; }
+.status-delivered   { background: #d1fae5; color: #065f46; }
+
+.order-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 14px;
+}
+.order-card .order-id    { font-size: .78rem; color: #6b7280; }
+.order-card .order-name  { font-weight: 700; font-size: 1rem; }
+.order-card .order-items { font-size: .85rem; color: #374151; }
+.order-card .order-total { font-weight: 800; color: #e63946; font-size: 1.05rem; }
+
+.status-btn {
+    border: none; border-radius: 8px;
+    padding: 6px 14px; font-size: .78rem; font-weight: 600;
+    cursor: pointer; transition: opacity .2s;
+}
+.status-btn:hover { opacity: .8; }
+.btn-processing { background: #fef3c7; color: #92400e; }
+.btn-wrapping   { background: #dbeafe; color: #1e40af; }
+.btn-shipped    { background: #ede9fe; color: #5b21b6; }
+.btn-delivered  { background: #d1fae5; color: #065f46; }
+
+/* ── Menu page ── */
+.dish-row {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.dish-row .dish-emoji { font-size: 2rem; flex-shrink: 0; }
+.dish-row .dish-info  { flex: 1; }
+.dish-row .dish-name  { font-weight: 700; font-size: .95rem; margin: 0; }
+.dish-row .dish-meta  { font-size: .78rem; color: #6b7280; margin: 0; }
+.dish-row .dish-price { font-weight: 800; color: #e63946; white-space: nowrap; }
+
+.btn-edit   { background: #dbeafe; color: #1e40af; border: none; border-radius: 8px; padding: 6px 14px; font-size: .78rem; font-weight: 600; cursor: pointer; }
+.btn-delete { background: #fee2e2; color: #991b1b; border: none; border-radius: 8px; padding: 6px 14px; font-size: .78rem; font-weight: 600; cursor: pointer; }
+.btn-edit:hover   { opacity: .8; }
+.btn-delete:hover { opacity: .8; }
+
+.add-form {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 28px;
+}
+
+/* ── Summary stat cards on orders page ── */
+.stat-card-number { font-weight: 800; font-size: 1.5rem; margin: 0; }

@@ -1,0 +1,58 @@
+{% extends 'Account/layout.twig' %}
+{% block title %}My Orders — CraveCart{% endblock %}
+{% block page_title %}My Orders{% endblock %}
+
+{% block content %}
+
+{# Empty state — shown when the user has no orders yet #}
+{% if orders is empty %}
+<div class="account-empty">
+    <i class="bi bi-bag-x account-empty-icon"></i>
+    <p class="mt-3 text-muted">You haven't placed any orders yet.</p>
+    <a href="{{ basePath }}/" class="btn btn-cc mt-2">Start Ordering</a>
+</div>
+
+{% else %}
+    {% for order in orders %}
+    <div class="order-card">
+
+        {# Order summary row: id/items on the left, total/status on the right #}
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+            <div>
+                <p class="order-id mb-1">Order #{{ order.id }} &bull; {{ order.created_at }}</p>
+                <p class="order-items mb-0">{{ order.items }}</p>
+            </div>
+            <div class="text-end">
+                <p class="order-total mb-1">${{ order.total }}</p>
+                <span class="status-badge status-{{ order.status }}">{{ order.status|capitalize }}</span>
+            </div>
+        </div>
+
+        {# Progress stepper — each step lights up red once that status is reached #}
+        <div class="order-stepper mt-3">
+            <div class="step {{ order.status in ['processing','wrapping','shipped','delivered'] ? 'done' : '' }}">
+                <div class="step-dot"></div>
+                <span>Processing</span>
+            </div>
+            <div class="step-line {{ order.status in ['wrapping','shipped','delivered'] ? 'done' : '' }}"></div>
+            <div class="step {{ order.status in ['wrapping','shipped','delivered'] ? 'done' : '' }}">
+                <div class="step-dot"></div>
+                <span>Wrapping</span>
+            </div>
+            <div class="step-line {{ order.status in ['shipped','delivered'] ? 'done' : '' }}"></div>
+            <div class="step {{ order.status in ['shipped','delivered'] ? 'done' : '' }}">
+                <div class="step-dot"></div>
+                <span>Shipped</span>
+            </div>
+            <div class="step-line {{ order.status == 'delivered' ? 'done' : '' }}"></div>
+            <div class="step {{ order.status == 'delivered' ? 'done' : '' }}">
+                <div class="step-dot"></div>
+                <span>Delivered</span>
+            </div>
+        </div>
+
+    </div>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}

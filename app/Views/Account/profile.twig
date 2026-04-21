@@ -1,0 +1,70 @@
+{% extends 'Account/layout.twig' %}
+{% block title %}My Profile — CraveCart{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="account-profile-wrap">
+
+    {# Success message shown after a successful save #}
+    {% if updated is defined %}
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i> Profile updated successfully.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    {# Validation errors #}
+    {% if errors is defined and errors %}
+    <div class="alert alert-danger">
+        <ul class="mb-0 ps-3">
+            {% for error in errors %}
+                <li class="small">{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form action="{{ basePath }}/account/profile" method="post">
+
+        {# Account info #}
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+            <h6 class="fw-bold mb-4"><i class="bi bi-person me-2 cc-red"></i>Account Info</h6>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label small fw-semibold">Name</label>
+                    <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-semibold">Email Address</label>
+                    <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                </div>
+            </div>
+        </div>
+
+        {# Password change — only processed if the user fills these in #}
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+            <h6 class="fw-bold mb-1"><i class="bi bi-lock me-2 cc-red"></i>Change Password</h6>
+            <p class="text-muted small mb-4">Leave these blank if you don't want to change your password.</p>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label small fw-semibold">Current Password</label>
+                    <input type="password" name="current_password" class="form-control" placeholder="Enter current password">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">New Password</label>
+                    <input type="password" name="new_password" class="form-control" placeholder="At least 8 characters">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold">Confirm New Password</label>
+                    <input type="password" name="confirm_password" class="form-control" placeholder="Repeat new password">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-cc px-4 py-2">
+            <i class="bi bi-check-lg me-1"></i> Save Changes
+        </button>
+
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+/* ============================================================
+   checkout.css — Styles for the checkout page (checkout.twig)
+   ============================================================ */
+
+.checkout-section { background: #f8f9fa; min-height: calc(100vh - 200px); }
+
+/* White cards wrapping each section (address, payment, summary) */
+.checkout-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 20px;
+}
+.checkout-card h6 { font-weight: 700; font-size: 1rem; margin-bottom: 20px; }
+
+/* Order summary sticky card */
+.checkout-summary { position: sticky; top: 20px; }
+
+/* Subtotal / delivery / tax rows */
+.summary-row { display: flex; justify-content: space-between; font-size: .88rem; margin-bottom: 10px; }
+.summary-row.total { font-weight: 800; font-size: 1.05rem; color: var(--cc-red); }
+
+/* Individual item lines in the summary */
+.item-line { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.item-line .item-emoji { font-size: 1.6rem; flex-shrink: 0; }
+.item-line .item-name  { font-size: .88rem; font-weight: 600; flex: 1; }
+.item-line .item-qty   { font-size: .78rem; color: #6b7280; }
+.item-line .item-price { font-size: .88rem; font-weight: 700; white-space: nowrap; }
+
+/* Place order button */
+.btn-place-order {
+    background: var(--cc-red);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 14px;
+    width: 100%;
+    cursor: pointer;
+    transition: background .2s;
+}
+.btn-place-order:hover { background: #c1121f; }
+
+/* Breadcrumb links */
+.breadcrumb-link { color: var(--cc-red); text-decoration: none; }
+
+/* Icon accent colour used in card headings */
+.icon-red { color: var(--cc-red); }

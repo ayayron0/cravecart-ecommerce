@@ -1,39 +1,23 @@
 <?php
 
-class Categories{
+declare(strict_types=1);
 
-    //ATTRIBUTES
-    private $categoryId;
-    private $name;
-    private $description;
+namespace App\Domain\Models;
 
-    //CONSTRUCTOR
-    public function __construct($categoryId, $name, $description) {
-        $this->categoryId = $categoryId;
-        $this->name = $name;
-        $this->description = $description;
+use RedBeanPHP\R;
+
+/*
+ * Categories — model for the categories table
+ *
+ * WHAT: Handles all database operations related to categories (Food, Desserts, Drinks, etc.).
+ * HOW:  Uses RedBeanPHP static methods (R::) to read from the categories table.
+ *       All methods are static so you call them directly: Categories::getAll()
+ */
+class Categories
+{
+    // Fetches every row from the categories table and returns them as an array of beans.
+    public static function getAll(): array
+    {
+        return R::findAll('categories');
     }
-
-    //GETTERS AND SETTERS
-    public function getCategoryId() {
-        return $this->categoryId;
-    }
-
-    public function getName() {
-        return $this->name;
-    }
-
-    public function getDescription() {
-        return $this->description;
-    }
-
-    public function setName($name) {
-        $this->name = $name;
-    }
-
-    public function setDescription($description) {
-        $this->description = $description;
-    }
-
-    //METHODS
 }

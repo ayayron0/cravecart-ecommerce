@@ -2,19 +2,37 @@
 
 declare(strict_types=1);
 
-/**
- * This file contains the routes for the web application.
+/*
+ * web-routes.php — all URL routes for the application
+ *
+ * WHAT: Maps every URL the app responds to, to the controller method that handles it.
+ * HOW:  Each route defines an HTTP method (GET/POST), a URL pattern, and a controller.
+ *       When a request comes in, Slim matches the URL against this list and calls
+ *       the matching controller method.
+ *
+ * Route naming pattern: [controller].[method] (e.g. admin.orders, auth.login)
+ * Named routes let you generate URLs in code without hardcoding strings.
+ *
+ * Route types used here:
+ *   GET  — user is just loading a page (no data submitted)
+ *   POST — user submitted a form (data is being sent to the server)
  */
 
-use App\Controllers\AuthController;
-use App\Controllers\CartController;
-use App\Controllers\DishController;
 use App\Controllers\HomeController;
+use App\Controllers\AuthController;
+use App\Controllers\BrowseController;
+use App\Controllers\AdminController;
+use App\Controllers\CartController;
+use App\Controllers\CheckoutController;
+use App\Controllers\AccountController;
+use App\Middleware\AdminMiddleware;
+use App\Middleware\AccountMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 
 return static function (Slim\App $app): void {
+
 
     //* NOTE: Route naming pattern: [controller_name].[method_name]
     $app->get('/', [HomeController::class, 'index'])
@@ -23,27 +41,56 @@ return static function (Slim\App $app): void {
     $app->get('/home', [HomeController::class, 'index'])
         ->setName('home.index');
 
-    // Browse: category → cuisines → dishes
-    $app->get('/browse/{category}',           [DishController::class, 'cuisines'])
-        ->setName('dish.cuisines');
-    $app->get('/browse/{category}/{cuisine}', [DishController::class, 'dishes'])
-        ->setName('dish.dishes');
+    //login route
+    // Shows the login form
+    $app->get('/login', [AuthController::class, 'showLogin'])
+    ->setName('auth.login');
+    
+    //handles the login post request
+    $app->post('/login', [AuthController::class, 'login'])->setName('auth.login.post');
+    
+    
+    // Shows the register form
+    $app->get('/register', [AuthController::class, 'showRegister'])
+    ->setName('auth.register');
 
-    // Auth
-    $app->get('/login',    [AuthController::class, 'loginForm'])
-        ->setName('auth.login');
-    $app->post('/login',   [AuthController::class, 'login'])
-        ->setName('auth.login.post');
-    $app->get('/register', [AuthController::class, 'registerForm'])
-        ->setName('auth.register');
-    $app->post('/register',[AuthController::class, 'register'])
-        ->setName('auth.register.post');
-    $app->get('/logout',   [AuthController::class, 'logout'])
-        ->setName('auth.logout');
+    //handles the register post request
+    $app->post('/register', [AuthController::class, 'register'])->setName('auth.register.post');
 
-    // Cart
-    $app->get('/cart', [CartController::class, 'index'])
-        ->setName('cart.index');
+    
+    // Browse dishes by category and cuisine (e.g. /browse/food/chinese)
+    $app->get('/browse/{category}/{slug}', [BrowseController::class, 'showDishes'])
+    ->setName('browse.dishes');
+    
+    // Admin routes
+   $app->group('/admin', function ($group) {
+        $group->get('/orders',          [AdminController::class, 'orders'])->setName('admin.orders');
+        $group->get('/menu',            [AdminController::class, 'menu'])->setName('admin.menu');
+        $group->get('/add',             [AdminController::class, 'showAdd'])->setName('admin.add');
+        $group->post('/add/cuisine',    [AdminController::class, 'addCuisine'])->setName('admin.add.cuisine');
+        $group->post('/add/category',   [AdminController::class, 'addCategory'])->setName('admin.add.category');
+        $group->post('/add/dish',       [AdminController::class, 'addDish'])->setName('admin.add.dish');
+        $group->get('/profile',         [AdminController::class, 'showProfile'])->setName('admin.profile');
+        $group->post('/profile',        [AdminController::class, 'updateProfile'])->setName('admin.profile.update');
+        $group->post('/delete/dish/{id}',     [AdminController::class, 'deleteDish'])->setName('admin.delete.dish');
+        $group->post('/delete/cuisine/{id}',  [AdminController::class, 'deleteCuisine'])->setName('admin.delete.cuisine');
+        $group->post('/delete/category/{id}', [AdminController::class, 'deleteCategory'])->setName('admin.delete.category');
+    })->add(new AdminMiddleware());
+
+    // Account routes
+    $app->group('/account', function ($group) {
+        $group->get('/orders',  [AccountController::class, 'showOrders'])->setName('account.orders');
+        $group->get('/profile', [AccountController::class, 'showProfile'])->setName('account.profile');
+        $group->post('/profile', [AccountController::class, 'updateProfile'])->setName('account.profile.update');
+    })->add(new AccountMiddleware());
+
+    //log out route
+    $app->get('/logout', [AuthController::class, 'logout'])->setName('auth.logout');
+    
+
+    // Cart & checkout
+    $app->get('/cart',      [CartController::class,     'showCart'])->setName('cart.show');
+    $app->get('/checkout',  [CheckoutController::class, 'showCheckout'])->setName('checkout.show');
 
     // A route to display PHP configuration information.
     $app->get('/phpinfo', function (Request $request, Response $response, $args) {

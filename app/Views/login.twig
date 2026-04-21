@@ -13,14 +13,16 @@
                         <p class="text-muted small">Sign in to your CraveCart account</p>
                     </div>
 
-                    {% if flash is defined and flash %}
+                    {% if error is defined and error %}
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ flash }}
+                            {{ error }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     {% endif %}
 
-                    <form action="/login" method="post">
+                    {# action tells the browser where to send the form data when submitted.
+                       basePath is needed in Wampoon because the app lives in a subdirectory. #}
+                    <form action="{{ basePath }}/login" method="post">
                         <div class="mb-3">
                             <label for="email" class="form-label fw-semibold small">Email address</label>
                             <input type="email" class="form-control" id="email" name="email"
@@ -61,17 +63,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.getElementById('togglePwd').addEventListener('click', function () {
-    const pwd = document.getElementById('password');
-    const icon = document.getElementById('toggleIcon');
-    if (pwd.type === 'password') {
-        pwd.type = 'text';
-        icon.classList.replace('bi-eye', 'bi-eye-slash');
-    } else {
-        pwd.type = 'password';
-        icon.classList.replace('bi-eye-slash', 'bi-eye');
-    }
-});
-</script>
+<script src="{{ asset_url('/js/login.js') }}"></script>
 {% endblock %}

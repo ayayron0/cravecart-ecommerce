@@ -1,0 +1,84 @@
+{% extends 'Admin/layout.twig' %}
+{% block title %}Profile — CraveCart Admin{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4" style="max-width:680px;">
+
+    {# Success message #}
+    {% if updated is defined %}
+    <div class="col-12">
+        <div id="profile-alert" class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i> Profile updated successfully.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Errors #}
+    {% if errors is defined and errors %}
+    <div class="col-12">
+        <div class="alert alert-danger">
+            <ul class="mb-0 ps-3">
+                {% for error in errors %}
+                    <li class="small">{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="col-12">
+        <form action="{{ basePath }}/admin/profile" method="post">
+
+            {# Account info #}
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h6 class="fw-bold mb-4"><i class="bi bi-person me-2" style="color:#e63946;"></i>Account Info</h6>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Name</label>
+                        <input type="text" name="name" class="form-control"
+                               value="{{ user.name }}" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Email Address</label>
+                        <input type="email" name="email" class="form-control"
+                               value="{{ user.email }}" required>
+                    </div>
+                </div>
+            </div>
+
+            {# Change password #}
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h6 class="fw-bold mb-1"><i class="bi bi-lock me-2" style="color:#e63946;"></i>Change Password</h6>
+                <p class="text-muted small mb-4">Leave these blank if you don't want to change your password.</p>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Current Password</label>
+                        <input type="password" name="current_password" class="form-control"
+                               placeholder="Enter current password">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">New Password</label>
+                        <input type="password" name="new_password" class="form-control"
+                               placeholder="At least 8 characters">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Confirm New Password</label>
+                        <input type="password" name="confirm_password" class="form-control"
+                               placeholder="Repeat new password">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn text-white fw-semibold px-4 py-2"
+                    style="background:#e63946; border-radius:10px;">
+                <i class="bi bi-check-lg me-1"></i> Save Changes
+            </button>
+
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}

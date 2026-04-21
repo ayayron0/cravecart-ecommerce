@@ -13,6 +13,13 @@ define('APP_ROOT_DIR_NAME', $_ENV['APP_ROOT_DIR'] ?? basename(dirname(__FILE__, 
 // Define the path of the application's views directory.
 const APP_VIEWS_PATH = APP_BASE_DIR_PATH . '/app/Views';
 
+// Define the public assets directory name and full path.
+const APP_ASSETS_DIR      = '/public/assets';
+const APP_ASSETS_DIR_PATH = APP_BASE_DIR_PATH . '/public/assets';
+
+// Debug mode — true in dev, false in production.
+define('APP_DEBUG_MODE', ($_ENV['APP_ENV'] ?? 'dev') === 'dev');
+
 
 
 //* HTTP response status code.

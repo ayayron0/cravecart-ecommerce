@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use DI\Container;
+use App\Domain\Models\Cuisines;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -21,6 +22,18 @@ class HomeController extends BaseController
     {
         //$data['flash'] = $this->flash->getFlashMessage();
         //echo $data['message'] ;exit;
+
+        $data['cuisines'] = Cuisines::getAll();
+
+        $query = $request->getQueryParams();
+
+        if (($query['logged_out'] ?? null) === '1') {
+            $data['success'] = 'You have been successfully signed out.';
+        } elseif (($query['registered'] ?? null) === '1') {
+            $data['success'] = 'Account created! Welcome to CraveCart.';
+        } elseif (($query['loggedin'] ?? null) === '1') {
+            $data['success'] = 'Welcome back!';
+        }
 
         $data['data'] = [
             'title' => 'Home',

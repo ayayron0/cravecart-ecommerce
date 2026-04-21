@@ -1,0 +1,124 @@
+{% extends 'layout.twig' %}
+{% block title %}Checkout — CraveCart{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ asset_url('/css/checkout.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="checkout-section py-5">
+    <div class="container">
+
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ basePath }}/" class="breadcrumb-link">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ basePath }}/cart" class="breadcrumb-link">Cart</a></li>
+                <li class="breadcrumb-item active">Checkout</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+
+            {# Left — forms #}
+            <div class="col-lg-7">
+
+                {# Delivery address #}
+                <div class="checkout-card">
+                    <h6><i class="bi bi-geo-alt me-2 icon-red"></i>Delivery Address</h6>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">First Name</label>
+                                <input type="text" class="form-control" placeholder="John" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Last Name</label>
+                                <input type="text" class="form-control" placeholder="Doe" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Street Address</label>
+                                <input type="text" class="form-control" placeholder="123 Main Street" required>
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label small fw-semibold">City</label>
+                                <input type="text" class="form-control" placeholder="Toronto" required>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label small fw-semibold">Province</label>
+                                <input type="text" class="form-control" placeholder="ON" required>
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label small fw-semibold">Postal Code</label>
+                                <input type="text" class="form-control" placeholder="M5V 3A8" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold">Phone Number</label>
+                                <input type="tel" class="form-control" placeholder="(416) 555-0100" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                {# Payment #}
+                <div class="checkout-card">
+                    <h6><i class="bi bi-credit-card me-2 icon-red"></i>Payment</h6>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Card Number</label>
+                            <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Expiry Date</label>
+                            <input type="text" class="form-control" placeholder="MM / YY" maxlength="7">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">CVV</label>
+                            <input type="text" class="form-control" placeholder="•••" maxlength="4">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {# Right — order summary #}
+            <div class="col-lg-5">
+                <div class="checkout-card checkout-summary">
+                    <h6><i class="bi bi-bag me-2 icon-red"></i>Order Summary</h6>
+
+                    {# Items #}
+                    <div class="mb-4">
+                        {% for item in items %}
+                        <div class="item-line">
+                            <span class="item-emoji">{{ item.emoji }}</span>
+                            <span class="item-name">{{ item.name }}</span>
+                            <span class="item-qty">x{{ item.quantity }}</span>
+                            <span class="item-price">${{ (item.price * item.quantity)|number_format(2) }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <hr>
+
+                    {# Totals #}
+                    <div class="summary-row"><span class="text-muted">Subtotal</span><span>${{ subtotal }}</span></div>
+                    <div class="summary-row"><span class="text-muted">Delivery fee</span><span>${{ delivery_fee }}</span></div>
+                    <div class="summary-row"><span class="text-muted">Tax (13%)</span><span>${{ tax }}</span></div>
+                    <hr>
+                    <div class="summary-row total"><span>Total</span><span>${{ total }}</span></div>
+
+                    <form action="{{ basePath }}/checkout/place" method="post" class="mt-4">
+                        <button type="submit" class="btn-place-order">
+                            <i class="bi bi-bag-check me-2"></i>Place Order
+                        </button>
+                    </form>
+
+                    <p class="text-center small text-muted mt-3 mb-0">
+                        <i class="bi bi-shield-lock me-1"></i> Secure &amp; encrypted checkout
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}

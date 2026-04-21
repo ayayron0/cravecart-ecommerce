@@ -1,0 +1,31 @@
+{% extends 'Admin/layout.twig' %}
+{% block title %}Menu — CraveCart Admin{% endblock %}
+{% block page_title %}Menu Management{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+
+{# Dish list #}
+<h6 class="fw-bold mb-3">All Dishes <span class="text-muted fw-normal">({{ dishes|length }})</span></h6>
+
+{% for dish in dishes %}
+<div class="dish-row">
+    <span class="dish-emoji">{{ dish.emoji }}</span>
+    <div class="dish-info">
+        <p class="dish-name">{{ dish.name }}</p>
+        <p class="dish-meta">{{ dish.cuisine }} &bull; {{ dish.category }}</p>
+    </div>
+    <span class="dish-price">${{ dish.price }}</span>
+    <div class="d-flex gap-2">
+        <form action="{{ basePath }}/admin/delete/dish/{{ dish.id }}" method="post" class="mb-0">
+            <button type="submit" class="btn-delete"
+                    onclick="return confirm('Delete {{ dish.name }}?')">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

@@ -1,10 +1,13 @@
 <?php
+
 /**
- * CraveCart Database Seeder
- * 
- * This script creates all necessary tables using the provided schema
- * and seeds the database with sample data.
- * Usage: php data/seed.php
+ * seed.php — Database seeder
+ *
+ * WHAT: Creates all tables and fills them with sample data.
+ * HOW:  Run this once from the terminal: php data/seed.php
+ *
+ * IMPORTANT: Table names are lowercase and primary keys are named "id"
+ *            so they match what RedBeanPHP expects by default.
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -12,384 +15,297 @@ require_once __DIR__ . '/../vendor/autoload.php';
 define('APP_ROOT_DIR_NAME', 'cravecart-ecommerce');
 define('APP_BASE_DIR_PATH', __DIR__ . '/..');
 
-// Load the application settings
-$settings = require __DIR__ . '/../config/settings.php';
+// Load DB credentials directly from env.php (plain array)
+$db = require __DIR__ . '/../config/env.php';
 
 try {
-    $db_config = $settings['db'];
-    
+    // Connect without a database first so we can create it if it doesn't exist
     $pdo_no_db = new PDO(
-        'mysql:host=' . $db_config['host'] . ';charset=utf8mb4',
-        $db_config['username'],
-        $db_config['password'],
+        sprintf('mysql:host=%s;charset=utf8mb4', $db['host']),
+        $db['username'],
+        $db['password'],
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
-    
-    try {
-        $pdo_no_db->exec("CREATE DATABASE IF NOT EXISTS `" . $db_config['database'] . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        echo "✅ Database '" . $db_config['database'] . "' created or already exists.\n";
-    } catch (PDOException $e) {
-        echo "⚠️ Database creation skipped (may already exist): " . $e->getMessage() . "\n";
-    }
-    
+
+    $pdo_no_db->exec("CREATE DATABASE IF NOT EXISTS `{$db['database']}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    echo "✅ Database '{$db['database']}' ready.\n";
+
+    // Connect to the database
     $pdo = new PDO(
-        'mysql:host=' . $db_config['host'] . ';dbname=' . $db_config['database'] . ';charset=utf8mb4',
-        $db_config['username'],
-        $db_config['password'],
+        sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $db['host'], $db['database']),
+        $db['username'],
+        $db['password'],
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
 
-    echo "Connected to database.\n";
+    echo "✅ Connected to database.\n\n";
 
-    // -------------------------------------------------------
-    // Create tables
-    // -------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // CREATE TABLES
+    // Note: all table names are lowercase, all primary keys are named "id"
+    //       This matches RedBeanPHP's default conventions.
+    // -------------------------------------------------------------------------
 
-    // Users table
+    // users
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Users (
-            user_id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(100) NOT NULL,
-            email VARCHAR(150) NOT NULL UNIQUE,
-            password_hash VARCHAR(255) NOT NULL,
-            role VARCHAR(20) NOT NULL DEFAULT 'client' CHECK (role IN ('administrator', 'client')),
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        CREATE TABLE IF NOT EXISTS users (
+            id            INT AUTO_INCREMENT PRIMARY KEY,
+            name          VARCHAR(100)  NOT NULL,
+            email         VARCHAR(150)  NOT NULL UNIQUE,
+            password_hash VARCHAR(255)  NOT NULL,
+            role          VARCHAR(20)   NOT NULL DEFAULT 'client',
+            created_at    DATETIME      DEFAULT CURRENT_TIMESTAMP
         )
     ");
-    echo "✅ Created Users table.\n";
+    echo "✅ Table: users\n";
 
-    // Cuisines table (no FK, top level after category)
+    // cuisines — code (CN, JP...), slug (chinese, japanese...) and image_url
+    // are needed by the home page to display cuisine cards from the database
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Cuisines (
-            cuisine_id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(100) NOT NULL UNIQUE,
+        CREATE TABLE IF NOT EXISTS cuisines (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            name        VARCHAR(100) NOT NULL UNIQUE,
+            code        VARCHAR(5)   NOT NULL,
+            slug        VARCHAR(100) NOT NULL UNIQUE,
+            description VARCHAR(255),
+            image_url   VARCHAR(500)
+        )
+    ");
+    echo "✅ Table: cuisines\n";
+
+    // categories — Food / Desserts / Drinks
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS categories (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            name        VARCHAR(100) NOT NULL UNIQUE,
             description VARCHAR(255)
         )
     ");
-    echo "✅ Created Cuisines table.\n";
+    echo "✅ Table: categories\n";
 
-    // Categories table (no cuisine_id FK anymore)
+    // dishes — linked to both a category (Food/Desserts/Drinks)
+    //          and a cuisine (Chinese/Japanese...) via foreign keys
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Categories (
-            category_id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(100) NOT NULL UNIQUE,
-            description VARCHAR(255)
+        CREATE TABLE IF NOT EXISTS dishes (
+            id           INT AUTO_INCREMENT PRIMARY KEY,
+            category_id  INT NOT NULL,
+            cuisine_id   INT NOT NULL,
+            name         VARCHAR(150) NOT NULL,
+            description  VARCHAR(500),
+            price        DECIMAL(10,2) NOT NULL,
+            image_url    VARCHAR(500),
+            availability VARCHAR(20) NOT NULL DEFAULT 'available',
+            CONSTRAINT fk_dishes_categories FOREIGN KEY (category_id) REFERENCES categories(id),
+            CONSTRAINT fk_dishes_cuisines   FOREIGN KEY (cuisine_id)  REFERENCES cuisines(id)
         )
     ");
-    echo "✅ Created Categories table.\n";
+    echo "✅ Table: dishes\n";
 
-    // Delivery_Address table
+    // delivery_address — linked to a user
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Delivery_Address (
-            address_id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            street VARCHAR(255) NOT NULL,
-            city VARCHAR(100) NOT NULL,
-            postal_code VARCHAR(20) NOT NULL,
-            CONSTRAINT fk_DeliveryAddress_Users FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+        CREATE TABLE IF NOT EXISTS delivery_address (
+            id          INT AUTO_INCREMENT PRIMARY KEY,
+            user_id     INT          NOT NULL,
+            street      VARCHAR(255) NOT NULL,
+            city        VARCHAR(100) NOT NULL,
+            postal_code VARCHAR(20)  NOT NULL,
+            CONSTRAINT fk_delivery_address_users FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     ");
-    echo "✅ Created Delivery_Address table.\n";
+    echo "✅ Table: delivery_address\n";
 
-    // Orders table
+    // orders — linked to a user and a delivery address
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Orders (
-            order_id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            address_id INT NOT NULL,
-            subtotal DECIMAL(10,2) NOT NULL,
-            taxes DECIMAL(10,2) NOT NULL,
-            total DECIMAL(10,2) NOT NULL,
-            status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in progress', 'out for delivery', 'delivered', 'cancelled')),
-            notes VARCHAR(500),
-            ordered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            CONSTRAINT fk_Orders_Users FOREIGN KEY (user_id) REFERENCES Users(user_id),
-            CONSTRAINT fk_Orders_DeliveryAddress FOREIGN KEY (address_id) REFERENCES Delivery_Address(address_id)
+        CREATE TABLE IF NOT EXISTS orders (
+            id         INT AUTO_INCREMENT PRIMARY KEY,
+            user_id    INT            NOT NULL,
+            address_id INT            NOT NULL,
+            subtotal   DECIMAL(10,2)  NOT NULL,
+            taxes      DECIMAL(10,2)  NOT NULL,
+            total      DECIMAL(10,2)  NOT NULL,
+            status     VARCHAR(20)    NOT NULL DEFAULT 'pending',
+            notes      VARCHAR(500),
+            ordered_at DATETIME       DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT fk_orders_users           FOREIGN KEY (user_id)    REFERENCES users(id),
+            CONSTRAINT fk_orders_delivery_address FOREIGN KEY (address_id) REFERENCES delivery_address(id)
         )
     ");
-    echo "✅ Created Orders table.\n";
+    echo "✅ Table: orders\n";
 
-    // Dishes table (now has BOTH cuisine_id and category_id FKs)
+    // order_dish — links orders to dishes (many-to-many)
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Dishes (
-            dish_id INT AUTO_INCREMENT PRIMARY KEY,
-            cuisine_id INT NOT NULL,
-            category_id INT NOT NULL,
-            name VARCHAR(150) NOT NULL,
-            description VARCHAR(500),
-            price DECIMAL(10,2) NOT NULL,
-            image_url VARCHAR(500),
-            availability VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (availability IN ('available', 'unavailable', 'seasonal', 'out of stock')),
-            CONSTRAINT fk_Dishes_Cuisines FOREIGN KEY (cuisine_id) REFERENCES Cuisines(cuisine_id),
-            CONSTRAINT fk_Dishes_Categories FOREIGN KEY (category_id) REFERENCES Categories(category_id)
-        )
-    ");
-    echo "✅ Created Dishes table.\n";
-
-    // Order_Dish table
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Order_Dish (
-            order_dish_id INT AUTO_INCREMENT PRIMARY KEY,
-            order_id INT NOT NULL,
-            dish_id INT NOT NULL,
-            quantity INT NOT NULL,
+        CREATE TABLE IF NOT EXISTS order_dish (
+            id         INT AUTO_INCREMENT PRIMARY KEY,
+            order_id   INT           NOT NULL,
+            dish_id    INT           NOT NULL,
+            quantity   INT           NOT NULL,
             item_price DECIMAL(10,2) NOT NULL,
-            CONSTRAINT fk_OrderDish_Orders FOREIGN KEY (order_id) REFERENCES Orders(order_id) ON DELETE CASCADE,
-            CONSTRAINT fk_OrderDish_Dishes FOREIGN KEY (dish_id) REFERENCES Dishes(dish_id)
+            CONSTRAINT fk_order_dish_orders FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+            CONSTRAINT fk_order_dish_dishes FOREIGN KEY (dish_id)  REFERENCES dishes(id)
         )
     ");
-    echo "✅ Created Order_Dish table.\n";
+    echo "✅ Table: order_dish\n";
 
-    // Saved_Cart table
+    // saved_cart — a user's cart items linked to dishes
     $pdo->exec("
-        CREATE TABLE IF NOT EXISTS Saved_Cart (
-            saved_cart_id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            dish_id INT NOT NULL,
-            quantity INT NOT NULL,
+        CREATE TABLE IF NOT EXISTS saved_cart (
+            id         INT AUTO_INCREMENT PRIMARY KEY,
+            user_id    INT           NOT NULL,
+            dish_id    INT           NOT NULL,
+            quantity   INT           NOT NULL,
             dish_price DECIMAL(10,2) NOT NULL,
-            saved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            CONSTRAINT fk_SavedCart_Users FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
-            CONSTRAINT fk_SavedCart_Dishes FOREIGN KEY (dish_id) REFERENCES Dishes(dish_id)
+            saved_at   DATETIME      DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT fk_saved_cart_users  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            CONSTRAINT fk_saved_cart_dishes FOREIGN KEY (dish_id) REFERENCES dishes(id)
         )
     ");
-    echo "✅ Created Saved_Cart table.\n";
+    echo "✅ Table: saved_cart\n";
 
-    echo "\n🎉 All tables created successfully!\n";
+    echo "\n✅ All tables created.\n\n";
 
-    // -------------------------------------------------------
-    // Clear existing data (order matters due to foreign keys)
-    // -------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // CLEAR EXISTING DATA
+    // Foreign key checks are disabled temporarily so tables can be truncated
+    // in any order without violating constraints.
+    // -------------------------------------------------------------------------
     $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
-    $pdo->exec("TRUNCATE TABLE Order_Dish");
-    $pdo->exec("TRUNCATE TABLE Orders");
-    $pdo->exec("TRUNCATE TABLE Saved_Cart");
-    $pdo->exec("TRUNCATE TABLE Delivery_Address");
-    $pdo->exec("TRUNCATE TABLE Dishes");
-    $pdo->exec("TRUNCATE TABLE Categories");
-    $pdo->exec("TRUNCATE TABLE Cuisines");
-    $pdo->exec("TRUNCATE TABLE Users");
+    foreach (['order_dish','orders','saved_cart','delivery_address','dishes','categories','cuisines','users'] as $table) {
+        $pdo->exec("TRUNCATE TABLE `$table`");
+    }
     $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+    echo "✅ Cleared existing data.\n\n";
 
-    echo "Cleared existing data.\n";
+    // -------------------------------------------------------------------------
+    // SEED: users
+    // -------------------------------------------------------------------------
+    $stmt = $pdo->prepare("INSERT INTO users (name, email, password_hash, role) VALUES (:name, :email, :password_hash, :role)");
+    foreach ([
+        ['name' => 'Admin User',   'email' => 'admin@cravecart.com', 'password_hash' => password_hash('admin1234',   PASSWORD_BCRYPT), 'role' => 'administrator'],
+        ['name' => 'Alice Johnson', 'email' => 'alice@example.com',   'password_hash' => password_hash('password123', PASSWORD_BCRYPT), 'role' => 'client'],
+        ['name' => 'Bob Smith',     'email' => 'bob@example.com',     'password_hash' => password_hash('password123', PASSWORD_BCRYPT), 'role' => 'client'],
+        ['name' => 'Carol White',   'email' => 'carol@example.com',   'password_hash' => password_hash('password123', PASSWORD_BCRYPT), 'role' => 'client'],
+    ] as $row) { $stmt->execute($row); }
+    echo "✅ Seeded users.\n";
 
-    // -------------------------------------------------------
-    // Seed data
-    // -------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // SEED: cuisines
+    // image_url matches the Unsplash photos used in home.twig
+    // code is the 2-letter country code shown on the cuisine card
+    // slug is used in the URL: /browse/food/chinese
+    // -------------------------------------------------------------------------
+    $stmt = $pdo->prepare("INSERT INTO cuisines (name, code, slug, description, image_url) VALUES (:name, :code, :slug, :description, :image_url)");
+    foreach ([
+        ['name' => 'Chinese',  'code' => 'CN', 'slug' => 'chinese',  'description' => 'Bold flavours with noodles, rice, and dim sum',          'image_url' => 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=70'],
+        ['name' => 'Japanese', 'code' => 'JP', 'slug' => 'japanese', 'description' => 'Fresh and delicate sushi, ramen, and yakitori',           'image_url' => 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400&q=70'],
+        ['name' => 'Mexican',  'code' => 'MX', 'slug' => 'mexican',  'description' => 'Vibrant tacos, burritos, and spicy salsas',               'image_url' => 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400&q=70'],
+        ['name' => 'Italian',  'code' => 'IT', 'slug' => 'italian',  'description' => 'Classic pizzas, pastas, and Mediterranean comfort food',  'image_url' => 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400&q=70'],
+        ['name' => 'Indian',   'code' => 'IN', 'slug' => 'indian',   'description' => 'Rich curries, biryanis, and aromatic spiced dishes',      'image_url' => 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=70'],
+        ['name' => 'Lebanese', 'code' => 'LB', 'slug' => 'lebanese', 'description' => 'Fresh mezze, shawarma, and grilled meats',                'image_url' => 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=400&q=70'],
+        ['name' => 'American', 'code' => 'US', 'slug' => 'american', 'description' => 'Juicy burgers, BBQ ribs, and classic comfort food',       'image_url' => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=70'],
+        ['name' => 'Thai',     'code' => 'TH', 'slug' => 'thai',     'description' => 'Fragrant pad thai, green curry, and mango sticky rice',   'image_url' => 'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=400&q=70'],
+    ] as $row) { $stmt->execute($row); }
+    echo "✅ Seeded cuisines.\n";
 
-    // Users (1 admin + 3 clients)
-    $users = [
-        [
-            'name'          => 'Admin User',
-            'email'         => 'admin@cravecart.com',
-            'password_hash' => password_hash('admin1234', PASSWORD_BCRYPT),
-            'role'          => 'administrator',
-        ],
-        [
-            'name'          => 'Alice Johnson',
-            'email'         => 'alice@example.com',
-            'password_hash' => password_hash('password123', PASSWORD_BCRYPT),
-            'role'          => 'client',
-        ],
-        [
-            'name'          => 'Bob Smith',
-            'email'         => 'bob@example.com',
-            'password_hash' => password_hash('password123', PASSWORD_BCRYPT),
-            'role'          => 'client',
-        ],
-        [
-            'name'          => 'Carol White',
-            'email'         => 'carol@example.com',
-            'password_hash' => password_hash('password123', PASSWORD_BCRYPT),
-            'role'          => 'client',
-        ],
-    ];
-
-    $stmt = $pdo->prepare("
-        INSERT INTO Users (name, email, password_hash, role)
-        VALUES (:name, :email, :password_hash, :role)
-    ");
-    foreach ($users as $user) {
-        $stmt->execute($user);
-    }
-    echo "Seeded Users.\n";
-
-    // Cuisines
-    // cuisine_id: 1=Pakistani, 2=Japanese, 3=Italian, 4=French
-    $cuisines = [
-        ['name' => 'Pakistani', 'description' => 'Rich and aromatic South Asian cuisine'],
-        ['name' => 'Japanese',  'description' => 'Fresh and delicate East Asian cuisine'],
-        ['name' => 'Italian',   'description' => 'Classic Mediterranean comfort food'],
-        ['name' => 'French',    'description' => 'Refined and elegant European cuisine'],
-    ];
-
-    $stmt = $pdo->prepare("
-        INSERT INTO Cuisines (name, description)
-        VALUES (:name, :description)
-    ");
-    foreach ($cuisines as $cuisine) {
-        $stmt->execute($cuisine);
-    }
-    echo "Seeded Cuisines.\n";
-
-    // Categories
-    // category_id: 1=Food, 2=Desserts, 3=Drinks
-    $categories = [
+    // -------------------------------------------------------------------------
+    // SEED: categories  (id: 1=Food, 2=Desserts, 3=Drinks)
+    // -------------------------------------------------------------------------
+    $stmt = $pdo->prepare("INSERT INTO categories (name, description) VALUES (:name, :description)");
+    foreach ([
         ['name' => 'Food',     'description' => 'Main dishes from various cuisines'],
-        ['name' => 'Desserts', 'description' => 'Sweet treats and cakes'],
+        ['name' => 'Desserts', 'description' => 'Sweet treats and baked goods'],
         ['name' => 'Drinks',   'description' => 'Cold and hot beverages'],
-    ];
+    ] as $row) { $stmt->execute($row); }
+    echo "✅ Seeded categories.\n";
 
-    $stmt = $pdo->prepare("
-        INSERT INTO Categories (name, description)
-        VALUES (:name, :description)
-    ");
-    foreach ($categories as $category) {
-        $stmt->execute($category);
-    }
-    echo "Seeded Categories.\n";
+    // -------------------------------------------------------------------------
+    // SEED: dishes
+    // Each dish is linked to a category (Food/Desserts/Drinks)
+    // AND a cuisine (Chinese/Japanese/etc.) via foreign keys
+    // cuisine ids: 1=Chinese 2=Japanese 3=Mexican 4=Italian 5=Indian 6=Lebanese 7=American 8=Thai
+    // category ids: 1=Food 2=Desserts 3=Drinks
+    // -------------------------------------------------------------------------
+    $stmt = $pdo->prepare("INSERT INTO dishes (category_id, cuisine_id, name, description, price, image_url, availability) VALUES (:category_id, :cuisine_id, :name, :description, :price, :image_url, :availability)");
+    foreach ([
+        // Chinese food
+        ['category_id' => 1, 'cuisine_id' => 1, 'name' => 'Kung Pao Chicken',    'description' => 'Spicy stir-fried chicken with peanuts and chili peppers',        'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 1, 'cuisine_id' => 1, 'name' => 'Beef Fried Rice',      'description' => 'Wok-fried rice with beef, egg, and vegetables',                  'price' => 11.99, 'image_url' => null, 'availability' => 'available'],
+        // Japanese food
+        ['category_id' => 1, 'cuisine_id' => 2, 'name' => 'Salmon Roll (8 pcs)', 'description' => 'Fresh salmon with cucumber and avocado',                          'price' => 15.99, 'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 1, 'cuisine_id' => 2, 'name' => 'Chicken Ramen',        'description' => 'Rich broth with noodles, soft egg, and grilled chicken',          'price' => 14.49, 'image_url' => null, 'availability' => 'available'],
+        // Mexican food
+        ['category_id' => 1, 'cuisine_id' => 3, 'name' => 'Beef Tacos (3 pcs)',  'description' => 'Corn tortillas with seasoned beef, salsa, and sour cream',        'price' => 12.99, 'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 1, 'cuisine_id' => 3, 'name' => 'Chicken Burrito',      'description' => 'Flour tortilla loaded with chicken, rice, beans, and guacamole', 'price' => 13.49, 'image_url' => null, 'availability' => 'available'],
+        // Italian food
+        ['category_id' => 1, 'cuisine_id' => 4, 'name' => 'Margherita Pizza',    'description' => 'Classic tomato sauce, mozzarella, and fresh basil',               'price' => 11.99, 'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 1, 'cuisine_id' => 4, 'name' => 'Spaghetti Carbonara', 'description' => 'Creamy egg sauce with pancetta and parmesan',                      'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
+        // Indian food
+        ['category_id' => 1, 'cuisine_id' => 5, 'name' => 'Chicken Biryani',     'description' => 'Fragrant basmati rice with spiced chicken and caramelized onions','price' => 14.99, 'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 1, 'cuisine_id' => 5, 'name' => 'Butter Chicken',       'description' => 'Tender chicken in a creamy tomato-based curry sauce',             'price' => 14.49, 'image_url' => null, 'availability' => 'available'],
+        // Lebanese food
+        ['category_id' => 1, 'cuisine_id' => 6, 'name' => 'Chicken Shawarma',    'description' => 'Marinated chicken in pita with garlic sauce and pickles',         'price' => 12.49, 'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 1, 'cuisine_id' => 6, 'name' => 'Falafel Plate',        'description' => 'Crispy falafel with hummus, tabbouleh, and pita bread',           'price' => 11.99, 'image_url' => null, 'availability' => 'available'],
+        // American food
+        ['category_id' => 1, 'cuisine_id' => 7, 'name' => 'Classic Cheeseburger','description' => 'Beef patty with cheddar, lettuce, tomato, and pickles',           'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 1, 'cuisine_id' => 7, 'name' => 'BBQ Ribs',             'description' => 'Slow-cooked pork ribs glazed with smoky BBQ sauce',               'price' => 18.99, 'image_url' => null, 'availability' => 'available'],
+        // Thai food
+        ['category_id' => 1, 'cuisine_id' => 8, 'name' => 'Pad Thai',            'description' => 'Stir-fried rice noodles with shrimp, peanuts, and lime',          'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 1, 'cuisine_id' => 8, 'name' => 'Green Curry',          'description' => 'Creamy coconut curry with chicken, eggplant, and Thai basil',     'price' => 14.49, 'image_url' => null, 'availability' => 'available'],
+        // Desserts (shared across cuisines — using cuisine_id 1 as default)
+        ['category_id' => 2, 'cuisine_id' => 4, 'name' => 'Tiramisu',            'description' => 'Classic Italian dessert with espresso-soaked ladyfingers',        'price' => 7.99,  'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 2, 'cuisine_id' => 2, 'name' => 'Mochi Ice Cream',     'description' => 'Japanese rice cake filled with creamy ice cream',                  'price' => 6.49,  'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 2, 'cuisine_id' => 5, 'name' => 'Gulab Jamun',         'description' => 'Soft milk-solid dumplings soaked in rose-flavored sugar syrup',   'price' => 5.99,  'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 2, 'cuisine_id' => 8, 'name' => 'Mango Sticky Rice',   'description' => 'Sweet glutinous rice with fresh mango and coconut milk',          'price' => 6.99,  'image_url' => null, 'availability' => 'available'],
+        // Drinks (shared across cuisines)
+        ['category_id' => 3, 'cuisine_id' => 5, 'name' => 'Mango Lassi',         'description' => 'Chilled yogurt-based mango drink with a hint of cardamom',        'price' => 4.99,  'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 3, 'cuisine_id' => 2, 'name' => 'Matcha Latte',        'description' => 'Japanese green tea powder with steamed milk',                      'price' => 5.49,  'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 3, 'cuisine_id' => 4, 'name' => 'Café au Lait',        'description' => 'French-style coffee with equal parts brewed coffee and steamed milk','price' => 4.49,'image_url' => null, 'availability' => 'available'],
+        ['category_id' => 3, 'cuisine_id' => 3, 'name' => 'Horchata',            'description' => 'Sweet Mexican rice drink with cinnamon and vanilla',               'price' => 3.99,  'image_url' => null, 'availability' => 'available'],
+    ] as $row) { $stmt->execute($row); }
+    echo "✅ Seeded dishes.\n";
 
-    // Dishes
-    // cuisine_id: 1=Pakistani, 2=Japanese, 3=Italian, 4=French
-    // category_id: 1=Food, 2=Desserts, 3=Drinks
-    $dishes = [
-        // Pakistani - Food
-        ['cuisine_id' => 1, 'category_id' => 1, 'name' => 'Chicken Biryani',        'description' => 'Fragrant basmati rice with spiced chicken and caramelized onions',    'price' => 14.99, 'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 1, 'category_id' => 1, 'name' => 'Beef Karahi',             'description' => 'Tender beef cooked in a wok with tomatoes, ginger, and fresh spices', 'price' => 16.99, 'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 1, 'category_id' => 1, 'name' => 'Chicken Tikka',           'description' => 'Marinated chicken grilled on skewers with mint chutney',              'price' => 13.49, 'image_url' => null, 'availability' => 'available'],
-
-        // Japanese - Food
-        ['cuisine_id' => 2, 'category_id' => 1, 'name' => 'Salmon Roll (8 pcs)',     'description' => 'Fresh salmon with cucumber and avocado',                              'price' => 15.99, 'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 2, 'category_id' => 1, 'name' => 'Spicy Tuna Roll (8 pcs)', 'description' => 'Spicy tuna mix with sesame seeds',                                   'price' => 14.99, 'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 2, 'category_id' => 1, 'name' => 'Dragon Roll (8 pcs)',     'description' => 'Shrimp tempura topped with avocado and eel sauce',                   'price' => 17.99, 'image_url' => null, 'availability' => 'seasonal'],
-
-        // Italian - Food
-        ['cuisine_id' => 3, 'category_id' => 1, 'name' => 'Margherita Pizza',        'description' => 'Classic tomato sauce, mozzarella, and fresh basil',                  'price' => 11.99, 'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 3, 'category_id' => 1, 'name' => 'Pepperoni Pizza',         'description' => 'Loaded with pepperoni and mozzarella cheese',                        'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 3, 'category_id' => 1, 'name' => 'Spaghetti Carbonara',     'description' => 'Creamy egg sauce with pancetta and parmesan',                        'price' => 13.99, 'image_url' => null, 'availability' => 'available'],
-
-        // French - Food
-        ['cuisine_id' => 4, 'category_id' => 1, 'name' => 'Croque Monsieur',         'description' => 'Toasted ham and cheese sandwich with béchamel sauce',                'price' => 12.49, 'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 4, 'category_id' => 1, 'name' => 'French Onion Soup',       'description' => 'Slow-cooked onion soup with a gruyère cheese crouton',               'price' => 10.99, 'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 4, 'category_id' => 1, 'name' => 'Beef Bourguignon',        'description' => 'Braised beef in red wine with mushrooms and pearl onions',           'price' => 18.99, 'image_url' => null, 'availability' => 'available'],
-
-        // Pakistani - Desserts
-        ['cuisine_id' => 1, 'category_id' => 2, 'name' => 'Gulab Jamun',             'description' => 'Soft milk-solid dumplings soaked in rose-flavored sugar syrup',      'price' => 5.99,  'image_url' => null, 'availability' => 'available'],
-
-        // Japanese - Desserts
-        ['cuisine_id' => 2, 'category_id' => 2, 'name' => 'Mochi Ice Cream',         'description' => 'Japanese rice cake filled with creamy ice cream',                    'price' => 6.49,  'image_url' => null, 'availability' => 'available'],
-
-        // French - Desserts
-        ['cuisine_id' => 4, 'category_id' => 2, 'name' => 'Crème Brûlée',            'description' => 'Classic French vanilla custard with a caramelized sugar crust',      'price' => 8.49,  'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 4, 'category_id' => 2, 'name' => 'Chocolate Lava Cake',     'description' => 'Warm chocolate cake with a gooey center, served with ice cream',     'price' => 7.99,  'image_url' => null, 'availability' => 'available'],
-
-        // Pakistani - Drinks
-        ['cuisine_id' => 1, 'category_id' => 3, 'name' => 'Mango Lassi',             'description' => 'Chilled yogurt-based mango drink with a hint of cardamom',           'price' => 4.99,  'image_url' => null, 'availability' => 'available'],
-
-        // Japanese - Drinks
-        ['cuisine_id' => 2, 'category_id' => 3, 'name' => 'Matcha Latte',            'description' => 'Japanese green tea powder with steamed milk',                        'price' => 5.49,  'image_url' => null, 'availability' => 'available'],
-
-        // French - Drinks
-        ['cuisine_id' => 4, 'category_id' => 3, 'name' => 'Café au Lait',            'description' => 'French-style coffee with equal parts brewed coffee and steamed milk', 'price' => 4.49,  'image_url' => null, 'availability' => 'available'],
-        ['cuisine_id' => 4, 'category_id' => 3, 'name' => 'Fresh Lemonade',          'description' => 'Freshly squeezed lemonade with mint',                                'price' => 3.99,  'image_url' => null, 'availability' => 'available'],
-    ];
-
-    $stmt = $pdo->prepare("
-        INSERT INTO Dishes (cuisine_id, category_id, name, description, price, image_url, availability)
-        VALUES (:cuisine_id, :category_id, :name, :description, :price, :image_url, :availability)
-    ");
-    foreach ($dishes as $dish) {
-        $stmt->execute($dish);
-    }
-    echo "Seeded Dishes.\n";
-
-    // Delivery Addresses
-    $addresses = [
+    // -------------------------------------------------------------------------
+    // SEED: delivery_address
+    // -------------------------------------------------------------------------
+    $stmt = $pdo->prepare("INSERT INTO delivery_address (user_id, street, city, postal_code) VALUES (:user_id, :street, :city, :postal_code)");
+    foreach ([
         ['user_id' => 2, 'street' => '123 Maple Street',   'city' => 'Montreal', 'postal_code' => 'H2X 1Y4'],
         ['user_id' => 3, 'street' => '456 Oak Avenue',     'city' => 'Gatineau', 'postal_code' => 'J8T 3R2'],
         ['user_id' => 4, 'street' => '789 Pine Boulevard', 'city' => 'Ottawa',   'postal_code' => 'K1A 0A6'],
-    ];
+    ] as $row) { $stmt->execute($row); }
+    echo "✅ Seeded delivery_address.\n";
 
-    $stmt = $pdo->prepare("
-        INSERT INTO Delivery_Address (user_id, street, city, postal_code)
-        VALUES (:user_id, :street, :city, :postal_code)
-    ");
-    foreach ($addresses as $address) {
-        $stmt->execute($address);
-    }
-    echo "Seeded Delivery_Address.\n";
+    // -------------------------------------------------------------------------
+    // SEED: orders
+    // -------------------------------------------------------------------------
+    $stmt = $pdo->prepare("INSERT INTO orders (user_id, address_id, subtotal, taxes, total, status, notes) VALUES (:user_id, :address_id, :subtotal, :taxes, :total, :status, :notes)");
+    foreach ([
+        ['user_id' => 2, 'address_id' => 1, 'subtotal' => 27.98, 'taxes' => 3.64, 'total' => 31.62, 'status' => 'delivered',    'notes' => 'Leave at the door'],
+        ['user_id' => 3, 'address_id' => 2, 'subtotal' => 30.48, 'taxes' => 3.96, 'total' => 34.44, 'status' => 'in progress',  'notes' => null],
+        ['user_id' => 4, 'address_id' => 3, 'subtotal' => 13.99, 'taxes' => 1.82, 'total' => 15.81, 'status' => 'pending',      'notes' => 'Extra napkins please'],
+    ] as $row) { $stmt->execute($row); }
+    echo "✅ Seeded orders.\n";
 
-    // Orders
-    $orders = [
-        [
-            'user_id'    => 2,
-            'address_id' => 1,
-            'subtotal'   => 28.98,
-            'taxes'      => 3.77,
-            'total'      => 32.75,
-            'status'     => 'delivered',
-            'notes'      => 'Leave at the door',
-        ],
-        [
-            'user_id'    => 3,
-            'address_id' => 2,
-            'subtotal'   => 32.98,
-            'taxes'      => 4.29,
-            'total'      => 37.27,
-            'status'     => 'in progress',
-            'notes'      => null,
-        ],
-        [
-            'user_id'    => 4,
-            'address_id' => 3,
-            'subtotal'   => 15.99,
-            'taxes'      => 2.08,
-            'total'      => 18.07,
-            'status'     => 'pending',
-            'notes'      => 'Extra napkins please',
-        ],
-    ];
+    // -------------------------------------------------------------------------
+    // SEED: order_dish
+    // -------------------------------------------------------------------------
+    $stmt = $pdo->prepare("INSERT INTO order_dish (order_id, dish_id, quantity, item_price) VALUES (:order_id, :dish_id, :quantity, :item_price)");
+    foreach ([
+        ['order_id' => 1, 'dish_id' => 9,  'quantity' => 1, 'item_price' => 14.99], // Chicken Biryani
+        ['order_id' => 1, 'dish_id' => 7,  'quantity' => 1, 'item_price' => 11.99], // Margherita Pizza
+        ['order_id' => 2, 'dish_id' => 3,  'quantity' => 1, 'item_price' => 15.99], // Salmon Roll
+        ['order_id' => 2, 'dish_id' => 14, 'quantity' => 1, 'item_price' => 18.99], // BBQ Ribs
+        ['order_id' => 3, 'dish_id' => 7,  'quantity' => 1, 'item_price' => 13.99], // Margherita Pizza
+    ] as $row) { $stmt->execute($row); }
+    echo "✅ Seeded order_dish.\n";
 
-    $stmt = $pdo->prepare("
-        INSERT INTO Orders (user_id, address_id, subtotal, taxes, total, status, notes)
-        VALUES (:user_id, :address_id, :subtotal, :taxes, :total, :status, :notes)
-    ");
-    foreach ($orders as $order) {
-        $stmt->execute($order);
-    }
-    echo "Seeded Orders.\n";
-
-    // Order_Dish
-    $orderDishes = [
-        // Order 1: Chicken Biryani x1 + Pepperoni Pizza x1
-        ['order_id' => 1, 'dish_id' => 1,  'quantity' => 1, 'item_price' => 14.99],
-        ['order_id' => 1, 'dish_id' => 8,  'quantity' => 1, 'item_price' => 13.99],
-
-        // Order 2: Salmon Roll x1 + Beef Karahi x1
-        ['order_id' => 2, 'dish_id' => 4,  'quantity' => 1, 'item_price' => 15.99],
-        ['order_id' => 2, 'dish_id' => 2,  'quantity' => 1, 'item_price' => 16.99],
-
-        // Order 3: Salmon Roll x1
-        ['order_id' => 3, 'dish_id' => 4,  'quantity' => 1, 'item_price' => 15.99],
-    ];
-
-    $stmt = $pdo->prepare("
-        INSERT INTO Order_Dish (order_id, dish_id, quantity, item_price)
-        VALUES (:order_id, :dish_id, :quantity, :item_price)
-    ");
-    foreach ($orderDishes as $item) {
-        $stmt->execute($item);
-    }
-    echo "Seeded Order_Dish.\n";
-
-    echo "\n✅ Database seeded successfully!\n";
-    echo "------------------------------------\n";
-    echo "Admin login:  admin@cravecart.com / admin1234\n";
-    echo "Client login: alice@example.com   / password123\n";
-    echo "Client login: bob@example.com     / password123\n";
-    echo "Client login: carol@example.com   / password123\n";
+    echo "\n🎉 Database seeded successfully!\n";
+    echo "────────────────────────────────────\n";
+    echo "Admin:  admin@cravecart.com / admin1234\n";
+    echo "Client: alice@example.com   / password123\n";
+    echo "Client: bob@example.com     / password123\n";
+    echo "Client: carol@example.com   / password123\n";
 
 } catch (PDOException $e) {
-    echo "❌ Database error: " . $e->getMessage() . "\n";
+    echo "❌ Error: " . $e->getMessage() . "\n";
     exit(1);
 }

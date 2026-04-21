@@ -1,0 +1,73 @@
+{% extends 'Admin/layout.twig' %}
+{% block title %}Orders — CraveCart Admin{% endblock %}
+{% block page_title %}Orders{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+
+{# Summary cards #}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="bg-white border rounded-3 p-3 text-center">
+            <p class="text-muted small mb-1">Total Orders</p>
+            <h3 class="fw-800 mb-0" style="font-weight:800;">{{ orders|length }}</h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="bg-white border rounded-3 p-3 text-center">
+            <p class="text-muted small mb-1">Processing</p>
+            <h3 class="fw-800 mb-0" style="font-weight:800; color:#92400e;">
+                {{ orders|filter(o => o.status == 'processing')|length }}
+            </h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="bg-white border rounded-3 p-3 text-center">
+            <p class="text-muted small mb-1">Shipped</p>
+            <h3 class="fw-800 mb-0" style="font-weight:800; color:#5b21b6;">
+                {{ orders|filter(o => o.status == 'shipped')|length }}
+            </h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="bg-white border rounded-3 p-3 text-center">
+            <p class="text-muted small mb-1">Delivered</p>
+            <h3 class="fw-800 mb-0" style="font-weight:800; color:#065f46;">
+                {{ orders|filter(o => o.status == 'delivered')|length }}
+            </h3>
+        </div>
+    </div>
+</div>
+
+{# Orders list #}
+{% for order in orders %}
+<div class="order-card">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+
+        {# Order info #}
+        <div>
+            <p class="order-id mb-1">#{{ order.id }} &mdash; {{ order.created_at }}</p>
+            <p class="order-name mb-1">{{ order.customer_name }}</p>
+            <p class="order-items mb-0">{{ order.items }}</p>
+        </div>
+
+        {# Right side: total + status + buttons #}
+        <div class="text-end">
+            <p class="order-total mb-2">${{ order.total }}</p>
+            <span class="status-badge status-{{ order.status }} mb-3 d-inline-block">
+                {{ order.status|capitalize }}
+            </span>
+            <div class="d-flex gap-2 flex-wrap justify-content-end mt-2">
+                <button class="status-btn btn-processing">Processing</button>
+                <button class="status-btn btn-wrapping">Wrapping Up</button>
+                <button class="status-btn btn-shipped">Shipped</button>
+                <button class="status-btn btn-delivered">Delivered</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

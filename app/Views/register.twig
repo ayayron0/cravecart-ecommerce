@@ -23,7 +23,9 @@
                         </div>
                     {% endif %}
 
-                    <form action="/register" method="post">
+                    {# action tells the browser where to send the form data when submitted.
+                       basePath is needed in Wampoon because the app lives in a subdirectory. #}
+                    <form action="{{ basePath }}/register" method="post">
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label for="first_name" class="form-label fw-semibold small">First name</label>
@@ -41,11 +43,7 @@
                             <input type="email" class="form-control" id="email" name="email"
                                    value="{{ old.email ?? '' }}" placeholder="you@example.com" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="phone" class="form-label fw-semibold small">Phone number</label>
-                            <input type="tel" class="form-control" id="phone" name="phone"
-                                   value="{{ old.phone ?? '' }}" placeholder="+1 555 000 0000">
-                        </div>
+                       
                         <div class="mb-3">
                             <label for="password" class="form-label fw-semibold small">Password</label>
                             <input type="password" class="form-control" id="password" name="password"

@@ -1,0 +1,81 @@
+/* ============================================================
+   home.css — Styles for the home page (home.twig)
+   ============================================================ */
+
+/* Hero section */
+.cc-hero {
+    position: relative;
+    height: 340px;
+    background: url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1400&q=80') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+}
+.cc-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.52);
+}
+.cc-hero-text {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    text-align: center;
+    width: 100%;
+}
+.cc-hero-text h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    letter-spacing: -.03em;
+    margin-bottom: .5rem;
+}
+.cc-hero-text p {
+    font-size: 1.05rem;
+    opacity: .85;
+    font-weight: 400;
+}
+
+/* Cuisine cards */
+.cuisine-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    height: 160px;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    transition: transform .25s, box-shadow .25s;
+}
+.cuisine-card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(0,0,0,.18); }
+.cuisine-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.cuisine-card .overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.2) 60%, transparent 100%);
+}
+.cuisine-card .card-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 14px;
+    color: #fff;
+}
+.cuisine-card .card-label .code {
+    font-size: .7rem;
+    font-weight: 700;
+    opacity: .8;
+    letter-spacing: .05em;
+    display: block;
+}
+.cuisine-card .card-label .name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1;
+}

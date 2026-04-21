@@ -1,39 +1,24 @@
-<footer class="cc-footer pt-5 pb-4 mt-5">
+<footer style="background:#111827; color:#9ca3af; padding:20px 0; margin-top:auto;">
     <div class="container">
-        <div class="row gy-4">
-            <div class="col-md-4 pe-md-5">
-                <p class="mb-1" style="color:#fff; font-size:1.4rem; font-weight:800; letter-spacing:-.5px;">Crave<span style="color:#e63946;">Cart</span></p>
-                <p class="small mb-3">Fresh, authentic food from around the world — delivered to your door.</p>
-                <div class="d-flex gap-3">
-                    <a href="#" style="color:#e63946;"><i class="bi bi-instagram fs-5"></i></a>
-                    <a href="#" style="color:#e63946;"><i class="bi bi-twitter-x fs-5"></i></a>
-                    <a href="#" style="color:#e63946;"><i class="bi bi-facebook fs-5"></i></a>
-                </div>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+
+            {# Logo #}
+            <a href="{{ basePath }}/" class="d-flex align-items-center gap-2" style="text-decoration:none;">
+                <span style="background:#e63946; color:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.75rem; flex-shrink:0;">CC</span>
+                <span style="color:#fff; font-weight:800; font-size:1rem; letter-spacing:-.3px;">CraveCart</span>
+            </a>
+
+            {# Links #}
+            <div class="d-flex gap-4">
+                <a href="{{ basePath }}/browse/food"    style="color:#9ca3af; text-decoration:none; font-size:.88rem;">Menu</a>
+                <a href="#"                              style="color:#9ca3af; text-decoration:none; font-size:.88rem;">About</a>
+                <a href="#"                              style="color:#9ca3af; text-decoration:none; font-size:.88rem;">Contact</a>
+                <a href="#"                              style="color:#9ca3af; text-decoration:none; font-size:.88rem;">Help</a>
             </div>
-            <div class="col-6 col-md-2">
-                <h6 class="mb-3 small" style="text-transform:uppercase; letter-spacing:.08em;">Explore</h6>
-                <ul class="list-unstyled small lh-lg">
-                    <li><a href="{{ basePath }}/browse/food">Food</a></li>
-                    <li><a href="{{ basePath }}/browse/desserts">Desserts</a></li>
-                    <li><a href="{{ basePath }}/browse/drinks">Drinks</a></li>
-                </ul>
-            </div>
-            <div class="col-6 col-md-2">
-                <h6 class="mb-3 small" style="text-transform:uppercase; letter-spacing:.08em;">Account</h6>
-                <ul class="list-unstyled small lh-lg">
-                    <li><a href="{{ basePath }}/login">Sign In</a></li>
-                    <li><a href="{{ basePath }}/register">Register</a></li>
-                    <li><a href="{{ basePath }}/cart">My Cart</a></li>
-                </ul>
-            </div>
-            <div class="col-md-4">
-                <h6 class="mb-3 small" style="text-transform:uppercase; letter-spacing:.08em;">Contact</h6>
-                <p class="small mb-1"><i class="bi bi-envelope me-2" style="color:#e63946;"></i>hello@cravecart.com</p>
-                <p class="small mb-1"><i class="bi bi-telephone me-2" style="color:#e63946;"></i>+1 (555) 123-4567</p>
-                <p class="small"><i class="bi bi-geo-alt me-2" style="color:#e63946;"></i>Montreal, QC, Canada</p>
-            </div>
+
+            {# Copyright #}
+            <p class="mb-0" style="font-size:.8rem;">&copy; {{ "now"|date("Y") }} CraveCart. All rights reserved.</p>
+
         </div>
-        <hr class="mt-4 mb-3" style="border-color:#ffffff18;">
-        <p class="text-center small mb-0" style="font-size:.78rem;">&copy; {{ "now"|date("Y") }} CraveCart. All rights reserved.</p>
     </div>
 </footer>

@@ -1,0 +1,189 @@
+{% extends 'Admin/layout.twig' %}
+{% block title %}Add New — CraveCart Admin{% endblock %}
+{% block page_title %}Add New{% endblock %}
+
+{% block content %}
+
+{# Success / error messages #}
+{% if success is defined %}
+<div id="add-alert" class="alert alert-success alert-dismissible fade show mb-4">
+    <i class="bi bi-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+{% if errors is defined and errors %}
+<div class="alert alert-danger mb-4">
+    <ul class="mb-0 ps-3">
+        {% for error in errors %}
+            <li class="small">{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="row g-4">
+
+    {# ── Add Cuisine ── #}
+    <div class="col-lg-6">
+        <div class="add-form">
+            <h6 class="fw-bold mb-4"><i class="bi bi-globe me-2" style="color:#e63946;"></i>Add Cuisine</h6>
+            <form action="{{ basePath }}/admin/add/cuisine" method="post" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-8">
+                        <label class="form-label small fw-semibold">Cuisine Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Chinese" required>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small fw-semibold">Code</label>
+                        <input type="text" name="code" class="form-control" placeholder="CN" maxlength="5" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Description</label>
+                        <input type="text" name="description" class="form-control" placeholder="Short description">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Image</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <small class="text-muted">Or paste an image URL below</small>
+                    </div>
+                    <div class="col-12">
+                        <input type="text" name="image_url" class="form-control" placeholder="https://...">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn text-white fw-semibold px-4" style="background:#e63946;">
+                            <i class="bi bi-plus-lg me-1"></i> Add Cuisine
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {# Existing cuisines list #}
+            {% if cuisines %}
+            <hr class="my-4">
+            <p class="small fw-semibold text-muted mb-2">Existing Cuisines</p>
+            <ul class="list-unstyled mb-0">
+                {% for cuisine in cuisines %}
+                <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                    <span class="small">{{ cuisine.name }}</span>
+                    <form action="{{ basePath }}/admin/delete/cuisine/{{ cuisine.id }}" method="post" class="mb-0">
+                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
+                                onclick="return confirm('Delete {{ cuisine.name }}?')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Add Category ── #}
+    <div class="col-lg-6">
+        <div class="add-form">
+            <h6 class="fw-bold mb-4"><i class="bi bi-tag me-2" style="color:#e63946;"></i>Add Category</h6>
+            <form action="{{ basePath }}/admin/add/category" method="post">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Category Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Desserts" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Description</label>
+                        <input type="text" name="description" class="form-control" placeholder="Short description">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn text-white fw-semibold px-4" style="background:#e63946;">
+                            <i class="bi bi-plus-lg me-1"></i> Add Category
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {# Existing categories list #}
+            {% if categories %}
+            <hr class="my-4">
+            <p class="small fw-semibold text-muted mb-2">Existing Categories</p>
+            <ul class="list-unstyled mb-0">
+                {% for category in categories %}
+                <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
+                    <span class="small">{{ category.name }}</span>
+                    <form action="{{ basePath }}/admin/delete/category/{{ category.id }}" method="post" class="mb-0">
+                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
+                                onclick="return confirm('Delete {{ category.name }}?')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    {# ── Add Dish ── #}
+    <div class="col-12">
+        <div class="add-form">
+            <h6 class="fw-bold mb-4"><i class="bi bi-egg-fried me-2" style="color:#e63946;"></i>Add Dish</h6>
+            <form action="{{ basePath }}/admin/add/dish" method="post" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Dish Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Kung Pao Chicken" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Cuisine</label>
+                        <select name="cuisine_id" class="form-select" required>
+                            <option value="">Select cuisine...</option>
+                            {% for cuisine in cuisines %}
+                                <option value="{{ cuisine.id }}">{{ cuisine.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Category</label>
+                        <select name="category_id" class="form-select" required>
+                            <option value="">Select category...</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Description</label>
+                        <input type="text" name="description" class="form-control" placeholder="Short description">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Price ($)</label>
+                        <input type="number" name="price" step="0.01" min="0" class="form-control" placeholder="12.99" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Availability</label>
+                        <select name="availability" class="form-select">
+                            <option value="available">Available</option>
+                            <option value="seasonal">Seasonal</option>
+                            <option value="unavailable">Unavailable</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Dish Image</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <small class="text-muted">Or paste an image URL below</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Image URL</label>
+                        <input type="text" name="image_url" class="form-control" placeholder="https://...">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn text-white fw-semibold px-4" style="background:#e63946;">
+                            <i class="bi bi-plus-lg me-1"></i> Add Dish
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

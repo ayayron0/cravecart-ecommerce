@@ -1,0 +1,77 @@
+/* ============================================================
+   browse.css — Styles for the browse/dishes page (browse/dishes.twig)
+   ============================================================ */
+
+/* Dark page header with breadcrumb and cuisine tag */
+.page-header {
+    background: var(--cc-dark);
+    padding: 64px 0 40px;
+    color: #fff;
+}
+.page-header h1 { font-size: 2.6rem; font-weight: 900; letter-spacing: -.04em; }
+.page-header p  { color: rgba(255,255,255,.6); }
+.page-header .cuisine-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 50px;
+    padding: 6px 18px;
+    font-size: .82rem; font-weight: 600;
+    color: rgba(255,255,255,.85);
+    margin-bottom: 1.2rem;
+}
+
+/* Dish cards */
+.dish-card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 2px 14px rgba(0,0,0,.07);
+    overflow: hidden;
+    transition: transform .25s, box-shadow .25s;
+    height: 100%;
+}
+.dish-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,.13); }
+.dish-emoji-wrap {
+    background: #f3f4f6;
+    height: 150px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 4.5rem;
+    position: relative;
+}
+.dish-card .dish-body { padding: 1.2rem 1.4rem 1.4rem; display: flex; flex-direction: column; }
+.dish-card .dish-name { font-size: 1rem; font-weight: 700; margin-bottom: .3rem; letter-spacing: -.02em; }
+.dish-card .dish-desc { font-size: .82rem; color: #6b7280; flex-grow: 1; line-height: 1.55; }
+.dish-card .dish-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; }
+.dish-card .dish-price { font-size: 1.15rem; font-weight: 800; color: var(--cc-red); letter-spacing: -.02em; }
+.dish-card .btn-add {
+    background: var(--cc-red); color: #fff;
+    border: none; border-radius: 9px;
+    padding: 7px 14px; font-size: .82rem; font-weight: 600;
+    transition: background .2s; display: flex; align-items: center; gap: 5px;
+    cursor: pointer;
+}
+.dish-card .btn-add:hover { background: #c1121f; }
+
+/* Empty state when no dishes found */
+.empty-state { text-align: center; padding: 80px 20px; }
+.empty-state .empty-icon { font-size: 5rem; }
+
+/* Category tabs */
+.cc-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 2rem;
+}
+.cc-tabs a {
+    padding: 10px 20px;
+    font-size: .9rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color .2s, border-color .2s;
+}
+.cc-tabs a:hover { color: var(--cc-red); }
+.cc-tabs a.active { color: var(--cc-red); border-bottom-color: var(--cc-red); }
