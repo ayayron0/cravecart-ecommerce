@@ -6,8 +6,12 @@ namespace App\Controllers;
 
 use DI\Container;
 use App\Domain\Models\Users;
+use App\Domain\Models\Orders;
+use App\Domain\Models\OrderDish;
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+
 
 /*
  * AccountController — handles all client account pages (/account/*)
@@ -24,18 +28,37 @@ class AccountController extends BaseController
     }
 
     // Renders the client's order history with a progress stepper per order.
-    // TODO: replace dummy data with Orders::findByUser($_SESSION['user_id'])
     public function showOrders(Request $request, Response $response, array $args): Response
     {
-        // --- DUMMY DATA (replace with DB later) ---
-        $data['orders'] = [
-            ['id' => 1001, 'items' => 'Kung Pao Chicken, Spring Rolls', 'total' => '24.50', 'status' => 'delivered', 'created_at' => 'Apr 18, 2026'],
-            ['id' => 1002, 'items' => 'Sushi Platter, Miso Soup',      'total' => '38.00', 'status' => 'shipped',   'created_at' => 'Apr 19, 2026'],
-            ['id' => 1003, 'items' => 'Pad Thai, Bubble Tea',          'total' => '19.75', 'status' => 'wrapping',  'created_at' => 'Apr 20, 2026'],
-        ];
-        // --- END DUMMY DATA ---
+        $orderBeans = Orders::findByUserId((int) $_SESSION['user_id']);
 
+    $orders = array_map(function ($order) {
+
+        $items = OrderDish::findDetailedByOrderId((int) $order->id);
+
+        $itemNames = array_map(
+            static fn(array $item): string => $item['dish_name'],
+            $items
+        );
+
+        $status = match (strtolower((string) $order->status)) {
+            'pending' => 'processing',
+            'in progress' => 'wrapping',
+            default => strtolower((string) $order->status),
+        };
+
+        return [
+            'id' => $order->id,
+            'items' => empty($itemNames) ? 'No items found' : implode(', ', $itemNames),
+            'total' => number_format((float) $order->total, 2),
+            'status' => $status,
+            'created_at' => date('M j, Y', strtotime((string) $order->ordered_at)),
+        ];
+    }, $orderBeans);
+
+        $data['orders'] = $orders;
         $data['activeNav'] = 'orders';
+
         return $this->render($response, 'Account/orders.twig', $data);
     }
 

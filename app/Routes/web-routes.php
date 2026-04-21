@@ -65,11 +65,14 @@ return static function (Slim\App $app): void {
     // Admin routes
    $app->group('/admin', function ($group) {
         $group->get('/orders',          [AdminController::class, 'orders'])->setName('admin.orders');
+        $group->post('/orders/{id}/status', [AdminController::class, 'updateOrderStatus'])->setName('admin.orders.status');
         $group->get('/menu',            [AdminController::class, 'menu'])->setName('admin.menu');
         $group->get('/add',             [AdminController::class, 'showAdd'])->setName('admin.add');
         $group->post('/add/cuisine',    [AdminController::class, 'addCuisine'])->setName('admin.add.cuisine');
         $group->post('/add/category',   [AdminController::class, 'addCategory'])->setName('admin.add.category');
         $group->post('/add/dish',       [AdminController::class, 'addDish'])->setName('admin.add.dish');
+        $group->get('/edit/dish/{id}', [AdminController::class, 'showEditDish'])->setName('admin.edit.dish');
+        $group->post('/edit/dish/{id}', [AdminController::class, 'updateDish'])->setName('admin.update.dish');
         $group->get('/profile',         [AdminController::class, 'showProfile'])->setName('admin.profile');
         $group->post('/profile',        [AdminController::class, 'updateProfile'])->setName('admin.profile.update');
         $group->post('/delete/dish/{id}',     [AdminController::class, 'deleteDish'])->setName('admin.delete.dish');

@@ -6,6 +6,8 @@ namespace App\Controllers;
 
 use DI\Container;
 use App\Domain\Models\Users;
+use App\Domain\Models\Orders;
+use App\Domain\Models\OrderDish;
 use App\Domain\Models\Cuisines;
 use App\Domain\Models\Categories;
 use App\Domain\Models\Dishes;
@@ -19,7 +21,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  * HOW:  Every route in the /admin group is protected by AdminMiddleware,
  *       which checks the session before this controller ever runs.
  *       Each method fetches the data needed for its page and renders the view.
- * NOTE: Currently uses dummy data — will be replaced with DB queries later.
+ * NOTE: Currently uses dummy data — will be replaced with DB queries later. (this has been done)
  */
 class AdminController extends BaseController
 {
@@ -31,49 +33,71 @@ class AdminController extends BaseController
     // Renders the orders dashboard — shows all customer orders and their status
     public function orders(Request $request, Response $response, array $args): Response
     {
-        // --- DUMMY DATA (replace with DB later) ---
-        $data['orders'] = [
-            ['id' => 1001, 'customer_name' => 'Alice Johnson', 'items' => 'Kung Pao Chicken, Spring Rolls', 'total' => '24.50', 'status' => 'processing',  'created_at' => 'Apr 20, 2026 10:14 AM'],
-            ['id' => 1002, 'customer_name' => 'Bob Smith',     'items' => 'Sushi Platter, Miso Soup',      'total' => '38.00', 'status' => 'wrapping',    'created_at' => 'Apr 20, 2026 10:32 AM'],
-            ['id' => 1003, 'customer_name' => 'Clara Lee',     'items' => 'Tacos x3, Churros',             'total' => '19.75', 'status' => 'shipped',     'created_at' => 'Apr 20, 2026 09:55 AM'],
-            ['id' => 1004, 'customer_name' => 'David Nguyen',  'items' => 'Pad Thai, Mango Sticky Rice',   'total' => '22.00', 'status' => 'delivered',   'created_at' => 'Apr 20, 2026 08:40 AM'],
-        ];
-        // --- END DUMMY DATA ---
+        $orderRows = Orders::findAllDetailed();
 
-        // activeNav tells the sidebar which link to highlight as active
+    $orders = array_map(function (array $order): array {
+        $items = OrderDish::findDetailedByOrderId((int) $order['id']);
+
+        $itemNames = array_map(
+            static fn(array $item): string => $item['dish_name'],
+            $items
+        );
+
+        $status = match (strtolower((string) $order['status'])) {
+            'pending' => 'processing',
+            'in progress' => 'wrapping',
+            default => strtolower((string) $order['status']),
+        };
+
+        return [
+            'id' => $order['id'],
+            'customer_name' => $order['customer_name'],
+            'items' => empty($itemNames) ? 'No items found' : implode(', ', $itemNames),
+            'total' => number_format((float) $order['total'], 2),
+            'status' => $status,
+            'created_at' => date('M j, Y g:i A', strtotime((string) $order['ordered_at'])),
+        ];
+    }, $orderRows);
+
+        $data['orders'] = $orders;
         $data['activeNav'] = 'orders';
+
         return $this->render($response, 'Admin/orders.twig', $data);
+
     }
 
     // Renders the menu management page — admin can add, edit, and delete dishes
     public function menu(Request $request, Response $response, array $args): Response
-    {
-        // --- DUMMY DATA (replace with DB later) ---
-        $data['cuisines'] = [
-            ['id' => 1, 'name' => 'Chinese'],
-            ['id' => 2, 'name' => 'Japanese'],
-            ['id' => 3, 'name' => 'Mexican'],
-        ];
+{
+        $rows = Dishes::getAllDetailed();
 
-        $data['categories'] = [
-            ['id' => 1, 'name' => 'Food'],
-            ['id' => 2, 'name' => 'Desserts'],
-            ['id' => 3, 'name' => 'Drinks'],
-        ];
+        $grouped = [];
 
-        $data['dishes'] = [
-            ['emoji' => '🍛', 'name' => 'Kung Pao Chicken',   'cuisine' => 'Chinese',  'category' => 'Food',     'price' => '14.99'],
-            ['emoji' => '🍱', 'name' => 'Sushi Platter',      'cuisine' => 'Japanese', 'category' => 'Food',     'price' => '22.00'],
-            ['emoji' => '🌮', 'name' => 'Tacos',              'cuisine' => 'Mexican',  'category' => 'Food',     'price' => '9.50'],
-            ['emoji' => '🍮', 'name' => 'Mango Sticky Rice',  'cuisine' => 'Japanese', 'category' => 'Desserts', 'price' => '7.00'],
-            ['emoji' => '🧋', 'name' => 'Bubble Tea',         'cuisine' => 'Chinese',  'category' => 'Drinks',   'price' => '5.50'],
-        ];
-        // --- END DUMMY DATA ---
+        foreach ($rows as $dish) {
+            $categoryName = $dish['category_name'] ?? 'Uncategorized';
 
-        //tell the sidebar which link to highlight as active
-        $data['activeNav'] = 'menu';
-        return $this->render($response, 'Admin/menu.twig', $data);
+            if (!isset($grouped[$categoryName])) {
+              $grouped[$categoryName] = [];
+        }
+
+        $grouped[$categoryName][] = [
+            'id' => $dish['id'],
+            'name' => $dish['name'],
+            'description' => $dish['description'],
+            'price' => $dish['price'],
+            'availability' => $dish['availability'],
+            'emoji' => '🍽️',
+            'cuisine' => $dish['cuisine_name'] ?? '',
+            'category' => $categoryName,
+        ];
     }
+
+        $data['groupedDishes'] = $grouped;
+        $data['dishCount'] = count($rows);
+        $data['activeNav'] = 'menu';
+
+        return $this->render($response, 'Admin/menu.twig', $data);
+}
 
     // Renders the profile page pre-filled with the admin's current info
     public function showProfile(Request $request, Response $response, array $args): Response
@@ -259,6 +283,93 @@ class AdminController extends BaseController
     return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add?success=dish');
 }
 
+public function showEditDish(Request $request, Response $response, array $args): Response
+{
+    $dish = Dishes::findById((int) $args['id']);
+
+    if ($dish === null) {
+        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+        return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/menu');
+    }
+
+    $data['dish'] = $dish;
+    $data['cuisines'] = Cuisines::getAll();
+    $data['categories'] = Categories::getAll();
+    $data['activeNav'] = 'menu';
+
+    $success = $request->getQueryParams()['updated'] ?? null;
+    if ($success === '1') {
+        $data['success'] = 'Dish updated successfully.';
+    }
+
+    return $this->render($response, 'Admin/edit-dish.twig', $data);
+}
+
+public function updateDish(Request $request, Response $response, array $args): Response
+{
+    $body = $request->getParsedBody();
+    $dishId = (int) $args['id'];
+    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+
+    $name = trim($body['name'] ?? '');
+    $cuisineId = (int) ($body['cuisine_id'] ?? 0);
+    $categoryId = (int) ($body['category_id'] ?? 0);
+    $description = trim($body['description'] ?? '');
+    $price = (float) ($body['price'] ?? 0);
+    $availability = trim($body['availability'] ?? 'available');
+    $imageUrl = trim($body['image_url'] ?? '');
+
+    $errors = [];
+
+    if ($name === '') {
+        $errors[] = 'Dish name is required.';
+    }
+
+    if ($cuisineId <= 0) {
+        $errors[] = 'Cuisine is required.';
+    }
+
+    if ($categoryId <= 0) {
+        $errors[] = 'Category is required.';
+    }
+
+    if ($price < 0) {
+        $errors[] = 'Price cannot be negative.';
+    }
+
+    if (!empty($errors)) {
+        $data['errors'] = $errors;
+        $data['dish'] = Dishes::findById($dishId);
+        $data['cuisines'] = Cuisines::getAll();
+        $data['categories'] = Categories::getAll();
+        $data['activeNav'] = 'menu';
+        return $this->render($response, 'Admin/edit-dish.twig', $data);
+    }
+
+    $updated = Dishes::update(
+        $dishId,
+        $categoryId,
+        $cuisineId,
+        $name,
+        $description,
+        $price,
+        $imageUrl,
+        $availability
+    );
+
+    if (!$updated) {
+        $data['errors'] = ['Unable to update dish. Please check the values and try again.'];
+        $data['dish'] = Dishes::findById($dishId);
+        $data['cuisines'] = Cuisines::getAll();
+        $data['categories'] = Categories::getAll();
+        $data['activeNav'] = 'menu';
+        return $this->render($response, 'Admin/edit-dish.twig', $data);
+    }
+
+    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/edit/dish/' . $dishId . '?updated=1');
+}
+
+
     public function deleteDish(Request $request, Response $response, array $args): Response
 {
     $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
@@ -327,6 +438,23 @@ class AdminController extends BaseController
     return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add');
 }
 
+public function updateOrderStatus(Request $request, Response $response, array $args): Response
+{
+    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+    $orderId = (int) $args['id'];
+    $status = trim($request->getParsedBody()['status'] ?? '');
+
+    $allowedStatuses = ['processing', 'wrapping', 'shipped', 'delivered'];
+
+    if ($orderId > 0 && in_array($status, $allowedStatuses, true)) {
+        Orders::updateStatus($orderId, $status);
+    }
+
+    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/orders');
 }
+
+
+}
+
 
 

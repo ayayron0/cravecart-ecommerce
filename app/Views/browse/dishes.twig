@@ -92,9 +92,10 @@
             <div class="empty-icon">🍽️</div>
             <h4 class="fw-bold mt-3">Nothing here yet</h4>
             <p class="text-muted">No {{ category.name|lower }} available for {{ cuisine.name }} cuisine right now.</p>
-            <a href="{{ basePath }}/browse/{{ category.slug }}" class="btn-cc mt-2 d-inline-block">
-                Back to {{ category.name }}
+            <a href="{{ basePath }}/" class="btn-cc mt-2 d-inline-block">
+                Back to Home
             </a>
+
         </div>
 
         {% endif %}

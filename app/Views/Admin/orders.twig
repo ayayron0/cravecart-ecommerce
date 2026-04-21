@@ -58,15 +58,31 @@
             <span class="status-badge status-{{ order.status }} mb-3 d-inline-block">
                 {{ order.status|capitalize }}
             </span>
-            <div class="d-flex gap-2 flex-wrap justify-content-end mt-2">
-                <button class="status-btn btn-processing">Processing</button>
-                <button class="status-btn btn-wrapping">Wrapping Up</button>
-                <button class="status-btn btn-shipped">Shipped</button>
-                <button class="status-btn btn-delivered">Delivered</button>
-            </div>
-        </div>
+    <div class="d-flex gap-2 flex-wrap justify-content-end mt-2">
+     <form action="{{ basePath }}/admin/orders/{{ order.id }}/status" method="post" class="mb-0">
+        <input type="hidden" name="status" value="processing">
+        <button type="submit" class="status-btn btn-processing">Processing</button>
+     </form>
 
+     <form action="{{ basePath }}/admin/orders/{{ order.id }}/status" method="post" class="mb-0">
+        <input type="hidden" name="status" value="wrapping">
+        <button type="submit" class="status-btn btn-wrapping">Wrapping Up</button>
+     </form>
+
+     <form action="{{ basePath }}/admin/orders/{{ order.id }}/status" method="post" class="mb-0">
+        <input type="hidden" name="status" value="shipped">
+        <button type="submit" class="status-btn btn-shipped">Shipped</button>
+     </form>
+
+     <form action="{{ basePath }}/admin/orders/{{ order.id }}/status" method="post" class="mb-0">
+        <input type="hidden" name="status" value="delivered">
+        <button type="submit" class="status-btn btn-delivered">Delivered</button>
+     </form>
     </div>
+
+      </div>
+
+      </div>
 </div>
 {% endfor %}
 

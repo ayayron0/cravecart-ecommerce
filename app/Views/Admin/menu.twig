@@ -2,30 +2,69 @@
 {% block title %}Menu — CraveCart Admin{% endblock %}
 {% block page_title %}Menu Management{% endblock %}
 
-{% block extra_css %}{% endblock %}
-
 {% block content %}
 
-{# Dish list #}
-<h6 class="fw-bold mb-3">All Dishes <span class="text-muted fw-normal">({{ dishes|length }})</span></h6>
-
-{% for dish in dishes %}
-<div class="dish-row">
-    <span class="dish-emoji">{{ dish.emoji }}</span>
-    <div class="dish-info">
-        <p class="dish-name">{{ dish.name }}</p>
-        <p class="dish-meta">{{ dish.cuisine }} &bull; {{ dish.category }}</p>
-    </div>
-    <span class="dish-price">${{ dish.price }}</span>
-    <div class="d-flex gap-2">
-        <form action="{{ basePath }}/admin/delete/dish/{{ dish.id }}" method="post" class="mb-0">
-            <button type="submit" class="btn-delete"
-                    onclick="return confirm('Delete {{ dish.name }}?')">
-                <i class="bi bi-trash"></i> Delete
-            </button>
-        </form>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h6 class="fw-bold mb-1">All Dishes</h6>
+        <p class="text-muted mb-0 small">{{ dishCount }} total dishes across all categories</p>
     </div>
 </div>
-{% endfor %}
+
+{% if groupedDishes is empty %}
+    <div class="add-form text-center py-5">
+        <h5 class="fw-bold mb-2">No dishes yet</h5>
+        <p class="text-muted mb-3">Start by adding your first dish.</p>
+        <a href="{{ basePath }}/admin/add" class="btn text-white fw-semibold px-4" style="background:#e63946;">
+            Add Dish
+        </a>
+    </div>
+{% else %}
+    {% for categoryName, dishes in groupedDishes %}
+        <div class="menu-section mb-4">
+            <div class="menu-section-header">
+                <div>
+                    <h5 class="mb-1 fw-bold">{{ categoryName }}</h5>
+                    <p class="text-muted small mb-0">{{ dishes|length }} dish{{ dishes|length == 1 ? '' : 'es' }}</p>
+                </div>
+            </div>
+
+            <div class="menu-grid">
+                {% for dish in dishes %}
+                    <div class="menu-card">
+                        <div class="menu-card-top">
+                            <span class="dish-emoji">{{ dish.emoji }}</span>
+                            <span class="status-badge status-{{ dish.availability }}">
+                                {{ dish.availability|capitalize }}
+                            </span>
+                        </div>
+
+                        <div class="menu-card-body">
+                            <p class="dish-name mb-1">{{ dish.name }}</p>
+                            <p class="dish-meta mb-2">{{ dish.cuisine }}</p>
+                            <p class="dish-desc mb-3">{{ dish.description ?: 'No description yet.' }}</p>
+                        </div>
+
+                        <div class="menu-card-footer">
+                            <span class="dish-price">${{ dish.price }}</span>
+                            <div class="d-flex gap-2">
+                                <a href="{{ basePath }}/admin/edit/dish/{{ dish.id }}" class="btn-edit text-decoration-none">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+
+                                <form action="{{ basePath }}/admin/delete/dish/{{ dish.id }}" method="post" class="mb-0">
+                                    <button type="submit" class="btn-delete"
+                                            onclick="return confirm('Delete {{ dish.name }}?')">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
 
 {% endblock %}

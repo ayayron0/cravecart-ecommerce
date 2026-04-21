@@ -1,0 +1,97 @@
+{% extends 'Admin/layout.twig' %}
+{% block title %}Edit Dish — CraveCart Admin{% endblock %}
+{% block page_title %}Edit Dish{% endblock %}
+
+{% block content %}
+
+{% if success is defined %}
+<div class="alert alert-success alert-dismissible fade show mb-4">
+    <i class="bi bi-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{% if errors is defined and errors %}
+<div class="alert alert-danger mb-4">
+    <ul class="mb-0 ps-3">
+        {% for error in errors %}
+            <li class="small">{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="add-form">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h6 class="fw-bold mb-1">Edit {{ dish.name }}</h6>
+            <p class="text-muted small mb-0">Update this dish’s details.</p>
+        </div>
+        <a href="{{ basePath }}/admin/menu" class="btn btn-outline-secondary btn-sm">
+            Back to Menu
+        </a>
+    </div>
+
+    <form action="{{ basePath }}/admin/edit/dish/{{ dish.id }}" method="post">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Dish Name</label>
+                <input type="text" name="name" class="form-control" value="{{ dish.name }}" required>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Cuisine</label>
+                <select name="cuisine_id" class="form-select" required>
+                    {% for cuisine in cuisines %}
+                        <option value="{{ cuisine.id }}" {% if cuisine.id == dish.cuisine_id %}selected{% endif %}>
+                            {{ cuisine.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Category</label>
+                <select name="category_id" class="form-select" required>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category.id == dish.category_id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Description</label>
+                <input type="text" name="description" class="form-control" value="{{ dish.description }}">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Price ($)</label>
+                <input type="number" name="price" step="0.01" min="0" class="form-control" value="{{ dish.price }}" required>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Availability</label>
+                <select name="availability" class="form-select">
+                    <option value="available" {% if dish.availability == 'available' %}selected{% endif %}>Available</option>
+                    <option value="seasonal" {% if dish.availability == 'seasonal' %}selected{% endif %}>Seasonal</option>
+                    <option value="unavailable" {% if dish.availability == 'unavailable' %}selected{% endif %}>Unavailable</option>
+                </select>
+            </div>
+
+            <div class="col-md-12">
+                <label class="form-label small fw-semibold">Image URL</label>
+                <input type="text" name="image_url" class="form-control" value="{{ dish.image_url }}" placeholder="https://...">
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn text-white fw-semibold px-4" style="background:#e63946;">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

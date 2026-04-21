@@ -7,6 +7,9 @@ namespace App\Controllers;
 use DI\Container;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use App\Domain\Models\Cuisines;
+use App\Domain\Models\Dishes;
+
 
 /*
  * BrowseController — handles the dish browsing page
@@ -29,52 +32,43 @@ class BrowseController extends BaseController
     public function showDishes(Request $request, Response $response, array $args): Response
     {
         // Read the two URL segments captured by the route {category} and {slug}
-        $cuisineSlug  = $args['slug'];
+         $cuisineSlug = $args['slug'];
         $categorySlug = $args['category'];
 
-        // --- DUMMY DATA (replace with DB later) ---
-        $cuisine = [
-            'name'        => ucfirst($cuisineSlug),
-            'slug'        => $cuisineSlug,
-            'flag'        => '🍜',
-            'description' => 'A selection of popular ' . ucfirst($cuisineSlug) . ' dishes.',
-        ];
+        $cuisineBean = Cuisines::findBySlug($cuisineSlug);
+
+        if ($cuisineBean === null) {
+            return $this->render($response->withStatus(404), 'errors/404.twig');
+        }
 
         $category = [
             'name' => ucfirst($categorySlug),
             'slug' => $categorySlug,
         ];
 
-        // Dummy dishes labelled with the category so you can see filtering works
-        $dishes = [
-            [
-                'name'         => ucfirst($cuisineSlug) . ' ' . ucfirst($categorySlug) . ' Dish 1',
-                'description'  => 'A delicious ' . $categorySlug . ' dish with rich flavours.',
-                'price'        => '12.99',
-                'emoji'        => '🍛',
-                'availability' => 'available',
-            ],
-            [
-                'name'         => ucfirst($cuisineSlug) . ' ' . ucfirst($categorySlug) . ' Dish 2',
-                'description'  => 'Light and fresh, perfect for any time.',
-                'price'        => '9.50',
-                'emoji'        => '🥗',
-                'availability' => 'available',
-            ],
-            [
-                'name'         => ucfirst($cuisineSlug) . ' ' . ucfirst($categorySlug) . ' Dish 3',
-                'description'  => 'A classic favourite, slow-cooked to perfection.',
-                'price'        => '15.00',
-                'emoji'        => '🍲',
-                'availability' => 'seasonal',
-            ],
+        $cuisine = [
+            'name' => $cuisineBean->name,
+            'slug' => $cuisineBean->slug,
+            'flag' => '🍜',
+            'description' => $cuisineBean->description,
         ];
-        // --- END DUMMY DATA ---
+
+        $dishBeans = Dishes::findByCuisineAndCategory($cuisineSlug, $categorySlug);
+
+        $dishes = array_map(static function ($dish): array {
+            return [
+                'name' => $dish->name,
+                'description' => $dish->description,
+                'price' => (float) $dish->price,
+                'emoji' => '🍽️',
+                'availability' => $dish->availability,
+            ];
+        }, $dishBeans);
 
         $data = [
-            'cuisine'  => $cuisine,
+            'cuisine' => $cuisine,
             'category' => $category,
-            'dishes'   => $dishes,
+            'dishes' => $dishes,
         ];
 
         return $this->render($response, 'browse/dishes.twig', $data);
