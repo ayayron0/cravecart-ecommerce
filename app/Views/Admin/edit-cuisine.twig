@@ -1,0 +1,66 @@
+{% extends 'Admin/layout.twig' %}
+{% block title %}Edit Cuisine — CraveCart Admin{% endblock %}
+{% block page_title %}Edit Cuisine{% endblock %}
+
+{% block content %}
+
+{% if success is defined and success %}
+<div class="alert alert-success alert-dismissible fade show mb-4">
+    <i class="bi bi-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+{% if errors is defined and errors %}
+<div class="alert alert-danger mb-4">
+    <ul class="mb-0 ps-3">
+        {% for error in errors %}
+            <li class="small">{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="add-form">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h6 class="fw-bold mb-1">Edit {{ cuisine.name }}</h6>
+            <p class="text-muted small mb-0">Update this cuisine's details.</p>
+        </div>
+        <a href="{{ basePath }}/admin/add" class="btn btn-outline-secondary btn-sm">
+            Back to Add New
+        </a>
+    </div>
+
+    <form action="{{ basePath }}/admin/edit/cuisine/{{ cuisine.id }}" method="post">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <label class="form-label small fw-semibold">Cuisine Name</label>
+                <input type="text" name="name" class="form-control" value="{{ cuisine.name }}" required>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Code</label>
+                <input type="text" name="code" class="form-control" value="{{ cuisine.code }}" maxlength="5" required>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label small fw-semibold">Description</label>
+                <input type="text" name="description" class="form-control" value="{{ cuisine.description }}">
+            </div>
+
+            <div class="col-12">
+                <label class="form-label small fw-semibold">Image URL</label>
+                <input type="text" name="image_url" class="form-control" value="{{ cuisine.image_url }}" placeholder="https://...">
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn text-white fw-semibold px-4" style="background:#e63946;">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -73,6 +73,10 @@ return static function (Slim\App $app): void {
         $group->post('/add/dish',       [AdminController::class, 'addDish'])->setName('admin.add.dish');
         $group->get('/edit/dish/{id}', [AdminController::class, 'showEditDish'])->setName('admin.edit.dish');
         $group->post('/edit/dish/{id}', [AdminController::class, 'updateDish'])->setName('admin.update.dish');
+        $group->get('/edit/cuisine/{id}', [AdminController::class, 'showEditCuisine'])->setName('admin.edit.cuisine');
+        $group->post('/edit/cuisine/{id}', [AdminController::class, 'updateCuisine'])->setName('admin.update.cuisine');
+        $group->get('/edit/category/{id}', [AdminController::class, 'showEditCategory'])->setName('admin.edit.category');
+        $group->post('/edit/category/{id}', [AdminController::class, 'updateCategory'])->setName('admin.update.category');
         $group->get('/profile',         [AdminController::class, 'showProfile'])->setName('admin.profile');
         $group->post('/profile',        [AdminController::class, 'updateProfile'])->setName('admin.profile.update');
         $group->post('/delete/dish/{id}',     [AdminController::class, 'deleteDish'])->setName('admin.delete.dish');

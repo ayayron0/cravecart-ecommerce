@@ -5,7 +5,7 @@
 {% block content %}
 
 {# Success / error messages #}
-{% if success is defined %}
+{% if success is defined and success %}
 <div id="add-alert" class="alert alert-success alert-dismissible fade show mb-4">
     <i class="bi bi-check-circle me-2"></i>{{ success }}
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -65,12 +65,20 @@
                 {% for cuisine in cuisines %}
                 <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
                     <span class="small">{{ cuisine.name }}</span>
-                    <form action="{{ basePath }}/admin/delete/cuisine/{{ cuisine.id }}" method="post" class="mb-0">
-                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
-                                onclick="return confirm('Delete {{ cuisine.name }}?')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+        <div class="d-flex gap-2">
+            <a href="{{ basePath }}/admin/edit/cuisine/{{ cuisine.id }}"
+                class="btn btn-sm btn-outline-primary py-0 px-2">
+                <i class="bi bi-pencil-square"></i>
+            </a>
+
+            <form action="{{ basePath }}/admin/delete/cuisine/{{ cuisine.id }}" method="post" class="mb-0">
+            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
+               onclick="return confirm('Delete {{ cuisine.name }}?')">
+                <i class="bi bi-trash"></i>
+            </button>
+            </form>
+        </div>
+
                 </li>
                 {% endfor %}
             </ul>
@@ -108,12 +116,19 @@
                 {% for category in categories %}
                 <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
                     <span class="small">{{ category.name }}</span>
-                    <form action="{{ basePath }}/admin/delete/category/{{ category.id }}" method="post" class="mb-0">
-                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
-                                onclick="return confirm('Delete {{ category.name }}?')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
+        <div class="d-flex gap-2">
+            <a href="{{ basePath }}/admin/edit/category/{{ category.id }}"
+                class="btn btn-sm btn-outline-primary py-0 px-2">
+                    <i class="bi bi-pencil-square"></i>
+            </a>
+
+            <form action="{{ basePath }}/admin/delete/category/{{ category.id }}" method="post" class="mb-0">
+                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
+                    onclick="return confirm('Delete {{ category.name }}?')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
                 </li>
                 {% endfor %}
             </ul>

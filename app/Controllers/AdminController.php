@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use DI\Container;
-use App\Domain\Models\Users;
-use App\Domain\Models\Orders;
-use App\Domain\Models\OrderDish;
-use App\Domain\Models\Cuisines;
 use App\Domain\Models\Categories;
+use App\Domain\Models\Cuisines;
 use App\Domain\Models\Dishes;
+use App\Domain\Models\OrderDish;
+use App\Domain\Models\Orders;
+use App\Domain\Models\Users;
+use DI\Container;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 /*
- * AdminController — handles all admin panel pages
+ * AdminController - handles all admin panel pages
  *
  * WHAT: Controls the pages only administrators can access.
  * HOW:  Every route in the /admin group is protected by AdminMiddleware,
  *       which checks the session before this controller ever runs.
  *       Each method fetches the data needed for its page and renders the view.
- * NOTE: Currently uses dummy data — will be replaced with DB queries later. (this has been done)
+ * NOTE: This controller now uses the database-backed model layer.
  */
 class AdminController extends BaseController
 {
@@ -30,431 +30,538 @@ class AdminController extends BaseController
         parent::__construct($container);
     }
 
-    // Renders the orders dashboard — shows all customer orders and their status
+    // Renders the orders dashboard - shows all customer orders and their status.
+    // Converts DB rows into the exact data shape Admin/orders.twig expects.
     public function orders(Request $request, Response $response, array $args): Response
     {
         $orderRows = Orders::findAllDetailed();
 
-    $orders = array_map(function (array $order): array {
-        $items = OrderDish::findDetailedByOrderId((int) $order['id']);
+        $orders = array_map(function (array $order): array {
+            $items = OrderDish::findDetailedByOrderId((int) $order['id']);
 
-        $itemNames = array_map(
-            static fn(array $item): string => $item['dish_name'],
-            $items
-        );
+            $itemNames = array_map(
+                static fn(array $item): string => $item['dish_name'],
+                $items
+            );
 
-        $status = match (strtolower((string) $order['status'])) {
-            'pending' => 'processing',
-            'in progress' => 'wrapping',
-            default => strtolower((string) $order['status']),
-        };
+            // Map DB statuses to the UI labels used by the admin dashboard.
+            $status = match (strtolower((string) $order['status'])) {
+                'pending' => 'processing',
+                'in progress' => 'wrapping',
+                default => strtolower((string) $order['status']),
+            };
 
-        return [
-            'id' => $order['id'],
-            'customer_name' => $order['customer_name'],
-            'items' => empty($itemNames) ? 'No items found' : implode(', ', $itemNames),
-            'total' => number_format((float) $order['total'], 2),
-            'status' => $status,
-            'created_at' => date('M j, Y g:i A', strtotime((string) $order['ordered_at'])),
-        ];
-    }, $orderRows);
+            return [
+                'id' => $order['id'],
+                'customer_name' => $order['customer_name'],
+                'items' => empty($itemNames) ? 'No items found' : implode(', ', $itemNames),
+                'total' => number_format((float) $order['total'], 2),
+                'status' => $status,
+                'created_at' => date('M j, Y g:i A', strtotime((string) $order['ordered_at'])),
+            ];
+        }, $orderRows);
 
-        $data['orders'] = $orders;
-        $data['activeNav'] = 'orders';
-
-        return $this->render($response, 'Admin/orders.twig', $data);
-
+        return $this->render($response, 'Admin/orders.twig', [
+            'orders' => $orders,
+            'activeNav' => 'orders',
+        ]);
     }
 
-    // Renders the menu management page — admin can add, edit, and delete dishes
+    // Renders the menu management page - admin can view, edit, and delete dishes.
+    // Groups dishes by category so the menu page is easier to scan.
     public function menu(Request $request, Response $response, array $args): Response
-{
+    {
         $rows = Dishes::getAllDetailed();
-
         $grouped = [];
 
         foreach ($rows as $dish) {
             $categoryName = $dish['category_name'] ?? 'Uncategorized';
 
             if (!isset($grouped[$categoryName])) {
-              $grouped[$categoryName] = [];
+                $grouped[$categoryName] = [];
+            }
+
+            $grouped[$categoryName][] = [
+                'id' => $dish['id'],
+                'name' => $dish['name'],
+                'description' => $dish['description'],
+                'price' => $dish['price'],
+                'availability' => $dish['availability'],
+                'emoji' => '🍽️',
+                'cuisine' => $dish['cuisine_name'] ?? '',
+                'category' => $categoryName,
+            ];
         }
 
-        $grouped[$categoryName][] = [
-            'id' => $dish['id'],
-            'name' => $dish['name'],
-            'description' => $dish['description'],
-            'price' => $dish['price'],
-            'availability' => $dish['availability'],
-            'emoji' => '🍽️',
-            'cuisine' => $dish['cuisine_name'] ?? '',
-            'category' => $categoryName,
-        ];
+        return $this->render($response, 'Admin/menu.twig', [
+            'groupedDishes' => $grouped,
+            'dishCount' => count($rows),
+            'activeNav' => 'menu',
+        ]);
     }
 
-        $data['groupedDishes'] = $grouped;
-        $data['dishCount'] = count($rows);
-        $data['activeNav'] = 'menu';
-
-        return $this->render($response, 'Admin/menu.twig', $data);
-}
-
-    // Renders the profile page pre-filled with the admin's current info
+    // Renders the profile page pre-filled with the admin's current info.
     public function showProfile(Request $request, Response $response, array $args): Response
     {
-        $user = Users::findById((int) $_SESSION['user_id']);
-
-        $data['activeNav'] = 'profile';
-        $data['user']      = $user;
-        // Show success message if redirected here after a successful update
-        if (($request->getQueryParams()['updated'] ?? null) === '1') {
-            $data['updated'] = true;
-        }
-        return $this->render($response, 'Admin/profile.twig', $data);
+        return $this->render($response, 'Admin/profile.twig', [
+            'user' => Users::findById((int) $_SESSION['user_id']),
+            'activeNav' => 'profile',
+            'updated' => (($request->getQueryParams()['updated'] ?? null) === '1'),
+        ]);
     }
 
-    // Handles the profile update form submission (email and/or password)
+    // Handles the profile update form submission (email and/or password).
     public function updateProfile(Request $request, Response $response, array $args): Response
     {
-        // Read submitted form data. ?? '' prevents errors if a field is missing.
-        // trim() removes accidental spaces from the start and end of the input.
-        $body     = $request->getParsedBody();
-        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-        $errors   = [];
+        // Read submitted form data. trim() removes accidental spaces.
+        $body = $request->getParsedBody();
+        $errors = [];
 
         // --- Update name and email ---
-        $name  = trim($body['name']  ?? '');
+        $name = trim($body['name'] ?? '');
         $email = trim($body['email'] ?? '');
 
-        if (empty($name) || empty($email)) {
+        if ($name === '' || $email === '') {
             $errors[] = 'Name and email cannot be empty.';
         } else {
             Users::update((int) $_SESSION['user_id'], $name, $email);
-            // Keep the session in sync so the navbar shows the updated name immediately
+
+            // Keep the session in sync so the navbar shows the updated name immediately.
             $_SESSION['name'] = $name;
         }
 
         // --- Update password (only runs if the user filled in at least one password field) ---
-        $current  = $body['current_password']  ?? '';
-        $new      = $body['new_password']       ?? '';
-        $confirm  = $body['confirm_password']   ?? '';
+        $current = $body['current_password'] ?? '';
+        $new = $body['new_password'] ?? '';
+        $confirm = $body['confirm_password'] ?? '';
 
-        if (!empty($current) || !empty($new) || !empty($confirm)) {
+        if ($current !== '' || $new !== '' || $confirm !== '') {
             if (strlen($new) < 8) {
                 $errors[] = 'New password must be at least 8 characters.';
             } elseif ($new !== $confirm) {
-                // Both new password fields must match before we attempt the update
                 $errors[] = 'New passwords do not match.';
             } elseif (!Users::updatePassword((int) $_SESSION['user_id'], $current, $new)) {
-                // updatePassword() returns false if the current password is wrong
                 $errors[] = 'Current password is incorrect.';
             }
         }
 
-        // If there are any errors, re-render the form with the error messages
+        // If there are any errors, re-render the form with the error messages.
         if (!empty($errors)) {
-            $user              = Users::findById((int) $_SESSION['user_id']);
-            $data['user']      = $user;
-            $data['errors']    = $errors;
-            $data['activeNav'] = 'profile';
-            return $this->render($response, 'Admin/profile.twig', $data);
+            return $this->render($response, 'Admin/profile.twig', [
+                'user' => Users::findById((int) $_SESSION['user_id']),
+                'errors' => $errors,
+                'activeNav' => 'profile',
+            ]);
         }
 
-        // All updates succeeded — redirect back to profile with ?updated=1
-        // The GET handler checks for that flag and shows the success message
-        return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/profile?updated=1');
+        // All updates succeeded - redirect back to profile with ?updated=1.
+        return $this->redirectTo($response, '/admin/profile?updated=1');
     }
 
+    // Renders the "Add New" page with cuisines and categories loaded from the DB.
     public function showAdd(Request $request, Response $response, array $args): Response
     {
-        // Fetch real cuisines and categories from DB to populate the dropdowns
-        $data['cuisines']   = Cuisines::getAll();
-        $data['categories'] = Categories::getAll();
-        $data['activeNav']  = 'add';
-
         $success = $request->getQueryParams()['success'] ?? null;
+        $successMessage = null;
+
         if ($success === 'cuisine') {
-            $data['success'] = 'Cuisine added successfully.';
+            $successMessage = 'Cuisine added successfully.';
         } elseif ($success === 'category') {
-            $data['success'] = 'Category added successfully.';
+            $successMessage = 'Category added successfully.';
         } elseif ($success === 'dish') {
-            $data['success'] = 'Dish added successfully.';
+            $successMessage = 'Dish added successfully.';
         }
 
-        return $this->render($response, 'Admin/add.twig', $data);
+        return $this->renderAddPage($response, [
+            'success' => $successMessage,
+        ]);
     }
 
+    // Handles the add-category form submission.
     public function addCategory(Request $request, Response $response, array $args): Response
-{
-    $body = $request->getParsedBody();
+    {
+        $body = $request->getParsedBody();
+        $name = trim($body['name'] ?? '');
+        $description = trim($body['description'] ?? '');
 
-    $name = trim($body['name'] ?? '');
-    $description = trim($body['description'] ?? '');
+        $errors = [];
 
-    $errors = [];
+        if ($name === '') {
+            $errors[] = 'Category name is required.';
+        }
 
-    if ($name === '') {
-        $errors[] = 'Category name is required.';
+        if ($name !== '' && Categories::findByName($name) !== null) {
+            $errors[] = 'A category with that name already exists.';
+        }
+
+        if (!empty($errors)) {
+            return $this->renderAddPage($response, ['errors' => $errors]);
+        }
+
+        $createdId = Categories::create($name, $description);
+
+        if ($createdId === 0) {
+            return $this->renderAddPage($response, [
+                'errors' => ['Unable to create category. Please check the values and try again.'],
+            ]);
+        }
+
+        return $this->redirectTo($response, '/admin/add?success=category');
     }
 
-    if ($name !== '' && Categories::findByName($name) !== null) {
-        $errors[] = 'A category with that name already exists.';
+        // Renders the edit form for a single category.
+    public function showEditCategory(Request $request, Response $response, array $args): Response
+    {
+        $category = Categories::findById((int) $args['id']);
+
+        if ($category === null) {
+            return $this->redirectTo($response, '/admin/add');
+        }
+
+        return $this->render($response, 'Admin/edit-category.twig', [
+            'category' => $category,
+            'activeNav' => 'add',
+            'success' => (($request->getQueryParams()['updated'] ?? null) === '1')
+                ? 'Category updated successfully.'
+                : null,
+        ]);
     }
 
-    if (!empty($errors)) {
-        $data['errors'] = $errors;
-        $data['cuisines'] = Cuisines::getAll();
-        $data['categories'] = Categories::getAll();
-        $data['activeNav'] = 'add';
-        return $this->render($response, 'Admin/add.twig', $data);
+    // Handles the edit-category form submission.
+    public function updateCategory(Request $request, Response $response, array $args): Response
+    {
+        $categoryId = (int) $args['id'];
+        $body = $request->getParsedBody();
+
+        $name = trim($body['name'] ?? '');
+        $description = trim($body['description'] ?? '');
+
+        $errors = [];
+
+        if ($name === '') {
+            $errors[] = 'Category name is required.';
+        }
+
+        $existing = Categories::findByName($name);
+        if ($name !== '' && $existing !== null && (int) $existing->id !== $categoryId) {
+            $errors[] = 'A category with that name already exists.';
+        }
+
+        if (!empty($errors)) {
+            return $this->render($response, 'Admin/edit-category.twig', [
+                'category' => Categories::findById($categoryId),
+                'errors' => $errors,
+                'activeNav' => 'add',
+            ]);
+        }
+
+        $updated = Categories::update($categoryId, $name, $description);
+
+        if (!$updated) {
+            return $this->render($response, 'Admin/edit-category.twig', [
+                'category' => Categories::findById($categoryId),
+                'errors' => ['Unable to update category. Please check the values and try again.'],
+                'activeNav' => 'add',
+            ]);
+        }
+
+        return $this->redirectTo($response, '/admin/edit/category/' . $categoryId . '?updated=1');
     }
 
-    $createdId = Categories::create($name, $description);
-
-    if ($createdId === 0) {
-        $data['errors'] = ['Unable to create category. Please check the values and try again.'];
-        $data['cuisines'] = Cuisines::getAll();
-        $data['categories'] = Categories::getAll();
-        $data['activeNav'] = 'add';
-        return $this->render($response, 'Admin/add.twig', $data);
-    }
-
-    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add?success=category');
-}
-
-    public function addDish(Request $request, Response $response, array $args): Response
-{
-    $body = $request->getParsedBody();
-
-    $name = trim($body['name'] ?? '');
-    $cuisineId = (int) ($body['cuisine_id'] ?? 0);
-    $categoryId = (int) ($body['category_id'] ?? 0);
-    $description = trim($body['description'] ?? '');
-    $price = (float) ($body['price'] ?? 0);
-    $availability = trim($body['availability'] ?? 'available');
-    $imageUrl = trim($body['image_url'] ?? '');
-
-    $errors = [];
-
-    if ($name === '') {
-        $errors[] = 'Dish name is required.';
-    }
-
-    if ($cuisineId <= 0) {
-        $errors[] = 'Cuisine is required.';
-    }
-
-    if ($categoryId <= 0) {
-        $errors[] = 'Category is required.';
-    }
-
-    if ($price < 0) {
-        $errors[] = 'Price cannot be negative.';
-    }
-
-    if (!empty($errors)) {
-        $data['errors'] = $errors;
-        $data['cuisines'] = Cuisines::getAll();
-        $data['categories'] = Categories::getAll();
-        $data['activeNav'] = 'add';
-        return $this->render($response, 'Admin/add.twig', $data);
-    }
-
-    $createdId = Dishes::create(
-        $categoryId,
-        $cuisineId,
-        $name,
-        $description,
-        $price,
-        $imageUrl,
-        $availability
-    );
-
-    if ($createdId === 0) {
-        $data['errors'] = ['Unable to create dish. Please check the values and try again.'];
-        $data['cuisines'] = Cuisines::getAll();
-        $data['categories'] = Categories::getAll();
-        $data['activeNav'] = 'add';
-        return $this->render($response, 'Admin/add.twig', $data);
-    }
-
-    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add?success=dish');
-}
-
-public function showEditDish(Request $request, Response $response, array $args): Response
-{
-    $dish = Dishes::findById((int) $args['id']);
-
-    if ($dish === null) {
-        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-        return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/menu');
-    }
-
-    $data['dish'] = $dish;
-    $data['cuisines'] = Cuisines::getAll();
-    $data['categories'] = Categories::getAll();
-    $data['activeNav'] = 'menu';
-
-    $success = $request->getQueryParams()['updated'] ?? null;
-    if ($success === '1') {
-        $data['success'] = 'Dish updated successfully.';
-    }
-
-    return $this->render($response, 'Admin/edit-dish.twig', $data);
-}
-
-public function updateDish(Request $request, Response $response, array $args): Response
-{
-    $body = $request->getParsedBody();
-    $dishId = (int) $args['id'];
-    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-
-    $name = trim($body['name'] ?? '');
-    $cuisineId = (int) ($body['cuisine_id'] ?? 0);
-    $categoryId = (int) ($body['category_id'] ?? 0);
-    $description = trim($body['description'] ?? '');
-    $price = (float) ($body['price'] ?? 0);
-    $availability = trim($body['availability'] ?? 'available');
-    $imageUrl = trim($body['image_url'] ?? '');
-
-    $errors = [];
-
-    if ($name === '') {
-        $errors[] = 'Dish name is required.';
-    }
-
-    if ($cuisineId <= 0) {
-        $errors[] = 'Cuisine is required.';
-    }
-
-    if ($categoryId <= 0) {
-        $errors[] = 'Category is required.';
-    }
-
-    if ($price < 0) {
-        $errors[] = 'Price cannot be negative.';
-    }
-
-    if (!empty($errors)) {
-        $data['errors'] = $errors;
-        $data['dish'] = Dishes::findById($dishId);
-        $data['cuisines'] = Cuisines::getAll();
-        $data['categories'] = Categories::getAll();
-        $data['activeNav'] = 'menu';
-        return $this->render($response, 'Admin/edit-dish.twig', $data);
-    }
-
-    $updated = Dishes::update(
-        $dishId,
-        $categoryId,
-        $cuisineId,
-        $name,
-        $description,
-        $price,
-        $imageUrl,
-        $availability
-    );
-
-    if (!$updated) {
-        $data['errors'] = ['Unable to update dish. Please check the values and try again.'];
-        $data['dish'] = Dishes::findById($dishId);
-        $data['cuisines'] = Cuisines::getAll();
-        $data['categories'] = Categories::getAll();
-        $data['activeNav'] = 'menu';
-        return $this->render($response, 'Admin/edit-dish.twig', $data);
-    }
-
-    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/edit/dish/' . $dishId . '?updated=1');
-}
-
-
-    public function deleteDish(Request $request, Response $response, array $args): Response
-{
-    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-    Dishes::delete((int) $args['id']);
-    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/menu');
-}
-
+    // Handles the add-cuisine form submission.
     public function addCuisine(Request $request, Response $response, array $args): Response
-{
-    $body = $request->getParsedBody();
+    {
+        $body = $request->getParsedBody();
+        $name = trim($body['name'] ?? '');
+        $code = trim($body['code'] ?? '');
+        $description = trim($body['description'] ?? '');
+        $imageUrl = trim($body['image_url'] ?? '');
 
-    $name = trim($body['name'] ?? '');
-    $code = trim($body['code'] ?? '');
-    $description = trim($body['description'] ?? '');
-    $imageUrl = trim($body['image_url'] ?? '');
+        $errors = [];
 
-    $errors = [];
+        if ($name === '') {
+            $errors[] = 'Cuisine name is required.';
+        }
 
-    if ($name === '') {
-        $errors[] = 'Cuisine name is required.';
+        if ($code === '') {
+            $errors[] = 'Cuisine code is required.';
+        }
+
+        if ($name !== '' && Cuisines::findByName($name) !== null) {
+            $errors[] = 'A cuisine with that name already exists.';
+        }
+
+        if (!empty($errors)) {
+            return $this->renderAddPage($response, ['errors' => $errors]);
+        }
+
+        $createdId = Cuisines::create($name, $code, $description, $imageUrl);
+
+        if ($createdId === 0) {
+            return $this->renderAddPage($response, [
+                'errors' => ['Unable to create cuisine. Please check the values and try again.'],
+            ]);
+        }
+
+        return $this->redirectTo($response, '/admin/add?success=cuisine');
     }
 
-    if ($code === '') {
-        $errors[] = 'Cuisine code is required.';
+        // Renders the edit form for a single cuisine.
+    public function showEditCuisine(Request $request, Response $response, array $args): Response
+    {
+        $cuisine = Cuisines::findById((int) $args['id']);
+
+        if ($cuisine === null) {
+            return $this->redirectTo($response, '/admin/add');
+        }
+
+        return $this->render($response, 'Admin/edit-cuisine.twig', [
+            'cuisine' => $cuisine,
+            'activeNav' => 'add',
+            'success' => (($request->getQueryParams()['updated'] ?? null) === '1')
+                ? 'Cuisine updated successfully.'
+                : null,
+        ]);
     }
 
-    if ($name !== '' && Cuisines::findByName($name) !== null) {
-        $errors[] = 'A cuisine with that name already exists.';
+    // Handles the edit-cuisine form submission.
+    public function updateCuisine(Request $request, Response $response, array $args): Response
+    {
+        $cuisineId = (int) $args['id'];
+        $body = $request->getParsedBody();
+
+        $name = trim($body['name'] ?? '');
+        $code = trim($body['code'] ?? '');
+        $description = trim($body['description'] ?? '');
+        $imageUrl = trim($body['image_url'] ?? '');
+
+        $errors = [];
+
+        if ($name === '') {
+            $errors[] = 'Cuisine name is required.';
+        }
+
+        if ($code === '') {
+            $errors[] = 'Cuisine code is required.';
+        }
+
+        $existing = Cuisines::findByName($name);
+        if ($name !== '' && $existing !== null && (int) $existing->id !== $cuisineId) {
+            $errors[] = 'A cuisine with that name already exists.';
+        }
+
+        if (!empty($errors)) {
+            return $this->render($response, 'Admin/edit-cuisine.twig', [
+                'cuisine' => Cuisines::findById($cuisineId),
+                'errors' => $errors,
+                'activeNav' => 'add',
+            ]);
+        }
+
+        $updated = Cuisines::update($cuisineId, $name, $code, $description, $imageUrl);
+
+        if (!$updated) {
+            return $this->render($response, 'Admin/edit-cuisine.twig', [
+                'cuisine' => Cuisines::findById($cuisineId),
+                'errors' => ['Unable to update cuisine. Please check the values and try again.'],
+                'activeNav' => 'add',
+            ]);
+        }
+
+        return $this->redirectTo($response, '/admin/edit/cuisine/' . $cuisineId . '?updated=1');
     }
 
-    if (!empty($errors)) {
-        $data['errors'] = $errors;
-        $data['cuisines'] = Cuisines::getAll();
-        $data['categories'] = Categories::getAll();
-        $data['activeNav'] = 'add';
-        return $this->render($response, 'Admin/add.twig', $data);
+    // Handles the add-dish form submission.
+    public function addDish(Request $request, Response $response, array $args): Response
+    {
+        $body = $request->getParsedBody();
+        $name = trim($body['name'] ?? '');
+        $cuisineId = (int) ($body['cuisine_id'] ?? 0);
+        $categoryId = (int) ($body['category_id'] ?? 0);
+        $description = trim($body['description'] ?? '');
+        $price = (float) ($body['price'] ?? 0);
+        $availability = trim($body['availability'] ?? 'available');
+        $imageUrl = trim($body['image_url'] ?? '');
+
+        $errors = [];
+
+        if ($name === '') {
+            $errors[] = 'Dish name is required.';
+        }
+
+        if ($cuisineId <= 0) {
+            $errors[] = 'Cuisine is required.';
+        }
+
+        if ($categoryId <= 0) {
+            $errors[] = 'Category is required.';
+        }
+
+        if ($price < 0) {
+            $errors[] = 'Price cannot be negative.';
+        }
+
+        if (!empty($errors)) {
+            return $this->renderAddPage($response, ['errors' => $errors]);
+        }
+
+        $createdId = Dishes::create(
+            $categoryId,
+            $cuisineId,
+            $name,
+            $description,
+            $price,
+            $imageUrl,
+            $availability
+        );
+
+        if ($createdId === 0) {
+            return $this->renderAddPage($response, [
+                'errors' => ['Unable to create dish. Please check the values and try again.'],
+            ]);
+        }
+
+        return $this->redirectTo($response, '/admin/add?success=dish');
     }
 
-    $createdId = Cuisines::create($name, $code, $description, $imageUrl);
+    // Renders the edit form for a single dish.
+    public function showEditDish(Request $request, Response $response, array $args): Response
+    {
+        $dish = Dishes::findById((int) $args['id']);
 
-    if ($createdId === 0) {
-        $data['errors'] = ['Unable to create cuisine. Please check the values and try again.'];
-        $data['cuisines'] = Cuisines::getAll();
-        $data['categories'] = Categories::getAll();
-        $data['activeNav'] = 'add';
-        return $this->render($response, 'Admin/add.twig', $data);
+        if ($dish === null) {
+            return $this->redirectTo($response, '/admin/menu');
+        }
+
+        return $this->render($response, 'Admin/edit-dish.twig', [
+            'dish' => $dish,
+            'cuisines' => Cuisines::getAll(),
+            'categories' => Categories::getAll(),
+            'activeNav' => 'menu',
+            'success' => (($request->getQueryParams()['updated'] ?? null) === '1')
+                ? 'Dish updated successfully.'
+                : null,
+        ]);
     }
 
-    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add?success=cuisine');
-}
+    // Handles the edit-dish form submission.
+    public function updateDish(Request $request, Response $response, array $args): Response
+    {
+        $body = $request->getParsedBody();
+        $dishId = (int) $args['id'];
 
+        $name = trim($body['name'] ?? '');
+        $cuisineId = (int) ($body['cuisine_id'] ?? 0);
+        $categoryId = (int) ($body['category_id'] ?? 0);
+        $description = trim($body['description'] ?? '');
+        $price = (float) ($body['price'] ?? 0);
+        $availability = trim($body['availability'] ?? 'available');
+        $imageUrl = trim($body['image_url'] ?? '');
 
+        $errors = [];
+
+        if ($name === '') {
+            $errors[] = 'Dish name is required.';
+        }
+
+        if ($cuisineId <= 0) {
+            $errors[] = 'Cuisine is required.';
+        }
+
+        if ($categoryId <= 0) {
+            $errors[] = 'Category is required.';
+        }
+
+        if ($price < 0) {
+            $errors[] = 'Price cannot be negative.';
+        }
+
+        if (!empty($errors)) {
+            return $this->render($response, 'Admin/edit-dish.twig', [
+                'errors' => $errors,
+                'dish' => Dishes::findById($dishId),
+                'cuisines' => Cuisines::getAll(),
+                'categories' => Categories::getAll(),
+                'activeNav' => 'menu',
+            ]);
+        }
+
+        $updated = Dishes::update(
+            $dishId,
+            $categoryId,
+            $cuisineId,
+            $name,
+            $description,
+            $price,
+            $imageUrl,
+            $availability
+        );
+
+        if (!$updated) {
+            return $this->render($response, 'Admin/edit-dish.twig', [
+                'errors' => ['Unable to update dish. Please check the values and try again.'],
+                'dish' => Dishes::findById($dishId),
+                'cuisines' => Cuisines::getAll(),
+                'categories' => Categories::getAll(),
+                'activeNav' => 'menu',
+            ]);
+        }
+
+        return $this->redirectTo($response, '/admin/edit/dish/' . $dishId . '?updated=1');
+    }
+
+    // Deletes a dish and returns to the menu page.
+    public function deleteDish(Request $request, Response $response, array $args): Response
+    {
+        Dishes::delete((int) $args['id']);
+        return $this->redirectTo($response, '/admin/menu');
+    }
+
+    // Deletes a cuisine and returns to the add page.
     public function deleteCuisine(Request $request, Response $response, array $args): Response
-{
-    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-    Cuisines::delete((int) $args['id']);
-    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add');
-}
-
-
-    public function deleteCategory(Request $request, Response $response, array $args): Response
-{
-    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-    Categories::delete((int) $args['id']);
-    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add');
-}
-
-public function updateOrderStatus(Request $request, Response $response, array $args): Response
-{
-    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-    $orderId = (int) $args['id'];
-    $status = trim($request->getParsedBody()['status'] ?? '');
-
-    $allowedStatuses = ['processing', 'wrapping', 'shipped', 'delivered'];
-
-    if ($orderId > 0 && in_array($status, $allowedStatuses, true)) {
-        Orders::updateStatus($orderId, $status);
+    {
+        Cuisines::delete((int) $args['id']);
+        return $this->redirectTo($response, '/admin/add');
     }
 
-    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/orders');
+    // Deletes a category and returns to the add page.
+    public function deleteCategory(Request $request, Response $response, array $args): Response
+    {
+        Categories::delete((int) $args['id']);
+        return $this->redirectTo($response, '/admin/add');
+    }
+
+    // Updates an order's status from the admin orders page.
+    public function updateOrderStatus(Request $request, Response $response, array $args): Response
+    {
+        $orderId = (int) $args['id'];
+        $status = trim($request->getParsedBody()['status'] ?? '');
+
+        $allowedStatuses = ['processing', 'wrapping', 'shipped', 'delivered'];
+
+        if ($orderId > 0 && in_array($status, $allowedStatuses, true)) {
+            Orders::updateStatus($orderId, $status);
+        }
+
+        return $this->redirectTo($response, '/admin/orders');
+    }
+
+    // Renders the Add New page with the shared data it always needs.
+    private function renderAddPage(Response $response, array $extraData = []): Response
+    {
+        $data = array_merge([
+            'cuisines' => Cuisines::getAll(),
+            'categories' => Categories::getAll(),
+            'activeNav' => 'add',
+        ], $extraData);
+
+        return $this->render($response, 'Admin/add.twig', $data);
+    }
+
+    // Small redirect helper so we do not repeat base path logic everywhere.
+    private function redirectTo(Response $response, string $path): Response
+    {
+        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+        return $response->withStatus(302)->withHeader('Location', $basePath . $path);
+    }
 }
-
-
-}
-
-
-
