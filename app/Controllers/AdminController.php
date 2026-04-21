@@ -8,6 +8,7 @@ use DI\Container;
 use App\Domain\Models\Users;
 use App\Domain\Models\Cuisines;
 use App\Domain\Models\Categories;
+use App\Domain\Models\Dishes;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -147,30 +148,185 @@ class AdminController extends BaseController
         $data['categories'] = Categories::getAll();
         $data['activeNav']  = 'add';
 
+        $success = $request->getQueryParams()['success'] ?? null;
+        if ($success === 'cuisine') {
+            $data['success'] = 'Cuisine added successfully.';
+        } elseif ($success === 'category') {
+            $data['success'] = 'Category added successfully.';
+        } elseif ($success === 'dish') {
+            $data['success'] = 'Dish added successfully.';
+        }
+
         return $this->render($response, 'Admin/add.twig', $data);
     }
 
-    public function deleteDish(Request $request, Response $response, array $args): Response
-    {
-        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-        \RedBeanPHP\R::trash(\RedBeanPHP\R::load('dishes', (int) $args['id']));
-        return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/menu');
+    public function addCategory(Request $request, Response $response, array $args): Response
+{
+    $body = $request->getParsedBody();
+
+    $name = trim($body['name'] ?? '');
+    $description = trim($body['description'] ?? '');
+
+    $errors = [];
+
+    if ($name === '') {
+        $errors[] = 'Category name is required.';
     }
 
-    public function deleteCuisine(Request $request, Response $response, array $args): Response
-    {
-        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-        \RedBeanPHP\R::trash(\RedBeanPHP\R::load('cuisines', (int) $args['id']));
-        return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add');
+    if ($name !== '' && Categories::findByName($name) !== null) {
+        $errors[] = 'A category with that name already exists.';
     }
 
-    public function deleteCategory(Request $request, Response $response, array $args): Response
-    {
-        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-        \RedBeanPHP\R::trash(\RedBeanPHP\R::load('categories', (int) $args['id']));
-        return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add');
+    if (!empty($errors)) {
+        $data['errors'] = $errors;
+        $data['cuisines'] = Cuisines::getAll();
+        $data['categories'] = Categories::getAll();
+        $data['activeNav'] = 'add';
+        return $this->render($response, 'Admin/add.twig', $data);
     }
+
+    $createdId = Categories::create($name, $description);
+
+    if ($createdId === 0) {
+        $data['errors'] = ['Unable to create category. Please check the values and try again.'];
+        $data['cuisines'] = Cuisines::getAll();
+        $data['categories'] = Categories::getAll();
+        $data['activeNav'] = 'add';
+        return $this->render($response, 'Admin/add.twig', $data);
+    }
+
+    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add?success=category');
 }
 
+    public function addDish(Request $request, Response $response, array $args): Response
+{
+    $body = $request->getParsedBody();
+
+    $name = trim($body['name'] ?? '');
+    $cuisineId = (int) ($body['cuisine_id'] ?? 0);
+    $categoryId = (int) ($body['category_id'] ?? 0);
+    $description = trim($body['description'] ?? '');
+    $price = (float) ($body['price'] ?? 0);
+    $availability = trim($body['availability'] ?? 'available');
+    $imageUrl = trim($body['image_url'] ?? '');
+
+    $errors = [];
+
+    if ($name === '') {
+        $errors[] = 'Dish name is required.';
+    }
+
+    if ($cuisineId <= 0) {
+        $errors[] = 'Cuisine is required.';
+    }
+
+    if ($categoryId <= 0) {
+        $errors[] = 'Category is required.';
+    }
+
+    if ($price < 0) {
+        $errors[] = 'Price cannot be negative.';
+    }
+
+    if (!empty($errors)) {
+        $data['errors'] = $errors;
+        $data['cuisines'] = Cuisines::getAll();
+        $data['categories'] = Categories::getAll();
+        $data['activeNav'] = 'add';
+        return $this->render($response, 'Admin/add.twig', $data);
+    }
+
+    $createdId = Dishes::create(
+        $categoryId,
+        $cuisineId,
+        $name,
+        $description,
+        $price,
+        $imageUrl,
+        $availability
+    );
+
+    if ($createdId === 0) {
+        $data['errors'] = ['Unable to create dish. Please check the values and try again.'];
+        $data['cuisines'] = Cuisines::getAll();
+        $data['categories'] = Categories::getAll();
+        $data['activeNav'] = 'add';
+        return $this->render($response, 'Admin/add.twig', $data);
+    }
+
+    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add?success=dish');
+}
+
+    public function deleteDish(Request $request, Response $response, array $args): Response
+{
+    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+    Dishes::delete((int) $args['id']);
+    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/menu');
+}
+
+    public function addCuisine(Request $request, Response $response, array $args): Response
+{
+    $body = $request->getParsedBody();
+
+    $name = trim($body['name'] ?? '');
+    $code = trim($body['code'] ?? '');
+    $description = trim($body['description'] ?? '');
+    $imageUrl = trim($body['image_url'] ?? '');
+
+    $errors = [];
+
+    if ($name === '') {
+        $errors[] = 'Cuisine name is required.';
+    }
+
+    if ($code === '') {
+        $errors[] = 'Cuisine code is required.';
+    }
+
+    if ($name !== '' && Cuisines::findByName($name) !== null) {
+        $errors[] = 'A cuisine with that name already exists.';
+    }
+
+    if (!empty($errors)) {
+        $data['errors'] = $errors;
+        $data['cuisines'] = Cuisines::getAll();
+        $data['categories'] = Categories::getAll();
+        $data['activeNav'] = 'add';
+        return $this->render($response, 'Admin/add.twig', $data);
+    }
+
+    $createdId = Cuisines::create($name, $code, $description, $imageUrl);
+
+    if ($createdId === 0) {
+        $data['errors'] = ['Unable to create cuisine. Please check the values and try again.'];
+        $data['cuisines'] = Cuisines::getAll();
+        $data['categories'] = Categories::getAll();
+        $data['activeNav'] = 'add';
+        return $this->render($response, 'Admin/add.twig', $data);
+    }
+
+    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add?success=cuisine');
+}
+
+
+    public function deleteCuisine(Request $request, Response $response, array $args): Response
+{
+    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+    Cuisines::delete((int) $args['id']);
+    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add');
+}
+
+
+    public function deleteCategory(Request $request, Response $response, array $args): Response
+{
+    $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+    Categories::delete((int) $args['id']);
+    return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/add');
+}
+
+}
 
 

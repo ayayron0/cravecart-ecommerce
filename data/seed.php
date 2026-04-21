@@ -95,8 +95,8 @@ try {
             price        DECIMAL(10,2) NOT NULL,
             image_url    VARCHAR(500),
             availability VARCHAR(20) NOT NULL DEFAULT 'available',
-            CONSTRAINT fk_dishes_categories FOREIGN KEY (category_id) REFERENCES categories(id),
-            CONSTRAINT fk_dishes_cuisines   FOREIGN KEY (cuisine_id)  REFERENCES cuisines(id)
+            CONSTRAINT fk_dishes_categories FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+            CONSTRAINT fk_dishes_cuisines   FOREIGN KEY (cuisine_id)  REFERENCES cuisines(id) ON DELETE CASCADE
         )
     ");
     echo "✅ Table: dishes\n";
@@ -141,7 +141,7 @@ try {
             quantity   INT           NOT NULL,
             item_price DECIMAL(10,2) NOT NULL,
             CONSTRAINT fk_order_dish_orders FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-            CONSTRAINT fk_order_dish_dishes FOREIGN KEY (dish_id)  REFERENCES dishes(id)
+            CONSTRAINT fk_order_dish_dishes FOREIGN KEY (dish_id)  REFERENCES dishes(id) ON DELETE CASCADE
         )
     ");
     echo "✅ Table: order_dish\n";
@@ -156,7 +156,7 @@ try {
             dish_price DECIMAL(10,2) NOT NULL,
             saved_at   DATETIME      DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT fk_saved_cart_users  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            CONSTRAINT fk_saved_cart_dishes FOREIGN KEY (dish_id) REFERENCES dishes(id)
+            CONSTRAINT fk_saved_cart_dishes FOREIGN KEY (dish_id) REFERENCES dishes(id) ON DELETE CASCADE
         )
     ");
     echo "✅ Table: saved_cart\n";
