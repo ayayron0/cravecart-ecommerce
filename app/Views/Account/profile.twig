@@ -66,5 +66,36 @@
         </button>
 
     </form>
+
+    {# Danger zone — delete account #}
+    <div class="card border-danger border-0 shadow-sm rounded-4 p-4 mt-4">
+        <h6 class="fw-bold mb-1 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h6>
+        <p class="text-muted small mb-3">Once you delete your account, all your data will be permanently removed.</p>
+        <button type="button" class="btn btn-outline-danger btn-sm px-4"
+                data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+            <i class="bi bi-trash me-1"></i> Delete My Account
+        </button>
+    </div>
+</div>
+
+{# Confirmation modal #}
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Delete Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-muted small">
+                Are you sure? This will permanently delete your account and all your orders. This cannot be undone.
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ basePath }}/account/delete" method="post">
+                    <button type="submit" class="btn btn-danger btn-sm">Yes, delete my account</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

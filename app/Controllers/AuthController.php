@@ -6,6 +6,8 @@ namespace App\Controllers;
 
 use App\Domain\Models\Users;
 use DI\Container;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -52,22 +54,74 @@ class AuthController extends BaseController
             return $this->render($response, 'login.twig', $data);
         }
 
-        // Credentials are valid — save the user's info in the session.
-        // The session persists across requests so the app remembers who is logged in.
-        $_SESSION['user_id'] = $user->id;
-        $_SESSION['role']    = $user->role;
-        $_SESSION['name']    = $user->name;
+        // Credentials valid — generate 2FA code and email it
+        $code = (string) random_int(100000, 999999);
+        $_SESSION['2fa_code']    = $code;
+        $_SESSION['2fa_expires'] = time() + 300;
+        $_SESSION['2fa_user_id'] = (int) $user->id;
+        $_SESSION['2fa_role']    = $user->role;
+        $_SESSION['2fa_name']    = $user->name;
 
-        // Redirect based on role.
-        if ($_SESSION['role'] != 'administrator') {
+        $this->sendTwoFactorEmail($user->email, $user->name, $code);
+
+        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+        return $response->withStatus(302)->withHeader('Location', $basePath . '/verify-2fa');
+    }
+
+    public function showVerify2fa(Request $request, Response $response): Response
+    {
+        if (empty($_SESSION['2fa_code'])) {
             $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-            return $response->withStatus(302)->withHeader('Location', $basePath . '/?loggedin=1');
+            return $response->withStatus(302)->withHeader('Location', $basePath . '/login');
+        }
+        return $this->render($response, 'verify-2fa.twig');
+    }
+
+    public function verify2fa(Request $request, Response $response): Response
+    {
+        $input    = trim($request->getParsedBody()['code'] ?? '');
+        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+
+        if (empty($_SESSION['2fa_code'])) {
+            return $response->withStatus(302)->withHeader('Location', $basePath . '/login');
         }
 
-        // Admin: redirect to the orders dashboard.
-        // 302 tells the browser to go to a new URL instead of rendering a page here.
-        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+        if (time() > $_SESSION['2fa_expires']) {
+            unset($_SESSION['2fa_code'], $_SESSION['2fa_expires'], $_SESSION['2fa_user_id'], $_SESSION['2fa_role'], $_SESSION['2fa_name']);
+            return $this->render($response, 'verify-2fa.twig', ['error' => 'Code expired. Please log in again.']);
+        }
+
+        if ($input !== $_SESSION['2fa_code']) {
+            return $this->render($response, 'verify-2fa.twig', ['error' => 'Invalid code. Please try again.']);
+        }
+
+        $_SESSION['user_id'] = $_SESSION['2fa_user_id'];
+        $_SESSION['role']    = $_SESSION['2fa_role'];
+        $_SESSION['name']    = $_SESSION['2fa_name'];
+        unset($_SESSION['2fa_code'], $_SESSION['2fa_expires'], $_SESSION['2fa_user_id'], $_SESSION['2fa_role'], $_SESSION['2fa_name']);
+
+        if ($_SESSION['role'] !== 'administrator') {
+            return $response->withStatus(302)->withHeader('Location', $basePath . '/?loggedin=1');
+        }
         return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/orders');
+    }
+
+    private function sendTwoFactorEmail(string $toEmail, string $toName, string $code): void
+    {
+        $env  = require APP_BASE_DIR_PATH . '/config/env.php';
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host       = $env['smtp_host'];
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $env['smtp_username'];
+        $mail->Password   = $env['smtp_password'];
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = $env['smtp_port'];
+        $mail->setFrom($env['smtp_from'], $env['smtp_name']);
+        $mail->addAddress($toEmail, $toName);
+        $mail->Subject = 'Your CraveCart verification code';
+        $mail->Body    = "Hi {$toName},\n\nYour verification code is: {$code}\n\nIt expires in 5 minutes.\n\n— CraveCart";
+        $mail->send();
     }
 
     public function logout(Request $request, Response $response): Response
@@ -107,14 +161,17 @@ class AuthController extends BaseController
             return $this->render($response, 'register.twig', ['errors' => 'Error creating user']);
         }
 
-        // Save the user's info in the session.
         $newUser = Users::findByEmail($data['email']);
-        $_SESSION['user_id'] = $newUser->id;
-        $_SESSION['name']    = $newUser->name;
-        $_SESSION['role']    = $newUser->role;
+        $code = (string) random_int(100000, 999999);
+        $_SESSION['2fa_code']    = $code;
+        $_SESSION['2fa_expires'] = time() + 300;
+        $_SESSION['2fa_user_id'] = (int) $newUser->id;
+        $_SESSION['2fa_role']    = $newUser->role;
+        $_SESSION['2fa_name']    = $newUser->name;
 
-        // Redirect to the home page after registering.
+        $this->sendTwoFactorEmail($newUser->email, $newUser->name, $code);
+
         $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-        return $response->withStatus(302)->withHeader('Location', $basePath . '/home?registered=1');
+        return $response->withStatus(302)->withHeader('Location', $basePath . '/verify-2fa');
     }
 }

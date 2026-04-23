@@ -89,7 +89,12 @@ return static function (Slim\App $app): void {
         $group->get('/orders',  [AccountController::class, 'showOrders'])->setName('account.orders');
         $group->get('/profile', [AccountController::class, 'showProfile'])->setName('account.profile');
         $group->post('/profile', [AccountController::class, 'updateProfile'])->setName('account.profile.update');
+        $group->post('/delete', [AccountController::class, 'deleteAccount'])->setName('account.delete');
     })->add(new AccountMiddleware());
+
+    // 2FA verification
+    $app->get('/verify-2fa',  [AuthController::class, 'showVerify2fa'])->setName('auth.verify2fa');
+    $app->post('/verify-2fa', [AuthController::class, 'verify2fa'])->setName('auth.verify2fa.post');
 
     //log out route
     $app->get('/logout', [AuthController::class, 'logout'])->setName('auth.logout');

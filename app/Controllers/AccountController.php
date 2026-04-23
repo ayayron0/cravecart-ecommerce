@@ -117,6 +117,15 @@ class AccountController extends BaseController
         return $this->redirectTo($response, '/account/profile?updated=1');
     }
 
+    public function deleteAccount(Request $request, Response $response, array $args): Response
+    {
+        Users::delete((int) $_SESSION['user_id']);
+        session_unset();
+        session_destroy();
+        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+        return $response->withStatus(302)->withHeader('Location', $basePath . '/');
+    }
+
     // Small redirect helper so we do not repeat base path logic.
     private function redirectTo(Response $response, string $path): Response
     {
