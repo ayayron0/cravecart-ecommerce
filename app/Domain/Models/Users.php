@@ -76,6 +76,14 @@ class Users
         return (int) R::store($user) > 0;
     }
 
+    public static function saveTotpSecret(int $user_id, string $secret): bool
+    {
+        $user = R::load('users', $user_id);
+        if ($user->id == 0) return false;
+        $user->totp_secret = $secret;
+        return (int) R::store($user) > 0;
+    }
+
     //delete a bean
     public static function delete(int $user_id): bool
     {

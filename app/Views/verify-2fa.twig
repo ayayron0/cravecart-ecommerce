@@ -1,6 +1,6 @@
 {% extends 'layout.twig' %}
 
-{% block title %}Verify Your Identity — CraveCart{% endblock %}
+{% block title %}Two-Factor Authentication — CraveCart{% endblock %}
 
 {% block content %}
 <section class="py-5" style="min-height: calc(100vh - 200px); background:#f8f9fa;">
@@ -8,41 +8,70 @@
         <div class="row justify-content-center">
             <div class="col-md-5 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 p-4">
-                    <div class="text-center mb-4">
-                        <div class="mb-3">
+
+                    {% if step == 'setup' %}
+                        {# First login: show QR code to scan #}
+                        <div class="text-center mb-4">
                             <i class="bi bi-shield-lock-fill" style="font-size:2.5rem; color:#e63946;"></i>
+                            <h3 class="fw-bold mt-2">Set up Authenticator</h3>
+                            <p class="text-muted small">Scan this QR code with Google Authenticator or Authy, then enter the 6-digit code below.</p>
                         </div>
-                        <h3 class="fw-bold">Check your email</h3>
-                        <p class="text-muted small">We sent a 6-digit code to your email address. It expires in 5 minutes.</p>
-                    </div>
 
-                    {% if error is defined and error %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            {{ error }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        <div class="text-center mb-4">
+                            <img src="{{ qr_code }}" alt="QR Code" style="width:200px; height:200px;">
                         </div>
+
+                        <form action="{{ basePath }}/verify-2fa" method="post">
+                            <div class="mb-4">
+                                <label for="code" class="form-label fw-semibold small">Verification Code</label>
+                                <input type="text" class="form-control form-control-lg text-center fw-bold"
+                                       id="code" name="code"
+                                       placeholder="000000"
+                                       maxlength="6"
+                                       autocomplete="one-time-code"
+                                       required autofocus>
+                            </div>
+                            <button type="submit" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
+                                Verify & Continue
+                            </button>
+                        </form>
+
+                    {% else %}
+                        {# Returning user: just enter code #}
+                        <div class="text-center mb-4">
+                            <i class="bi bi-shield-check" style="font-size:2.5rem; color:#e63946;"></i>
+                            <h3 class="fw-bold mt-2">Enter your code</h3>
+                            <p class="text-muted small">Open your authenticator app and enter the 6-digit code for CraveCart.</p>
+                        </div>
+
+                        {% if error is defined and error %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                {{ error }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+
+                        <form action="{{ basePath }}/verify-2fa" method="post">
+                            <div class="mb-4">
+                                <label for="code" class="form-label fw-semibold small">Verification Code</label>
+                                <input type="text" class="form-control form-control-lg text-center fw-bold"
+                                       id="code" name="code"
+                                       placeholder="000000"
+                                       maxlength="6"
+                                       autocomplete="one-time-code"
+                                       required autofocus>
+                            </div>
+                            <button type="submit" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
+                                Verify
+                            </button>
+                        </form>
                     {% endif %}
-
-                    <form action="{{ basePath }}/verify-2fa" method="post">
-                        <div class="mb-4">
-                            <label for="code" class="form-label fw-semibold small">Verification Code</label>
-                            <input type="text" class="form-control form-control-lg text-center fw-bold"
-                                   id="code" name="code"
-                                   placeholder="000000"
-                                   maxlength="6"
-                                   autocomplete="one-time-code"
-                                   required autofocus>
-                        </div>
-                        <button type="submit" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
-                            Verify
-                        </button>
-                    </form>
 
                     <hr class="my-4">
                     <p class="text-center small mb-0">
-                        Didn't get the code?
-                        <a href="{{ basePath }}/login" class="fw-semibold text-decoration-none" style="color:#e63946;">Try logging in again</a>
+                        <a href="{{ basePath }}/login" class="fw-semibold text-decoration-none" style="color:#e63946;">Back to login</a>
                     </p>
+
                 </div>
             </div>
         </div>

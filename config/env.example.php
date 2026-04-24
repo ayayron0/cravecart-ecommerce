@@ -16,12 +16,4 @@ return [
     'username' => 'root',
     'password' => '',
 
-    // SMTP (used for 2FA email codes)
-    // Ask a teammate for the Gmail App Password
-    'smtp_host'     => 'smtp.gmail.com',
-    'smtp_username' => 'your-gmail@gmail.com',
-    'smtp_password' => 'your-app-password',
-    'smtp_port'     => 587,
-    'smtp_from'     => 'your-gmail@gmail.com',
-    'smtp_name'     => 'CraveCart',
 ];
