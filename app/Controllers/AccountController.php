@@ -35,7 +35,8 @@ class AccountController extends BaseController
     {
         $orderBeans = Orders::findByUserId((int) $_SESSION['user_id']);
 
-        $orders = array_map(function ($order): array {
+        $orderNumber = count($orderBeans);
+        $mapped = array_map(function ($order) use (&$orderNumber): array {
             $items = OrderDish::findDetailedByOrderId((int) $order->id);
 
             $itemNames = array_map(
@@ -43,25 +44,30 @@ class AccountController extends BaseController
                 $items
             );
 
-            // Map DB statuses to the UI labels used by the account order stepper.
             $status = match (strtolower((string) $order->status)) {
-                'pending' => 'processing',
+                'pending'     => 'processing',
                 'in progress' => 'wrapping',
-                default => strtolower((string) $order->status),
+                default       => strtolower((string) $order->status),
             };
 
             return [
-                'id' => $order->id,
-                'items' => empty($itemNames) ? 'No items found' : implode(', ', $itemNames),
-                'total' => number_format((float) $order->total, 2),
-                'status' => $status,
+                'id'         => $order->id,
+                'order_number' => $orderNumber--,
+                'items'      => empty($itemNames) ? 'No items found' : implode(', ', $itemNames),
+                'total'      => number_format((float) $order->total, 2),
+                'status'     => $status,
                 'created_at' => date('M j, Y', strtotime((string) $order->ordered_at)),
             ];
         }, $orderBeans);
 
+        $activeOrders  = array_values(array_filter($mapped, fn($o) => $o['status'] !== 'completed'));
+        $historyOrders = array_values(array_filter($mapped, fn($o) => $o['status'] === 'completed'));
+
         return $this->render($response, 'Account/orders.twig', [
-            'orders' => $orders,
-            'activeNav' => 'orders',
+            'active_orders'  => $activeOrders,
+            'history_orders' => $historyOrders,
+            'tab'            => $request->getQueryParams()['tab'] ?? 'active',
+            'activeNav'      => 'orders',
         ]);
     }
 
@@ -115,6 +121,23 @@ class AccountController extends BaseController
         // Redirect back to GET so a page refresh doesn't re-submit the form.
         $this->flash('success', 'Profile updated successfully.');
         return $this->redirectTo($response, '/account/profile');
+    }
+
+    public function confirmDelivery(Request $request, Response $response, array $args): Response
+    {
+        $orderId = (int) ($args['id'] ?? 0);
+        $userId  = (int) $_SESSION['user_id'];
+
+        $order = Orders::findById($orderId);
+
+        if ($order === null || (int) $order->user_id !== $userId || $order->status !== 'delivered') {
+            $this->flash('danger', 'Unable to confirm this order.');
+            return $this->redirectTo($response, '/account/orders');
+        }
+
+        Orders::updateStatus($orderId, 'completed');
+        $this->flash('success', 'Order confirmed — thank you!');
+        return $this->redirectTo($response, '/account/orders');
     }
 
     public function deleteAccount(Request $request, Response $response, array $args): Response

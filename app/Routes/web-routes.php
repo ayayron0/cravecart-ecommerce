@@ -100,6 +100,7 @@ return static function (Slim\App $app): void {
     // Account routes
     $app->group('/account', function ($group) {
         $group->get('/orders',  [AccountController::class, 'showOrders'])->setName('account.orders');
+        $group->post('/orders/{id}/confirm', [AccountController::class, 'confirmDelivery'])->setName('account.orders.confirm');
         $group->get('/profile', [AccountController::class, 'showProfile'])->setName('account.profile');
         $group->post('/profile', [AccountController::class, 'updateProfile'])->setName('account.profile.update');
         $group->post('/delete', [AccountController::class, 'deleteAccount'])->setName('account.delete');
@@ -120,4 +121,5 @@ return static function (Slim\App $app): void {
     $app->post('/cart/decrease/{id}', [CartController::class, 'decreaseQuantity'])->setName('cart.decrease');
     $app->post('/cart/remove/{id}', [CartController::class, 'removeItem'])->setName('cart.remove');
     $app->get('/checkout',  [CheckoutController::class, 'showCheckout'])->setName('checkout.show');
+    $app->post('/checkout/place', [CheckoutController::class, 'placeOrder'])->setName('checkout.place');
 };

@@ -17,67 +17,56 @@
             </ol>
         </nav>
 
+        {% if errors is defined and errors %}
+        <div class="alert alert-danger">
+            <ul class="mb-0 ps-3">
+                {% for error in errors %}
+                    <li class="small">{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form action="{{ basePath }}/checkout/place" method="post">
         <div class="row g-4">
 
-            {# Left — forms #}
+            {# Left — delivery address form #}
             <div class="col-lg-7">
-
-                {# Delivery address #}
                 <div class="checkout-card">
                     <h6><i class="bi bi-geo-alt me-2 icon-red"></i>Delivery Address</h6>
-                    <form>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <label class="form-label small fw-semibold">First Name</label>
-                                <input type="text" class="form-control" placeholder="John" required>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label small fw-semibold">Last Name</label>
-                                <input type="text" class="form-control" placeholder="Doe" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-semibold">Street Address</label>
-                                <input type="text" class="form-control" placeholder="123 Main Street" required>
-                            </div>
-                            <div class="col-5">
-                                <label class="form-label small fw-semibold">City</label>
-                                <input type="text" class="form-control" placeholder="Toronto" required>
-                            </div>
-                            <div class="col-4">
-                                <label class="form-label small fw-semibold">Province</label>
-                                <input type="text" class="form-control" placeholder="ON" required>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label small fw-semibold">Postal Code</label>
-                                <input type="text" class="form-control" placeholder="M5V 3A8" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-semibold">Phone Number</label>
-                                <input type="tel" class="form-control" placeholder="(416) 555-0100" required>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                {# Payment #}
-                <div class="checkout-card">
-                    <h6><i class="bi bi-credit-card me-2 icon-red"></i>Payment</h6>
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label small fw-semibold">Card Number</label>
-                            <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                            <label class="form-label small fw-semibold">Full Name</label>
+                            <input type="text" name="name" class="form-control"
+                                   placeholder="John Doe"
+                                   value="{{ old.name ?? '' }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Street Address</label>
+                            <input type="text" name="street" class="form-control"
+                                   placeholder="123 Main Street"
+                                   value="{{ old.street ?? '' }}" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Expiry Date</label>
-                            <input type="text" class="form-control" placeholder="MM / YY" maxlength="7">
+                            <label class="form-label small fw-semibold">City</label>
+                            <input type="text" name="city" class="form-control"
+                                   placeholder="Montreal"
+                                   value="{{ old.city ?? '' }}" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">CVV</label>
-                            <input type="text" class="form-control" placeholder="•••" maxlength="4">
+                            <label class="form-label small fw-semibold">Postal Code</label>
+                            <input type="text" name="postal_code" class="form-control"
+                                   placeholder="H2X 1Y4"
+                                   value="{{ old.postal_code ?? '' }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Order Notes <span class="text-muted fw-normal">(optional)</span></label>
+                            <input type="text" name="notes" class="form-control"
+                                   placeholder="e.g. Leave at the door"
+                                   value="{{ old.notes ?? '' }}">
                         </div>
                     </div>
                 </div>
-
             </div>
 
             {# Right — order summary #}
@@ -85,7 +74,6 @@
                 <div class="checkout-card checkout-summary">
                     <h6><i class="bi bi-bag me-2 icon-red"></i>Order Summary</h6>
 
-                    {# Items #}
                     <div class="mb-4">
                         {% for item in items %}
                         <div class="item-line">
@@ -99,7 +87,6 @@
 
                     <hr>
 
-                    {# Totals #}
                     <div class="summary-row"><span class="text-muted">Subtotal</span><span>${{ subtotal }}</span></div>
                     <div class="summary-row"><span class="text-muted">Delivery fee</span><span>${{ delivery_fee }}</span></div>
                     <div class="summary-row"><span class="text-muted">Tax (13%)</span><span>${{ tax }}</span></div>
@@ -107,21 +94,20 @@
                     <div class="summary-row total"><span>Total</span><span>${{ total }}</span></div>
 
                     <div class="mt-4">
-                        <button type="button" class="btn-place-order" disabled>
+                        <button type="submit" class="btn-place-order">
                             <i class="bi bi-bag-check me-2"></i>Place Order
                         </button>
                     </div>
 
                     <p class="text-center small text-muted mt-3 mb-0">
-                        <i class="bi bi-shield-lock me-1"></i> Secure &amp; encrypted checkout
-                    </p>
-                    <p class="text-center small text-muted mt-2 mb-0">
-                        Order placement comes next once the checkout backend is wired.
+                        <i class="bi bi-shield-lock me-1"></i> Secure checkout
                     </p>
                 </div>
             </div>
 
         </div>
+        </form>
+
     </div>
 </section>
 {% endblock %}
