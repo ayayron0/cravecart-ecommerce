@@ -7,6 +7,16 @@ namespace App\Domain\Models;
 use RedBeanPHP\OODBBean;
 use RedBeanPHP\R;
 
+/*
+ * Dishes — database model for the dishes table.
+ *
+ * WHAT: Provides all read and write operations for dishes.
+ * HOW:  Uses RedBeanPHP (R::) to interact with the database.
+ *       Each method is static so it can be called directly without
+ *       instantiating the class (e.g. Dishes::findById(1)).
+ *       searchDish() joins cuisines and categories so the result
+ *       contains everything the browse page and search bar need.
+ */
 class Dishes
 {
     //sorted by name

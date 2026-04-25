@@ -10,6 +10,16 @@ use App\Domain\Models\Dishes;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
+/*
+ * HomeController — handles public-facing pages that don't belong to a specific feature.
+ *
+ * WHAT: Renders the home page, about page, and handles the AJAX search endpoint.
+ * HOW:  index() loads all cuisines for the home page cards.
+ *       search() queries the database and returns JSON for the live search bar.
+ *       about() renders the static about page.
+ *       showLogin() checks for a session timeout flag and passes an error message
+ *       to the login view when the user was logged out automatically.
+ */
 class HomeController extends BaseController
 {
     //NOTE: Passing the entire container violates the Dependency Inversion Principle and creates a service locator anti-pattern.

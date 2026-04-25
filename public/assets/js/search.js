@@ -1,3 +1,17 @@
+/*
+ * search.js — live search bar for the main navigation.
+ *
+ * WHAT: Listens for keystrokes in the search input and fetches matching
+ *       dishes from the server without reloading the page (AJAX).
+ * HOW:  On each keystroke it waits 300ms (debounce) before sending a
+ *       GET request to /search?q=... . The server returns a JSON array
+ *       of dishes which are rendered as a dropdown below the search bar.
+ *       Clicking a result navigates to that dish's browse page.
+ *       Results are sanitized with escHtml() before being injected into
+ *       the DOM to prevent XSS attacks.
+ * WHERE: Loaded globally via layout.twig so it runs on every page.
+ */
+
 // Grab the search input and the empty results container from the DOM.
 // Both elements are defined in common/header.twig.
 const searchInput   = document.getElementById('search-input');

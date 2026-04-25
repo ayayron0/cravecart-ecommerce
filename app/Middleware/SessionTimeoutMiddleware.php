@@ -10,6 +10,18 @@ use Psr\Http\Server\RequestHandlerInterface as Handler;
 use Slim\Psr7\Response as SlimResponse;
 
 
+/*
+ * SessionTimeoutMiddleware — automatically logs out inactive users.
+ *
+ * WHAT: Checks how long it has been since the user last made a request.
+ *       If the gap exceeds 30 minutes, the session is destroyed and the
+ *       user is redirected to the login page with a timeout message.
+ * HOW:  Slim calls __invoke() before every request on protected routes.
+ *       It reads $_SESSION['last_activity'] and compares it to the current
+ *       time. On each valid request it resets the timestamp so the timer
+ *       only triggers after 30 minutes of true inactivity.
+ * WHERE: Applied to both the /admin and /account route groups in web-routes.php.
+ */
 class SessionTimeoutMiddleware
 {
     public function __invoke(Request $request, Handler $handler): Response
