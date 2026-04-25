@@ -95,7 +95,7 @@ return static function (Slim\App $app): void {
         $group->post('/delete/dish/{id}',     [AdminController::class, 'deleteDish'])->setName('admin.delete.dish');
         $group->post('/delete/cuisine/{id}',  [AdminController::class, 'deleteCuisine'])->setName('admin.delete.cuisine');
         $group->post('/delete/category/{id}', [AdminController::class, 'deleteCategory'])->setName('admin.delete.category');
-    })->add(new AdminMiddleware())->add(new SessionTimeoutMiddleware());
+    })->add(new AdminMiddleware());
 
     // Account routes
     $app->group('/account', function ($group) {
@@ -104,7 +104,7 @@ return static function (Slim\App $app): void {
         $group->get('/profile', [AccountController::class, 'showProfile'])->setName('account.profile');
         $group->post('/profile', [AccountController::class, 'updateProfile'])->setName('account.profile.update');
         $group->post('/delete', [AccountController::class, 'deleteAccount'])->setName('account.delete');
-    })->add(new AccountMiddleware())->add(new SessionTimeoutMiddleware());
+    })->add(new AccountMiddleware());
 
     // 2FA verification
     $app->get('/verify-2fa',  [AuthController::class, 'showVerify2fa'])->setName('auth.verify2fa');

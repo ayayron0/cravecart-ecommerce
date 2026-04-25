@@ -14,9 +14,11 @@ declare(strict_types=1);
  *   3. Error handling — catches errors and shows a readable message
  */
 
+use App\Middleware\SessionTimeoutMiddleware;
 use Slim\App;
 
 return function (App $app): void {
+    $app->add(new SessionTimeoutMiddleware());
     // Parses incoming request bodies (form data, JSON)
     $app->addBodyParsingMiddleware();
 
