@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Domain\Models\Dishes;
 use DI\Container;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -12,10 +13,10 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  * CheckoutController — handles the checkout page
  *
  * WHAT: Shows the final order summary, delivery address form, and payment form.
- * HOW:  Reads cart items, calculates subtotal, delivery fee, tax (13%), and total,
- *       then passes them to checkout.twig for display.
- * NOTE: Currently uses dummy data — will be replaced with session cart data later.
- *       The "Place Order" button will eventually save the order to the DB.
+ * HOW:  Reads the current session cart, calculates subtotal, delivery fee,
+ *       tax (13%), and total, then passes them to checkout.twig for display.
+ * NOTE: The summary is now real, but the "Place Order" button is still only
+ *       a placeholder until the actual checkout save flow is built.
  */
 class CheckoutController extends BaseController
 {
@@ -24,30 +25,51 @@ class CheckoutController extends BaseController
         parent::__construct($container);
     }
 
-    // Renders the checkout page with order summary and forms
+    // Renders the checkout page with a real order summary from the current cart.
     public function showCheckout(Request $request, Response $response, array $args): Response
     {
-        // --- DUMMY DATA (replace with session/DB later) ---
-        $items = [
-            ['id' => 1, 'name' => 'Kung Pao Chicken', 'emoji' => '🍛', 'price' => 14.99, 'quantity' => 2],
-            ['id' => 2, 'name' => 'Sushi Platter',     'emoji' => '🍱', 'price' => 22.00, 'quantity' => 1],
-            ['id' => 3, 'name' => 'Bubble Tea',        'emoji' => '🧋', 'price' => 5.50,  'quantity' => 2],
-        ];
+        $cart = $this->getCurrentCart();
 
-        $subtotal     = array_sum(array_map(fn($i) => $i['price'] * $i['quantity'], $items));
-        $delivery_fee = 2.99;
-        $tax          = $subtotal * 0.13;
-        $total        = $subtotal + $delivery_fee + $tax;
-        // --- END DUMMY DATA ---
+        if (empty($cart)) {
+            $this->flash('warning', 'Your cart is empty.');
+            $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
+            return $response->withStatus(302)->withHeader('Location', $basePath . '/cart');
+        }
 
-        $data = [
-            'items'        => $items,
-            'subtotal'     => number_format($subtotal, 2),
-            'delivery_fee' => number_format($delivery_fee, 2),
-            'tax'          => number_format($tax, 2),
-            'total'        => number_format($total, 2),
-        ];
+        $dishRows = Dishes::findDetailedByIds(array_keys($cart));
+        $dishesById = [];
 
-        return $this->render($response, 'checkout.twig', $data);
+        foreach ($dishRows as $dish) {
+            $dishesById[(int) $dish['id']] = $dish;
+        }
+
+        $items = [];
+        foreach ($cart as $dishId => $quantity) {
+            if (!isset($dishesById[$dishId])) {
+                continue;
+            }
+
+            $dish = $dishesById[$dishId];
+            $items[] = [
+                'id' => $dishId,
+                'name' => $dish['name'],
+                'emoji' => '🍽️',
+                'price' => (float) $dish['price'],
+                'quantity' => $quantity,
+            ];
+        }
+
+        $subtotal = array_sum(array_map(static fn(array $item): float => $item['price'] * $item['quantity'], $items));
+        $deliveryFee = empty($items) ? 0.00 : 2.99;
+        $tax = $subtotal * 0.13;
+        $total = $subtotal + $deliveryFee + $tax;
+
+        return $this->render($response, 'checkout.twig', [
+            'items' => $items,
+            'subtotal' => number_format($subtotal, 2),
+            'delivery_fee' => number_format($deliveryFee, 2),
+            'tax' => number_format($tax, 2),
+            'total' => number_format($total, 2),
+        ]);
     }
 }

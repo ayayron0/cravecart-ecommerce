@@ -41,6 +41,19 @@ try {
     echo "✅ Connected to database.\n\n";
 
     // -------------------------------------------------------------------------
+    // RESET SCHEMA
+    // The seeder is the source of truth for this classroom project, so we drop
+    // and recreate the tables on each run to ensure schema changes (like new
+    // foreign key rules) are applied consistently.
+    // -------------------------------------------------------------------------
+    $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+    foreach (['order_dish','orders','saved_cart','delivery_address','dishes','categories','cuisines','users'] as $table) {
+        $pdo->exec("DROP TABLE IF EXISTS `$table`");
+    }
+    $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+    echo "✅ Reset existing schema.\n";
+
+    // -------------------------------------------------------------------------
     // CREATE TABLES
     // Note: all table names are lowercase, all primary keys are named "id"
     //       This matches RedBeanPHP's default conventions.
@@ -53,6 +66,7 @@ try {
             name          VARCHAR(100)  NOT NULL,
             email         VARCHAR(150)  NOT NULL UNIQUE,
             password_hash VARCHAR(255)  NOT NULL,
+            totp_secret   VARCHAR(255),
             role          VARCHAR(20)   NOT NULL DEFAULT 'client',
             created_at    DATETIME      DEFAULT CURRENT_TIMESTAMP
         )
@@ -126,8 +140,8 @@ try {
             status     VARCHAR(20)    NOT NULL DEFAULT 'pending',
             notes      VARCHAR(500),
             ordered_at DATETIME       DEFAULT CURRENT_TIMESTAMP,
-            CONSTRAINT fk_orders_users           FOREIGN KEY (user_id)    REFERENCES users(id),
-            CONSTRAINT fk_orders_delivery_address FOREIGN KEY (address_id) REFERENCES delivery_address(id)
+            CONSTRAINT fk_orders_users            FOREIGN KEY (user_id)    REFERENCES users(id) ON DELETE CASCADE,
+            CONSTRAINT fk_orders_delivery_address FOREIGN KEY (address_id) REFERENCES delivery_address(id) ON DELETE CASCADE
         )
     ");
     echo "✅ Table: orders\n";
@@ -162,18 +176,6 @@ try {
     echo "✅ Table: saved_cart\n";
 
     echo "\n✅ All tables created.\n\n";
-
-    // -------------------------------------------------------------------------
-    // CLEAR EXISTING DATA
-    // Foreign key checks are disabled temporarily so tables can be truncated
-    // in any order without violating constraints.
-    // -------------------------------------------------------------------------
-    $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
-    foreach (['order_dish','orders','saved_cart','delivery_address','dishes','categories','cuisines','users'] as $table) {
-        $pdo->exec("TRUNCATE TABLE `$table`");
-    }
-    $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
-    echo "✅ Cleared existing data.\n\n";
 
     // -------------------------------------------------------------------------
     // SEED: users

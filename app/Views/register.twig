@@ -47,7 +47,11 @@
                         <div class="mb-3">
                             <label for="password" class="form-label fw-semibold small">Password</label>
                             <input type="password" class="form-control" id="password" name="password"
-                                   placeholder="At least 8 characters" required minlength="8">
+                            placeholder="8+ chars, upper, lower, number, symbol"
+                            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$"
+                            title="Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
+                            required>
+
                         </div>
                         <div class="mb-4">
                             <label for="password_confirm" class="form-label fw-semibold small">Confirm password</label>

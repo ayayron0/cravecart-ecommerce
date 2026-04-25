@@ -17,8 +17,7 @@ class DeliveryAddress
 
     public static function findById(int $id): ?OODBBean
     {
-        $address = R::load('delivery_address', $id);
-        return $address->id == 0 ? null : $address;
+        return R::findOne('delivery_address', ' id = ? ', [$id]);
     }
 
     public static function findByUserId(int $userId): array
@@ -50,13 +49,17 @@ class DeliveryAddress
             return 0;
         }
 
-        $address = R::dispense('delivery_address');
-        $address->user_id = $userId;
-        $address->street = $street;
-        $address->city = $city;
-        $address->postal_code = $postalCode;
+        $inserted = R::exec(
+            'INSERT INTO delivery_address (user_id, street, city, postal_code)
+             VALUES (?, ?, ?, ?)',
+            [$userId, $street, $city, $postalCode]
+        );
 
-        return (int) R::store($address);
+        if ($inserted <= 0) {
+            return 0;
+        }
+
+        return (int) R::getInsertID();
     }
 
     public static function update(
@@ -66,8 +69,7 @@ class DeliveryAddress
         string $city,
         string $postalCode
     ): bool {
-        $address = R::load('delivery_address', $id);
-        if ($address->id == 0) {
+        if (self::findById($id) === null) {
             return false;
         }
 
@@ -88,22 +90,16 @@ class DeliveryAddress
             return false;
         }
 
-        $address->user_id = $userId;
-        $address->street = $street;
-        $address->city = $city;
-        $address->postal_code = $postalCode;
-
-        return (int) R::store($address) > 0;
+        return R::exec(
+            'UPDATE delivery_address
+             SET user_id = ?, street = ?, city = ?, postal_code = ?
+             WHERE id = ?',
+            [$userId, $street, $city, $postalCode, $id]
+        ) > 0;
     }
 
     public static function delete(int $id): bool
     {
-        $address = R::load('delivery_address', $id);
-        if ($address->id == 0) {
-            return false;
-        }
-
-        R::trash($address);
-        return true;
+        return R::exec('DELETE FROM delivery_address WHERE id = ?', [$id]) > 0;
     }
 }

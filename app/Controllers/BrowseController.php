@@ -60,6 +60,7 @@ class BrowseController extends BaseController
         // exists, or fall back to the emoji placeholder when it is null.
         $dishes = array_map(static function ($dish): array {
             return [
+                'id' => (int) $dish->id,
                 'name' => $dish->name,
                 'description' => $dish->description,
                 'price' => (float) $dish->price,

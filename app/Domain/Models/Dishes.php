@@ -98,6 +98,38 @@ class Dishes
         );
     }
 
+    // Returns detailed dish rows for a specific list of dish IDs.
+    // Used by the cart when the current source of truth is the session cart.
+    public static function findDetailedByIds(array $ids): array
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids), static fn(int $id): bool => $id > 0));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+        return R::getAll(
+            'SELECT
+                d.id,
+                d.name,
+                d.description,
+                d.price,
+                d.image_url,
+                d.availability,
+                c.name AS cuisine_name,
+                c.slug AS cuisine_slug,
+                cat.name AS category_name
+             FROM dishes d
+             INNER JOIN cuisines c ON d.cuisine_id = c.id
+             INNER JOIN categories cat ON d.category_id = cat.id
+             WHERE d.id IN (' . $placeholders . ')
+             ORDER BY d.name ASC',
+            $ids
+        );
+    }
+
     //validates category, cuisine and fields
     public static function create(
         int $categoryId,

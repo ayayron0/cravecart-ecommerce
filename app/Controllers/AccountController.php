@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Domain\Models\OrderDish;
 use App\Domain\Models\Orders;
 use App\Domain\Models\Users;
+use App\Services\Validation\ProfileValidator;
 use DI\Container;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -20,9 +21,12 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  */
 class AccountController extends BaseController
 {
+    private ProfileValidator $profileValidator;
+
     public function __construct(Container $container)
     {
         parent::__construct($container);
+        $this->profileValidator = new ProfileValidator();
     }
 
     // Renders the client's order history with a progress stepper per order.
@@ -62,46 +66,41 @@ class AccountController extends BaseController
     }
 
     // Renders the profile form pre-filled with the client's current info.
-    // Shows a success banner if redirected here after a successful update (?updated=1).
     public function showProfile(Request $request, Response $response, array $args): Response
     {
         return $this->render($response, 'Account/profile.twig', [
             'user' => Users::findById((int) $_SESSION['user_id']),
             'activeNav' => 'profile',
-            'updated' => (($request->getQueryParams()['updated'] ?? null) === '1'),
         ]);
     }
 
     // Handles the profile form submission — updates name/email and optionally password.
     public function updateProfile(Request $request, Response $response, array $args): Response
     {
-        $body = $request->getParsedBody();
-        $errors = [];
+        $result = $this->profileValidator->validate($request->getParsedBody());
+        $data = $result['data'];
+        $errors = $result['errors'];
 
-        $name = trim($body['name'] ?? '');
-        $email = trim($body['email'] ?? '');
+        $isChangingPassword =
+            $data['current_password'] !== '' ||
+            $data['new_password'] !== '' ||
+            $data['confirm_password'] !== '';
 
-        if ($name === '' || $email === '') {
-            $errors[] = 'Name and email cannot be empty.';
-        } else {
-            Users::update((int) $_SESSION['user_id'], $name, $email);
-
-            // Keep the session name in sync so the sidebar shows the updated name immediately.
-            $_SESSION['name'] = $name;
+        if (empty($errors) && $isChangingPassword) {
+            if (!Users::verifyPassword((int) $_SESSION['user_id'], $data['current_password'])) {
+                $errors[] = 'Current password is incorrect.';
+            }
         }
 
-        // Only attempt a password change if the user filled in at least one password field.
-        $current = $body['current_password'] ?? '';
-        $new = $body['new_password'] ?? '';
-        $confirm = $body['confirm_password'] ?? '';
+        if (empty($errors)) {
+            Users::update((int) $_SESSION['user_id'], $data['name'], $data['email']);
 
-        if ($current !== '' || $new !== '' || $confirm !== '') {
-            if (strlen($new) < 8) {
-                $errors[] = 'New password must be at least 8 characters.';
-            } elseif ($new !== $confirm) {
-                $errors[] = 'New passwords do not match.';
-            } elseif (!Users::updatePassword((int) $_SESSION['user_id'], $current, $new)) {
-                $errors[] = 'Current password is incorrect.';
+            // Keep the session name in sync so the sidebar shows the updated name immediately.
+            $_SESSION['name'] = $data['name'];
+
+            // Change the password only after the current password has been verified.
+            if ($isChangingPassword) {
+                Users::updatePassword((int) $_SESSION['user_id'], $data['current_password'], $data['new_password']);
             }
         }
 
@@ -114,14 +113,19 @@ class AccountController extends BaseController
         }
 
         // Redirect back to GET so a page refresh doesn't re-submit the form.
-        return $this->redirectTo($response, '/account/profile?updated=1');
+        $this->flash('success', 'Profile updated successfully.');
+        return $this->redirectTo($response, '/account/profile');
     }
 
     public function deleteAccount(Request $request, Response $response, array $args): Response
     {
-        Users::delete((int) $_SESSION['user_id']);
+        if (!Users::delete((int) $_SESSION['user_id'])) {
+            $this->flash('danger', 'We could not delete your account right now. Please try again.');
+            return $this->redirectTo($response, '/account/profile');
+        }
+
         session_unset();
-        session_destroy();
+        $this->flash('success', 'Your account has been deleted.');
         $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
         return $response->withStatus(302)->withHeader('Location', $basePath . '/');
     }

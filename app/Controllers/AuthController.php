@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Domain\Models\Users;
+use App\Services\Validation\RegistrationValidator;
 use DI\Container;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\Providers\Qr\BaconQrCodeProvider;
@@ -13,21 +14,16 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 class AuthController extends BaseController
 {
+    private RegistrationValidator $registrationValidator;
+
     public function __construct(Container $container)
     {
         parent::__construct($container);
+        $this->registrationValidator = new RegistrationValidator();
     }
 
     public function showLogin(Request $request, Response $response): Response
     {
-        $timeout = $request->getQueryParams()['timeout'] ?? null;
-        //checks if the session has timed out by checking the return value
-        //of the session timeout middleware
-        if($timeout === '1')
-        {
-            $data['error'] = 'Your session has timed out. Please login again.';
-            return $this->render($response, 'login.twig', $data);
-        }
         return $this->render($response, 'login.twig');
     }
 
@@ -119,7 +115,9 @@ class AuthController extends BaseController
         // First time setup: save secret to DB
         $userId = $_SESSION['2fa_user_id'];
         $user   = Users::findById($userId);
-        if (empty($user->totp_secret)) {
+        $isFirstSetup = empty($user->totp_secret);
+
+        if ($isFirstSetup) {
             Users::saveTotpSecret($userId, $_SESSION['totp_secret']);
         }
 
@@ -130,38 +128,41 @@ class AuthController extends BaseController
         unset($_SESSION['2fa_user_id'], $_SESSION['2fa_role'], $_SESSION['2fa_name'], $_SESSION['2fa_email'], $_SESSION['totp_secret']);
         $_SESSION['last_activity'] = time();
 
-
         if ($_SESSION['role'] !== 'administrator') {
-            return $response->withStatus(302)->withHeader('Location', $basePath . '/?loggedin=1');
+            $this->mergeSessionCartIntoSavedCart($userId);
+            $this->flash('success', $isFirstSetup ? 'Account created! Welcome to CraveCart.' : 'Welcome back!');
+            return $response->withStatus(302)->withHeader('Location', $basePath . '/');
         }
+
+        $this->flash('success', 'Welcome back!');
         return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/orders');
     }
 
     public function logout(Request $request, Response $response): Response
     {
         session_unset();
-        session_destroy();
+        $this->flash('success', 'You have been successfully signed out.');
         $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-        return $response->withStatus(302)->withHeader('Location', $basePath . '/?logged_out=1');
+        return $response->withStatus(302)->withHeader('Location', $basePath . '/');
     }
 
     public function register(Request $request, Response $response): Response
     {
-        $data['first_name']       = $request->getParsedBody()['first_name'];
-        $data['last_name']        = $request->getParsedBody()['last_name'];
-        $fullname                 = $data['first_name'] . ' ' . $data['last_name'];
-        $data['email']            = $request->getParsedBody()['email'];
-        $data['password']         = $request->getParsedBody()['password'];
-        $data['password_confirm'] = $request->getParsedBody()['password_confirm'];
+        $result = $this->registrationValidator->validate($request->getParsedBody());
+        $data = $result['data'];
 
-        if ($data['password'] != $data['password_confirm']) {
-            return $this->render($response, 'register.twig', ['errors' => ['Passwords do not match']]);
+        if (!$result['valid']) {
+            return $this->render($response, 'register.twig', [
+                'errors' => $result['errors'],
+                'old' => [
+                    'first_name' => $data['first_name'],
+                    'last_name' => $data['last_name'],
+                    'email' => $data['email'],
+                ],
+            ]);
         }
 
-        if (Users::findByEmail($data['email']) != null) {
-            return $this->render($response, 'register.twig', ['errors' => ['Email already in use']]);
-        }
-
+        $fullname = $data['first_name'] . ' ' . $data['last_name'];
         $userId = Users::create($fullname, $data['email'], $data['password'], 'client');
         if ($userId == 0) {
             return $this->render($response, 'register.twig', ['errors' => ['Error creating user']]);

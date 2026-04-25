@@ -77,9 +77,11 @@
                         <div class="dish-footer">
                             <span class="dish-price">${{ dish.price|number_format(2) }}</span>
                             {% if dish.availability == 'available' or dish.availability == 'seasonal' %}
-                            <button class="btn-add">
-                                <i class="bi bi-bag-plus"></i> Add
-                            </button>
+                            <form action="{{ basePath }}/cart/add/{{ dish.id }}" method="post" class="mb-0">
+                                <button type="submit" class="btn-add">
+                                    <i class="bi bi-bag-plus"></i> Add
+                                </button>
+                            </form>
                             {% else %}
                             <span class="text-muted small">Unavailable</span>
                             {% endif %}

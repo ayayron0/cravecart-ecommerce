@@ -76,6 +76,17 @@ class Users
         return (int) R::store($user) > 0;
     }
 
+    // Checks whether the provided password matches the user's current password hash.
+    public static function verifyPassword(int $user_id, string $password): bool
+    {
+        $user = R::load('users', $user_id);
+        if ($user->id == 0) {
+            return false;
+        }
+
+        return password_verify($password, $user->password_hash);
+    }
+
     public static function saveTotpSecret(int $user_id, string $secret): bool
     {
         $user = R::load('users', $user_id);

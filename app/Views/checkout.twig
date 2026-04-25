@@ -106,14 +106,17 @@
                     <hr>
                     <div class="summary-row total"><span>Total</span><span>${{ total }}</span></div>
 
-                    <form action="{{ basePath }}/checkout/place" method="post" class="mt-4">
-                        <button type="submit" class="btn-place-order">
+                    <div class="mt-4">
+                        <button type="button" class="btn-place-order" disabled>
                             <i class="bi bi-bag-check me-2"></i>Place Order
                         </button>
-                    </form>
+                    </div>
 
                     <p class="text-center small text-muted mt-3 mb-0">
                         <i class="bi bi-shield-lock me-1"></i> Secure &amp; encrypted checkout
+                    </p>
+                    <p class="text-center small text-muted mt-2 mb-0">
+                        Order placement comes next once the checkout backend is wired.
                     </p>
                 </div>
             </div>

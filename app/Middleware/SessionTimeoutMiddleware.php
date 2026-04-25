@@ -32,13 +32,16 @@ class SessionTimeoutMiddleware
             if($time > 1800) // 30 minutes
             {
                 session_unset();
-                session_destroy();
+                $_SESSION['flash'] = [
+                    'type' => 'warning',
+                    'message' => 'Your session has timed out. Please login again.',
+                ];
                 // Builds the URL prefix for the app's subfolder (e.g. /cravecart-ecommerce).
                 // Without this, the redirect would point to the server root instead of the app.
                 $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
 
-                // Redirects to the login page with timeout=1 so showLogin method in authcontroller knows to display the timeout message.
-                return (new SlimResponse())->withStatus(302)->withHeader('Location', $basePath . '/login?timeout=1');
+                // Redirects to the login page and lets the flash message explain why.
+                return (new SlimResponse())->withStatus(302)->withHeader('Location', $basePath . '/login');
 
             }
         }

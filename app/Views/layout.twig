@@ -71,6 +71,15 @@
     #}
     {% include 'common/header.twig' %}
 
+    {% if flash %}
+    <div class="container mt-3">
+        <div class="alert alert-{{ flash.type }} alert-dismissible fade show" role="alert">
+            {{ flash.message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+    {% endif %}
+
     {#
         WHAT:  The main content area — this is different on every page.
         HOW:   {% block content %} is empty here. Each child template fills it in.

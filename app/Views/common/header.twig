@@ -30,8 +30,10 @@
         <div class="d-flex align-items-center gap-3 flex-shrink-0">
             <a href="{{ basePath }}/cart" class="position-relative" style="color:#111827; text-decoration:none;">
                 <i class="bi bi-cart3 fs-5"></i>
+                {% if cart_count > 0 %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                      style="background:#e63946; font-size:.6rem;">0</span>
+                      style="background:#e63946; font-size:.6rem;">{{ cart_count }}</span>
+                {% endif %}
             </a>
 
             {% if session.user_id is defined %}

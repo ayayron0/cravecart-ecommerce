@@ -16,6 +16,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  * WHAT: Renders the home page, about page, and handles the AJAX search endpoint.
  * HOW:  index() loads all cuisines for the home page cards.
  *       search() queries the database and returns JSON for the live search bar.
+ *       apiCuisines() exposes a simple JSON endpoint for external integrations.
  *       about() renders the static about page.
  *       showLogin() checks for a session timeout flag and passes an error message
  *       to the login view when the user was logged out automatically.
@@ -31,28 +32,13 @@ class HomeController extends BaseController
 
     public function index(Request $request, Response $response, array $args): Response
     {
-        //$data['flash'] = $this->flash->getFlashMessage();
-        //echo $data['message'] ;exit;
-
         $data['cuisines'] = Cuisines::getAll();
-
-        $query = $request->getQueryParams();
-
-        if (($query['logged_out'] ?? null) === '1') {
-            $data['success'] = 'You have been successfully signed out.';
-        } elseif (($query['registered'] ?? null) === '1') {
-            $data['success'] = 'Account created! Welcome to CraveCart.';
-        } elseif (($query['loggedin'] ?? null) === '1') {
-            $data['success'] = 'Welcome back!';
-        }
 
         $data['data'] = [
             'title' => 'Home',
             'message' => 'Welcome to the home page',
         ];
 
-        //dd($data);
-        //var_dump($this->session); exit;
         return $this->render($response, 'home.twig', $data);
     }
 
@@ -81,6 +67,30 @@ class HomeController extends BaseController
         // Write the array as a JSON string to the response body, then set the
         // Content-Type header so the browser knows to parse it as JSON.
         $response->getBody()->write(json_encode($data['dishes']));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    // Simple API endpoint for other software to read cuisine data as JSON.
+    public function apiCuisines(Request $request, Response $response, array $args): Response
+    {
+        $cuisineBeans = Cuisines::getAll();
+
+        $cuisines = array_map(static function ($cuisine): array {
+            return [
+                'id' => (int) $cuisine->id,
+                'name' => (string) $cuisine->name,
+                'code' => (string) $cuisine->code,
+                'slug' => (string) $cuisine->slug,
+                'description' => $cuisine->description ? (string) $cuisine->description : null,
+                'image_url' => $cuisine->image_url ? (string) $cuisine->image_url : null,
+            ];
+        }, $cuisineBeans);
+
+        $response->getBody()->write(json_encode([
+            'count' => count($cuisines),
+            'cuisines' => $cuisines,
+        ]));
+
         return $response->withHeader('Content-Type', 'application/json');
     }
 

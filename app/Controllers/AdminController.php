@@ -10,6 +10,10 @@ use App\Domain\Models\Dishes;
 use App\Domain\Models\OrderDish;
 use App\Domain\Models\Orders;
 use App\Domain\Models\Users;
+use App\Services\Validation\CategoryValidator;
+use App\Services\Validation\CuisineValidator;
+use App\Services\Validation\DishValidator;
+use App\Services\Validation\ProfileValidator;
 use DI\Container;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -25,9 +29,18 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  */
 class AdminController extends BaseController
 {
+    private CategoryValidator $categoryValidator;
+    private CuisineValidator $cuisineValidator;
+    private DishValidator $dishValidator;
+    private ProfileValidator $profileValidator;
+
     public function __construct(Container $container)
     {
         parent::__construct($container);
+        $this->categoryValidator = new CategoryValidator();
+        $this->cuisineValidator = new CuisineValidator();
+        $this->dishValidator = new DishValidator();
+        $this->profileValidator = new ProfileValidator();
     }
 
     // Renders the orders dashboard - shows all customer orders and their status.
@@ -106,42 +119,37 @@ class AdminController extends BaseController
         return $this->render($response, 'Admin/profile.twig', [
             'user' => Users::findById((int) $_SESSION['user_id']),
             'activeNav' => 'profile',
-            'updated' => (($request->getQueryParams()['updated'] ?? null) === '1'),
         ]);
     }
 
     // Handles the profile update form submission (email and/or password).
     public function updateProfile(Request $request, Response $response, array $args): Response
     {
-        // Read submitted form data. trim() removes accidental spaces.
-        $body = $request->getParsedBody();
-        $errors = [];
+        // Read submitted form data, then let the validation service centralize the rules.
+        $result = $this->profileValidator->validate($request->getParsedBody());
+        $data = $result['data'];
+        $errors = $result['errors'];
 
-        // --- Update name and email ---
-        $name = trim($body['name'] ?? '');
-        $email = trim($body['email'] ?? '');
+        $isChangingPassword =
+            $data['current_password'] !== '' ||
+            $data['new_password'] !== '' ||
+            $data['confirm_password'] !== '';
 
-        if ($name === '' || $email === '') {
-            $errors[] = 'Name and email cannot be empty.';
-        } else {
-            Users::update((int) $_SESSION['user_id'], $name, $email);
-
-            // Keep the session in sync so the navbar shows the updated name immediately.
-            $_SESSION['name'] = $name;
+        if (empty($errors) && $isChangingPassword) {
+            if (!Users::verifyPassword((int) $_SESSION['user_id'], $data['current_password'])) {
+                $errors[] = 'Current password is incorrect.';
+            }
         }
 
-        // --- Update password (only runs if the user filled in at least one password field) ---
-        $current = $body['current_password'] ?? '';
-        $new = $body['new_password'] ?? '';
-        $confirm = $body['confirm_password'] ?? '';
+        if (empty($errors)) {
+            Users::update((int) $_SESSION['user_id'], $data['name'], $data['email']);
 
-        if ($current !== '' || $new !== '' || $confirm !== '') {
-            if (strlen($new) < 8) {
-                $errors[] = 'New password must be at least 8 characters.';
-            } elseif ($new !== $confirm) {
-                $errors[] = 'New passwords do not match.';
-            } elseif (!Users::updatePassword((int) $_SESSION['user_id'], $current, $new)) {
-                $errors[] = 'Current password is incorrect.';
+            // Keep the session in sync so the navbar shows the updated name immediately.
+            $_SESSION['name'] = $data['name'];
+
+            // Change the password only after the current password has been verified.
+            if ($isChangingPassword) {
+                Users::updatePassword((int) $_SESSION['user_id'], $data['current_password'], $data['new_password']);
             }
         }
 
@@ -154,51 +162,28 @@ class AdminController extends BaseController
             ]);
         }
 
-        // All updates succeeded - redirect back to profile with ?updated=1.
-        return $this->redirectTo($response, '/admin/profile?updated=1');
+        // All updates succeeded - redirect back to profile with a flash message.
+        $this->flash('success', 'Profile updated successfully.');
+        return $this->redirectTo($response, '/admin/profile');
     }
 
     // Renders the "Add New" page with cuisines and categories loaded from the DB.
     public function showAdd(Request $request, Response $response, array $args): Response
     {
-        $success = $request->getQueryParams()['success'] ?? null;
-        $successMessage = null;
-
-        if ($success === 'cuisine') {
-            $successMessage = 'Cuisine added successfully.';
-        } elseif ($success === 'category') {
-            $successMessage = 'Category added successfully.';
-        } elseif ($success === 'dish') {
-            $successMessage = 'Dish added successfully.';
-        }
-
-        return $this->renderAddPage($response, [
-            'success' => $successMessage,
-        ]);
+        return $this->renderAddPage($response);
     }
 
     // Handles the add-category form submission.
     public function addCategory(Request $request, Response $response, array $args): Response
     {
-        $body = $request->getParsedBody();
-        $name = trim($body['name'] ?? '');
-        $description = trim($body['description'] ?? '');
+        $result = $this->categoryValidator->validate($request->getParsedBody());
 
-        $errors = [];
-
-        if ($name === '') {
-            $errors[] = 'Category name is required.';
+        if (!$result['valid']) {
+            return $this->renderAddPage($response, ['errors' => $result['errors']]);
         }
 
-        if ($name !== '' && Categories::findByName($name) !== null) {
-            $errors[] = 'A category with that name already exists.';
-        }
-
-        if (!empty($errors)) {
-            return $this->renderAddPage($response, ['errors' => $errors]);
-        }
-
-        $createdId = Categories::create($name, $description);
+        $data = $result['data'];
+        $createdId = Categories::create($data['name'], $data['description']);
 
         if ($createdId === 0) {
             return $this->renderAddPage($response, [
@@ -206,10 +191,11 @@ class AdminController extends BaseController
             ]);
         }
 
-        return $this->redirectTo($response, '/admin/add?success=category');
+        $this->flash('success', 'Category added successfully.');
+        return $this->redirectTo($response, '/admin/add');
     }
 
-        // Renders the edit form for a single category.
+    // Renders the edit form for a single category.
     public function showEditCategory(Request $request, Response $response, array $args): Response
     {
         $category = Categories::findById((int) $args['id']);
@@ -221,9 +207,6 @@ class AdminController extends BaseController
         return $this->render($response, 'Admin/edit-category.twig', [
             'category' => $category,
             'activeNav' => 'add',
-            'success' => (($request->getQueryParams()['updated'] ?? null) === '1')
-                ? 'Category updated successfully.'
-                : null,
         ]);
     }
 
@@ -231,31 +214,18 @@ class AdminController extends BaseController
     public function updateCategory(Request $request, Response $response, array $args): Response
     {
         $categoryId = (int) $args['id'];
-        $body = $request->getParsedBody();
+        $result = $this->categoryValidator->validate($request->getParsedBody(), $categoryId);
 
-        $name = trim($body['name'] ?? '');
-        $description = trim($body['description'] ?? '');
-
-        $errors = [];
-
-        if ($name === '') {
-            $errors[] = 'Category name is required.';
-        }
-
-        $existing = Categories::findByName($name);
-        if ($name !== '' && $existing !== null && (int) $existing->id !== $categoryId) {
-            $errors[] = 'A category with that name already exists.';
-        }
-
-        if (!empty($errors)) {
+        if (!$result['valid']) {
             return $this->render($response, 'Admin/edit-category.twig', [
                 'category' => Categories::findById($categoryId),
-                'errors' => $errors,
+                'errors' => $result['errors'],
                 'activeNav' => 'add',
             ]);
         }
 
-        $updated = Categories::update($categoryId, $name, $description);
+        $data = $result['data'];
+        $updated = Categories::update($categoryId, $data['name'], $data['description']);
 
         if (!$updated) {
             return $this->render($response, 'Admin/edit-category.twig', [
@@ -265,37 +235,21 @@ class AdminController extends BaseController
             ]);
         }
 
-        return $this->redirectTo($response, '/admin/edit/category/' . $categoryId . '?updated=1');
+        $this->flash('success', 'Category updated successfully.');
+        return $this->redirectTo($response, '/admin/edit/category/' . $categoryId);
     }
 
     // Handles the add-cuisine form submission.
     public function addCuisine(Request $request, Response $response, array $args): Response
     {
-        $body = $request->getParsedBody();
-        $name = trim($body['name'] ?? '');
-        $code = trim($body['code'] ?? '');
-        $description = trim($body['description'] ?? '');
-        $imageUrl = trim($body['image_url'] ?? '');
+        $result = $this->cuisineValidator->validate($request->getParsedBody());
 
-        $errors = [];
-
-        if ($name === '') {
-            $errors[] = 'Cuisine name is required.';
+        if (!$result['valid']) {
+            return $this->renderAddPage($response, ['errors' => $result['errors']]);
         }
 
-        if ($code === '') {
-            $errors[] = 'Cuisine code is required.';
-        }
-
-        if ($name !== '' && Cuisines::findByName($name) !== null) {
-            $errors[] = 'A cuisine with that name already exists.';
-        }
-
-        if (!empty($errors)) {
-            return $this->renderAddPage($response, ['errors' => $errors]);
-        }
-
-        $createdId = Cuisines::create($name, $code, $description, $imageUrl);
+        $data = $result['data'];
+        $createdId = Cuisines::create($data['name'], $data['code'], $data['description'], $data['image_url']);
 
         if ($createdId === 0) {
             return $this->renderAddPage($response, [
@@ -303,10 +257,11 @@ class AdminController extends BaseController
             ]);
         }
 
-        return $this->redirectTo($response, '/admin/add?success=cuisine');
+        $this->flash('success', 'Cuisine added successfully.');
+        return $this->redirectTo($response, '/admin/add');
     }
 
-        // Renders the edit form for a single cuisine.
+    // Renders the edit form for a single cuisine.
     public function showEditCuisine(Request $request, Response $response, array $args): Response
     {
         $cuisine = Cuisines::findById((int) $args['id']);
@@ -318,9 +273,6 @@ class AdminController extends BaseController
         return $this->render($response, 'Admin/edit-cuisine.twig', [
             'cuisine' => $cuisine,
             'activeNav' => 'add',
-            'success' => (($request->getQueryParams()['updated'] ?? null) === '1')
-                ? 'Cuisine updated successfully.'
-                : null,
         ]);
     }
 
@@ -328,37 +280,18 @@ class AdminController extends BaseController
     public function updateCuisine(Request $request, Response $response, array $args): Response
     {
         $cuisineId = (int) $args['id'];
-        $body = $request->getParsedBody();
+        $result = $this->cuisineValidator->validate($request->getParsedBody(), $cuisineId);
 
-        $name = trim($body['name'] ?? '');
-        $code = trim($body['code'] ?? '');
-        $description = trim($body['description'] ?? '');
-        $imageUrl = trim($body['image_url'] ?? '');
-
-        $errors = [];
-
-        if ($name === '') {
-            $errors[] = 'Cuisine name is required.';
-        }
-
-        if ($code === '') {
-            $errors[] = 'Cuisine code is required.';
-        }
-
-        $existing = Cuisines::findByName($name);
-        if ($name !== '' && $existing !== null && (int) $existing->id !== $cuisineId) {
-            $errors[] = 'A cuisine with that name already exists.';
-        }
-
-        if (!empty($errors)) {
+        if (!$result['valid']) {
             return $this->render($response, 'Admin/edit-cuisine.twig', [
                 'cuisine' => Cuisines::findById($cuisineId),
-                'errors' => $errors,
+                'errors' => $result['errors'],
                 'activeNav' => 'add',
             ]);
         }
 
-        $updated = Cuisines::update($cuisineId, $name, $code, $description, $imageUrl);
+        $data = $result['data'];
+        $updated = Cuisines::update($cuisineId, $data['name'], $data['code'], $data['description'], $data['image_url']);
 
         if (!$updated) {
             return $this->render($response, 'Admin/edit-cuisine.twig', [
@@ -368,51 +301,28 @@ class AdminController extends BaseController
             ]);
         }
 
-        return $this->redirectTo($response, '/admin/edit/cuisine/' . $cuisineId . '?updated=1');
+        $this->flash('success', 'Cuisine updated successfully.');
+        return $this->redirectTo($response, '/admin/edit/cuisine/' . $cuisineId);
     }
 
     // Handles the add-dish form submission.
     public function addDish(Request $request, Response $response, array $args): Response
     {
-        $body = $request->getParsedBody();
-        $name = trim($body['name'] ?? '');
-        $cuisineId = (int) ($body['cuisine_id'] ?? 0);
-        $categoryId = (int) ($body['category_id'] ?? 0);
-        $description = trim($body['description'] ?? '');
-        $price = (float) ($body['price'] ?? 0);
-        $availability = trim($body['availability'] ?? 'available');
-        $imageUrl = trim($body['image_url'] ?? '');
+        $result = $this->dishValidator->validate($request->getParsedBody());
 
-        $errors = [];
-
-        if ($name === '') {
-            $errors[] = 'Dish name is required.';
+        if (!$result['valid']) {
+            return $this->renderAddPage($response, ['errors' => $result['errors']]);
         }
 
-        if ($cuisineId <= 0) {
-            $errors[] = 'Cuisine is required.';
-        }
-
-        if ($categoryId <= 0) {
-            $errors[] = 'Category is required.';
-        }
-
-        if ($price < 0) {
-            $errors[] = 'Price cannot be negative.';
-        }
-
-        if (!empty($errors)) {
-            return $this->renderAddPage($response, ['errors' => $errors]);
-        }
-
+        $data = $result['data'];
         $createdId = Dishes::create(
-            $categoryId,
-            $cuisineId,
-            $name,
-            $description,
-            $price,
-            $imageUrl,
-            $availability
+            $data['category_id'],
+            $data['cuisine_id'],
+            $data['name'],
+            $data['description'],
+            $data['price'],
+            $data['image_url'],
+            $data['availability']
         );
 
         if ($createdId === 0) {
@@ -421,7 +331,8 @@ class AdminController extends BaseController
             ]);
         }
 
-        return $this->redirectTo($response, '/admin/add?success=dish');
+        $this->flash('success', 'Dish added successfully.');
+        return $this->redirectTo($response, '/admin/add');
     }
 
     // Renders the edit form for a single dish.
@@ -438,47 +349,18 @@ class AdminController extends BaseController
             'cuisines' => Cuisines::getAll(),
             'categories' => Categories::getAll(),
             'activeNav' => 'menu',
-            'success' => (($request->getQueryParams()['updated'] ?? null) === '1')
-                ? 'Dish updated successfully.'
-                : null,
         ]);
     }
 
     // Handles the edit-dish form submission.
     public function updateDish(Request $request, Response $response, array $args): Response
     {
-        $body = $request->getParsedBody();
         $dishId = (int) $args['id'];
+        $result = $this->dishValidator->validate($request->getParsedBody());
 
-        $name = trim($body['name'] ?? '');
-        $cuisineId = (int) ($body['cuisine_id'] ?? 0);
-        $categoryId = (int) ($body['category_id'] ?? 0);
-        $description = trim($body['description'] ?? '');
-        $price = (float) ($body['price'] ?? 0);
-        $availability = trim($body['availability'] ?? 'available');
-        $imageUrl = trim($body['image_url'] ?? '');
-
-        $errors = [];
-
-        if ($name === '') {
-            $errors[] = 'Dish name is required.';
-        }
-
-        if ($cuisineId <= 0) {
-            $errors[] = 'Cuisine is required.';
-        }
-
-        if ($categoryId <= 0) {
-            $errors[] = 'Category is required.';
-        }
-
-        if ($price < 0) {
-            $errors[] = 'Price cannot be negative.';
-        }
-
-        if (!empty($errors)) {
+        if (!$result['valid']) {
             return $this->render($response, 'Admin/edit-dish.twig', [
-                'errors' => $errors,
+                'errors' => $result['errors'],
                 'dish' => Dishes::findById($dishId),
                 'cuisines' => Cuisines::getAll(),
                 'categories' => Categories::getAll(),
@@ -486,15 +368,16 @@ class AdminController extends BaseController
             ]);
         }
 
+        $data = $result['data'];
         $updated = Dishes::update(
             $dishId,
-            $categoryId,
-            $cuisineId,
-            $name,
-            $description,
-            $price,
-            $imageUrl,
-            $availability
+            $data['category_id'],
+            $data['cuisine_id'],
+            $data['name'],
+            $data['description'],
+            $data['price'],
+            $data['image_url'],
+            $data['availability']
         );
 
         if (!$updated) {
@@ -507,13 +390,15 @@ class AdminController extends BaseController
             ]);
         }
 
-        return $this->redirectTo($response, '/admin/edit/dish/' . $dishId . '?updated=1');
+        $this->flash('success', 'Dish updated successfully.');
+        return $this->redirectTo($response, '/admin/edit/dish/' . $dishId);
     }
 
     // Deletes a dish and returns to the menu page.
     public function deleteDish(Request $request, Response $response, array $args): Response
     {
         Dishes::delete((int) $args['id']);
+        $this->flash('success', 'Dish deleted successfully.');
         return $this->redirectTo($response, '/admin/menu');
     }
 
@@ -521,6 +406,7 @@ class AdminController extends BaseController
     public function deleteCuisine(Request $request, Response $response, array $args): Response
     {
         Cuisines::delete((int) $args['id']);
+        $this->flash('success', 'Cuisine deleted successfully.');
         return $this->redirectTo($response, '/admin/add');
     }
 
@@ -528,6 +414,7 @@ class AdminController extends BaseController
     public function deleteCategory(Request $request, Response $response, array $args): Response
     {
         Categories::delete((int) $args['id']);
+        $this->flash('success', 'Category deleted successfully.');
         return $this->redirectTo($response, '/admin/add');
     }
 
@@ -541,6 +428,7 @@ class AdminController extends BaseController
 
         if ($orderId > 0 && in_array($status, $allowedStatuses, true)) {
             Orders::updateStatus($orderId, $status);
+            $this->flash('success', 'Order status updated successfully.');
         }
 
         return $this->redirectTo($response, '/admin/orders');

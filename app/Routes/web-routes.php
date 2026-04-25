@@ -46,6 +46,10 @@ return static function (Slim\App $app): void {
     $app->get('/search', [HomeController::class, 'search'])
         ->setName('home.search');
 
+    // Simple public API endpoint for external integrations.
+    $app->get('/api/cuisines', [HomeController::class, 'apiCuisines'])
+        ->setName('home.api.cuisines');
+
     // Static about page linked from the footer.
     $app->get('/about', [HomeController::class, 'about'])
         ->setName('home.about');
@@ -111,19 +115,9 @@ return static function (Slim\App $app): void {
 
     // Cart & checkout
     $app->get('/cart',      [CartController::class,     'showCart'])->setName('cart.show');
+    $app->post('/cart/add/{id}', [CartController::class, 'addItem'])->setName('cart.add');
+    $app->post('/cart/increase/{id}', [CartController::class, 'increaseQuantity'])->setName('cart.increase');
+    $app->post('/cart/decrease/{id}', [CartController::class, 'decreaseQuantity'])->setName('cart.decrease');
+    $app->post('/cart/remove/{id}', [CartController::class, 'removeItem'])->setName('cart.remove');
     $app->get('/checkout',  [CheckoutController::class, 'showCheckout'])->setName('checkout.show');
-
-    // A route to display PHP configuration information.
-    $app->get('/phpinfo', function (Request $request, Response $response, $args) {
-        ob_start();
-        phpinfo();
-        $phpinfo = ob_get_clean();
-        $response->getBody()->write($phpinfo);
-        return $response;
-    });
-
-    // A route to test runtime error handling and custom exceptions.
-    $app->get('/error', function (Request $request, Response $response, $args) {
-        throw new \Slim\Exception\HttpBadRequestException($request, "This is a runtime error. Something went wrong");
-    });
 };

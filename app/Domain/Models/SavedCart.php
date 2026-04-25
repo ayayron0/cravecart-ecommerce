@@ -17,8 +17,7 @@ class SavedCart
 
     public static function findById(int $id): ?OODBBean
     {
-        $item = R::load('saved_cart', $id);
-        return $item->id == 0 ? null : $item;
+        return R::findOne('saved_cart', ' id = ? ', [$id]);
     }
 
     public static function findByUserId(int $userId): array
@@ -58,7 +57,7 @@ class SavedCart
         return R::findOne('saved_cart', ' user_id = ? AND dish_id = ? ', [$userId, $dishId]);
     }
 
-    // Add item to cart (if already exists → increase quantity instead of duplicate row)
+    // Add item to cart (if already exists -> increase quantity instead of duplicate row)
     public static function addItem(int $userId, int $dishId, int $quantity, float $dishPrice): int
     {
         // Validate inputs (no invalid IDs, quantity, or price)
@@ -79,49 +78,49 @@ class SavedCart
         // Check if this dish is already in the user's cart
         $existing = self::findByUserAndDish($userId, $dishId);
 
-        // If it exists → update quantity instead of creating a new row
+        // If it exists -> update quantity instead of creating a new row
         if ($existing !== null) {
-            $existing->quantity += $quantity; // add to existing quantity
-            $existing->dish_price = $dishPrice; // update price (in case it changed)
-            return (int) R::store($existing); // save updated item
+            R::exec(
+                'UPDATE saved_cart
+                 SET quantity = quantity + ?, dish_price = ?
+                 WHERE id = ?',
+                [$quantity, $dishPrice, $existing->id]
+            );
+
+            return (int) $existing->id;
         }
 
-        // If not exists → create new cart item
-        $item = R::dispense('saved_cart');
-        $item->user_id = $userId;
-        $item->dish_id = $dishId;
-        $item->quantity = $quantity;
-        $item->dish_price = $dishPrice;
+        // If not exists -> create new cart item with raw SQL because RedBean
+        // rejects underscored bean types like saved_cart when dispensing.
+        $inserted = R::exec(
+            'INSERT INTO saved_cart (user_id, dish_id, quantity, dish_price)
+             VALUES (?, ?, ?, ?)',
+            [$userId, $dishId, $quantity, $dishPrice]
+        );
 
-        // Save new item and return its ID
-        return (int) R::store($item);
+        if ($inserted <= 0) {
+            return 0;
+        }
+
+        return (int) R::getInsertID();
     }
 
     public static function updateQuantity(int $id, int $quantity): bool
     {
-        $item = R::load('saved_cart', $id);
-        if ($item->id == 0) {
+        if (self::findById($id) === null) {
             return false;
         }
 
         if ($quantity <= 0) {
-            R::trash($item);
-            return true;
+            return R::exec('DELETE FROM saved_cart WHERE id = ?', [$id]) > 0;
         }
 
-        $item->quantity = $quantity;
-        return (int) R::store($item) > 0;
+        return R::exec('UPDATE saved_cart SET quantity = ? WHERE id = ?', [$quantity, $id]) > 0;
     }
 
     public static function removeItem(int $id): bool
     {
-        $item = R::load('saved_cart', $id);
-        if ($item->id == 0) {
-            return false;
-        }
-
-        R::trash($item);
-        return true;
+        return R::exec('DELETE FROM saved_cart WHERE id = ?', [$id]) > 0;
     }
 
     public static function clearByUserId(int $userId): int

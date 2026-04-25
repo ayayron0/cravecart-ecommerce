@@ -16,8 +16,7 @@ class OrderDish
 
     public static function findById(int $id): ?OODBBean
     {
-        $orderDish = R::load('order_dish', $id);
-        return $orderDish->id == 0 ? null : $orderDish;
+        return R::findOne('order_dish', ' id = ? ', [$id]);
     }
 
     public static function findByOrderId(int $orderId): array
@@ -67,13 +66,17 @@ class OrderDish
             return 0;
         }
 
-        $orderDish = R::dispense('order_dish');
-        $orderDish->order_id = $orderId;
-        $orderDish->dish_id = $dishId;
-        $orderDish->quantity = $quantity;
-        $orderDish->item_price = $itemPrice;
+        $inserted = R::exec(
+            'INSERT INTO order_dish (order_id, dish_id, quantity, item_price)
+             VALUES (?, ?, ?, ?)',
+            [$orderId, $dishId, $quantity, $itemPrice]
+        );
 
-        return (int) R::store($orderDish);
+        if ($inserted <= 0) {
+            return 0;
+        }
+
+        return (int) R::getInsertID();
     }
 
     public static function update(
@@ -83,8 +86,7 @@ class OrderDish
         int $quantity,
         float $itemPrice
     ): bool {
-        $orderDish = R::load('order_dish', $id);
-        if ($orderDish->id == 0) {
+        if (self::findById($id) === null) {
             return false;
         }
 
@@ -101,23 +103,17 @@ class OrderDish
             return false;
         }
 
-        $orderDish->order_id = $orderId;
-        $orderDish->dish_id = $dishId;
-        $orderDish->quantity = $quantity;
-        $orderDish->item_price = $itemPrice;
-
-        return (int) R::store($orderDish) > 0;
+        return R::exec(
+            'UPDATE order_dish
+             SET order_id = ?, dish_id = ?, quantity = ?, item_price = ?
+             WHERE id = ?',
+            [$orderId, $dishId, $quantity, $itemPrice, $id]
+        ) > 0;
     }
 
     public static function delete(int $id): bool
     {
-        $orderDish = R::load('order_dish', $id);
-        if ($orderDish->id == 0) {
-            return false;
-        }
-
-        R::trash($orderDish);
-        return true;
+        return R::exec('DELETE FROM order_dish WHERE id = ?', [$id]) > 0;
     }
 
     public static function deleteByOrderId(int $orderId): int

@@ -5,14 +5,6 @@
 {% block content %}
 <div class="account-profile-wrap">
 
-    {# Success message shown after a successful save #}
-    {% if updated is defined %}
-    <div class="alert alert-success alert-dismissible fade show">
-        <i class="bi bi-check-circle me-2"></i> Profile updated successfully.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endif %}
-
     {# Validation errors #}
     {% if errors is defined and errors %}
     <div class="alert alert-danger">

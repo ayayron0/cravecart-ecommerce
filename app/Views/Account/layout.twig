@@ -52,6 +52,12 @@
             <span class="text-muted small">{{ session.name }}</span>
         </div>
         <div class="admin-content">
+            {% if flash %}
+            <div class="alert alert-{{ flash.type }} alert-dismissible fade show mb-4" role="alert">
+                {{ flash.message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endif %}
             {% block content %}{% endblock %}
         </div>
     </div>
