@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use DI\Container;
 use App\Domain\Models\Cuisines;
+use App\Domain\Models\Dishes;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -45,9 +46,36 @@ class HomeController extends BaseController
         return $this->render($response, 'home.twig', $data);
     }
 
+    // Renders the static About page.
+    public function about(Request $request, Response $response, array $args): Response
+    {
+        return $this->render($response, 'about.twig');
+    }
+
+    // AJAX search endpoint — returns JSON, not a rendered page.
+    // Called by search.js whenever the user types in the search bar.
+    public function search(Request $request, Response $response, array $args): Response
+    {
+        // Read the ?q= value from the URL. Falls back to empty string if missing.
+        $query = $request->getQueryParams()['q'] ?? '';
+
+        // Reject queries shorter than 2 characters to avoid returning the entire
+        // dishes table and to reduce unnecessary database load.
+        if(strlen($query) < 2){
+            $response->getBody()->write(json_encode(['error' => 'Search query must be at least 2 characters long']));
+            return $response->withHeader('Content-Type', 'application/json');
+        }
+
+        $data['dishes'] = Dishes::searchDish($query);
+
+        // Write the array as a JSON string to the response body, then set the
+        // Content-Type header so the browser knows to parse it as JSON.
+        $response->getBody()->write(json_encode($data['dishes']));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
     public function error(Request $request, Response $response, array $args): Response
     {
-
         return $this->render($response, 'errorView.php');
     }
 }

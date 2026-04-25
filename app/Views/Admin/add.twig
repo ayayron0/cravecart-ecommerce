@@ -27,7 +27,7 @@
     <div class="col-lg-6">
         <div class="add-form">
             <h6 class="fw-bold mb-4"><i class="bi bi-globe me-2" style="color:#e63946;"></i>Add Cuisine</h6>
-            <form action="{{ basePath }}/admin/add/cuisine" method="post" enctype="multipart/form-data">
+            <form action="{{ basePath }}/admin/add/cuisine" method="post">
                 <div class="row g-3">
                     <div class="col-8">
                         <label class="form-label small fw-semibold">Cuisine Name</label>
@@ -42,11 +42,7 @@
                         <input type="text" name="description" class="form-control" placeholder="Short description">
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-semibold">Image</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
-                        <small class="text-muted">Or paste an image URL below</small>
-                    </div>
-                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Image URL</label>
                         <input type="text" name="image_url" class="form-control" placeholder="https://...">
                     </div>
                     <div class="col-12">
@@ -140,7 +136,7 @@
     <div class="col-12">
         <div class="add-form">
             <h6 class="fw-bold mb-4"><i class="bi bi-egg-fried me-2" style="color:#e63946;"></i>Add Dish</h6>
-            <form action="{{ basePath }}/admin/add/dish" method="post" enctype="multipart/form-data">
+            <form action="{{ basePath }}/admin/add/dish" method="post">
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label small fw-semibold">Dish Name</label>
@@ -180,12 +176,7 @@
                             <option value="unavailable">Unavailable</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Dish Image</label>
-                        <input type="file" name="image" class="form-control" accept="image/*">
-                        <small class="text-muted">Or paste an image URL below</small>
-                    </div>
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <label class="form-label small fw-semibold">Image URL</label>
                         <input type="text" name="image_url" class="form-control" placeholder="https://...">
                     </div>

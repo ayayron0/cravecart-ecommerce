@@ -1,0 +1,40 @@
+{% extends 'layout.twig' %}
+{% block title %}About — CraveCart{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:760px;">
+
+    <h1 style="font-weight:900; letter-spacing:-.04em;">About <span style="color:#e63946;">CraveCart</span></h1>
+    <p class="text-muted mb-5">Bringing the world's flavours to your door.</p>
+
+    <div class="mb-4">
+        <h5 class="fw-bold">Who we are</h5>
+        <p class="text-muted" style="line-height:1.75;">
+            CraveCart is a food ordering platform built for people who take their meals seriously.
+            From rich Indian curries to delicate Japanese desserts, we partner with the best local
+            restaurants so you can explore global cuisine without leaving home.
+        </p>
+    </div>
+
+    <div class="mb-4">
+        <h5 class="fw-bold">What we offer</h5>
+        <ul class="text-muted ps-3" style="line-height:2;">
+            <li>A curated selection of cuisines and dishes updated regularly</li>
+            <li>Simple, fast ordering with real-time availability</li>
+            <li>A clean experience with no distractions</li>
+        </ul>
+    </div>
+
+    <div class="mb-5">
+        <h5 class="fw-bold">Our mission</h5>
+        <p class="text-muted" style="line-height:1.75;">
+            Good food should be easy to find and easy to order. That's it.
+        </p>
+    </div>
+
+    <a href="{{ basePath }}/" class="btn fw-semibold px-4 py-2 text-white" style="background:#e63946; border-radius:10px;">
+        Browse the menu
+    </a>
+
+</div>
+{% endblock %}

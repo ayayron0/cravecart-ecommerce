@@ -20,6 +20,14 @@ class AuthController extends BaseController
 
     public function showLogin(Request $request, Response $response): Response
     {
+        $timeout = $request->getQueryParams()['timeout'] ?? null;
+        //checks if the session has timed out by checking the return value
+        //of the session timeout middleware
+        if($timeout === '1')
+        {
+            $data['error'] = 'Your session has timed out. Please login again.';
+            return $this->render($response, 'login.twig', $data);
+        }
         return $this->render($response, 'login.twig');
     }
 
@@ -120,6 +128,8 @@ class AuthController extends BaseController
         $_SESSION['role']    = $_SESSION['2fa_role'];
         $_SESSION['name']    = $_SESSION['2fa_name'];
         unset($_SESSION['2fa_user_id'], $_SESSION['2fa_role'], $_SESSION['2fa_name'], $_SESSION['2fa_email'], $_SESSION['totp_secret']);
+        $_SESSION['last_activity'] = time();
+
 
         if ($_SESSION['role'] !== 'administrator') {
             return $response->withStatus(302)->withHeader('Location', $basePath . '/?loggedin=1');

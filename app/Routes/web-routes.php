@@ -27,6 +27,7 @@ use App\Controllers\CheckoutController;
 use App\Controllers\AccountController;
 use App\Middleware\AdminMiddleware;
 use App\Middleware\AccountMiddleware;
+use App\Middleware\SessionTimeoutMiddleware;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -40,6 +41,14 @@ return static function (Slim\App $app): void {
 
     $app->get('/home', [HomeController::class, 'index'])
         ->setName('home.index');
+
+    // AJAX endpoint used by the live search bar — returns JSON, not a page.
+    $app->get('/search', [HomeController::class, 'search'])
+        ->setName('home.search');
+
+    // Static about page linked from the footer.
+    $app->get('/about', [HomeController::class, 'about'])
+        ->setName('home.about');
 
     //login route
     // Shows the login form
@@ -82,7 +91,7 @@ return static function (Slim\App $app): void {
         $group->post('/delete/dish/{id}',     [AdminController::class, 'deleteDish'])->setName('admin.delete.dish');
         $group->post('/delete/cuisine/{id}',  [AdminController::class, 'deleteCuisine'])->setName('admin.delete.cuisine');
         $group->post('/delete/category/{id}', [AdminController::class, 'deleteCategory'])->setName('admin.delete.category');
-    })->add(new AdminMiddleware());
+    })->add(new AdminMiddleware())->add(new SessionTimeoutMiddleware());
 
     // Account routes
     $app->group('/account', function ($group) {
@@ -90,7 +99,7 @@ return static function (Slim\App $app): void {
         $group->get('/profile', [AccountController::class, 'showProfile'])->setName('account.profile');
         $group->post('/profile', [AccountController::class, 'updateProfile'])->setName('account.profile.update');
         $group->post('/delete', [AccountController::class, 'deleteAccount'])->setName('account.delete');
-    })->add(new AccountMiddleware());
+    })->add(new AccountMiddleware())->add(new SessionTimeoutMiddleware());
 
     // 2FA verification
     $app->get('/verify-2fa',  [AuthController::class, 'showVerify2fa'])->setName('auth.verify2fa');

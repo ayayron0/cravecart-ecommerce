@@ -55,6 +55,9 @@ class BrowseController extends BaseController
 
         $dishBeans = Dishes::findByCuisineAndCategory($cuisineSlug, $categorySlug);
 
+        // Convert each RedBeanPHP bean into a plain array for the template.
+        // image_url is passed through so the view can show a real photo when one
+        // exists, or fall back to the emoji placeholder when it is null.
         $dishes = array_map(static function ($dish): array {
             return [
                 'name' => $dish->name,
@@ -62,6 +65,7 @@ class BrowseController extends BaseController
                 'price' => (float) $dish->price,
                 'emoji' => '🍽️',
                 'availability' => $dish->availability,
+                'image_url' => $dish->image_url ?? null,
             ];
         }, $dishBeans);
 
