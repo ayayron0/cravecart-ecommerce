@@ -10,12 +10,12 @@
 
             {# Links #}
             <div class="d-flex gap-4">
-                <a href="{{ basePath }}/"    style="color:#9ca3af; text-decoration:none; font-size:.88rem;">Menu</a>
-                <a href="{{ basePath }}/about"                              style="color:#9ca3af; text-decoration:none; font-size:.88rem;">About</a>
+                <a href="{{ basePath }}/" style="color:#9ca3af; text-decoration:none; font-size:.88rem;">{{ __('nav.home') }}</a>
+                <a href="{{ basePath }}/about" style="color:#9ca3af; text-decoration:none; font-size:.88rem;">{{ __('nav.about') }}</a>
             </div>
 
             {# Copyright #}
-            <p class="mb-0" style="font-size:.8rem;">&copy; {{ "now"|date("Y") }} CraveCart. All rights reserved.</p>
+            <p class="mb-0" style="font-size:.8rem;">{{ __('site.copyright', {'year': "now"|date("Y")}) }}</p>
 
         </div>
     </div>

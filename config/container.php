@@ -47,6 +47,16 @@ $definitions = [
         // Makes {{ asset_url('/css/main.css') }} available in every template
         $twig->addFunction(new \Twig\TwigFunction('asset_url', 'asset_url'));
 
+        // Makes {{ __('nav.home') }} available in every template for i18n
+        $twig->addFunction(new \Twig\TwigFunction('__', '__'));
+        $twig->addFunction(new \Twig\TwigFunction('trans', 'trans'));
+
+        // Makes {{ currentLocale() }} and {{ supportedLocales() }} available in every template as functions
+        // Using functions instead of globals so the locale can change dynamically during the request
+        $twig->addFunction(new \Twig\TwigFunction('currentLocale', 'get_locale'));
+        $twig->addFunction(new \Twig\TwigFunction('supportedLocales', 'get_supported_locales'));
+        $twig->addFunction(new \Twig\TwigFunction('htmlLang', 'get_html_lang'));
+
         return $twig;
     },
 

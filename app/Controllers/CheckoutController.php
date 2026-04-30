@@ -25,7 +25,7 @@ class CheckoutController extends BaseController
         $cart = $this->getCurrentCart();
 
         if (empty($cart)) {
-            $this->flash('warning', 'Your cart is empty.');
+            $this->flash('warning', __('checkout.cart_empty'));
             $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
             return $response->withStatus(302)->withHeader('Location', $basePath . '/cart');
         }
@@ -44,7 +44,7 @@ class CheckoutController extends BaseController
 
         $cart = $this->getCurrentCart();
         if (empty($cart)) {
-            $this->flash('warning', 'Your cart is empty.');
+            $this->flash('warning', __('checkout.cart_empty'));
             return $response->withStatus(302)->withHeader('Location', $basePath . '/cart');
         }
 
@@ -57,10 +57,10 @@ class CheckoutController extends BaseController
 
         // Validate fields
         $errors = [];
-        if ($name === '')       $errors[] = 'Full name is required.';
-        if ($street === '')     $errors[] = 'Street address is required.';
-        if ($city === '')       $errors[] = 'City is required.';
-        if ($postalCode === '') $errors[] = 'Postal code is required.';
+        if ($name === '')       $errors[] = __('checkout.full_name') . ' ' . __('forms.required');
+        if ($street === '')     $errors[] = __('checkout.street_address') . ' ' . __('forms.required');
+        if ($city === '')       $errors[] = __('checkout.city') . ' ' . __('forms.required');
+        if ($postalCode === '') $errors[] = __('checkout.postal_code') . ' ' . __('forms.required');
 
         if (!empty($errors)) {
             $summary = $this->buildSummary($cart);
@@ -75,7 +75,7 @@ class CheckoutController extends BaseController
         $addressId = DeliveryAddress::create($userId, $street, $city, $postalCode);
         if ($addressId === 0) {
             $summary = $this->buildSummary($cart);
-            $summary['errors'] = ['Could not save delivery address. Please try again.'];
+            $summary['errors'] = [__('errors.something_went_wrong')];
             return $this->render($response, 'checkout.twig', $summary);
         }
 
@@ -101,7 +101,7 @@ class CheckoutController extends BaseController
         $orderId = Orders::create($userId, $addressId, $subtotal, $taxes, $total, 'pending', $notes ?: null);
         if ($orderId === 0) {
             $summary = $this->buildSummary($cart);
-            $summary['errors'] = ['Could not place your order. Please try again.'];
+            $summary['errors'] = [__('checkout.order_failed')];
             return $this->render($response, 'checkout.twig', $summary);
         }
 
@@ -116,7 +116,7 @@ class CheckoutController extends BaseController
         $this->setSessionCart([]);
         SavedCart::clearByUserId($userId);
 
-        $this->flash('success', 'Order placed successfully!');
+        $this->flash('success', __('checkout.order_success'));
         return $response->withStatus(302)->withHeader('Location', $basePath . '/account/orders');
     }
 

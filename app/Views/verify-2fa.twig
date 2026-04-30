@@ -1,6 +1,6 @@
 {% extends 'layout.twig' %}
 
-{% block title %}Two-Factor Authentication — CraveCart{% endblock %}
+{% block title %}{{ __('auth.verify_2fa') }} — {{ __('site.name') }}{% endblock %}
 
 {% block content %}
 <section class="py-5" style="min-height: calc(100vh - 200px); background:#f8f9fa;">
@@ -8,70 +8,64 @@
         <div class="row justify-content-center">
             <div class="col-md-5 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-shield-check" style="font-size:2.5rem; color:#e63946;"></i>
+                    </div>
+
+                    {% if error is defined and error %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ error }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
 
                     {% if step == 'setup' %}
-                        {# First login: show QR code to scan #}
+                        {# Setup step: show QR code #}
                         <div class="text-center mb-4">
-                            <i class="bi bi-shield-lock-fill" style="font-size:2.5rem; color:#e63946;"></i>
-                            <h3 class="fw-bold mt-2">Set up Authenticator</h3>
-                            <p class="text-muted small">Scan this QR code with Google Authenticator or Authy, then enter the 6-digit code below.</p>
+                            <h3 class="fw-bold mt-2">{{ __('auth.setup_authenticator') }}</h3>
+                            <p class="text-muted small">{{ __('auth.scan_qr') }}</p>
                         </div>
 
                         <div class="text-center mb-4">
-                            <img src="{{ qr_code }}" alt="QR Code" style="width:200px; height:200px;">
+                            <div style="max-width:200px; margin:0 auto;">
+                                {{ qr_code|raw }}
+                            </div>
                         </div>
 
                         <form action="{{ basePath }}/verify-2fa" method="post">
                             <div class="mb-4">
-                                <label for="code" class="form-label fw-semibold small">Verification Code</label>
+                                <label for="code" class="form-label fw-semibold small">{{ __('auth.verify_code') }}</label>
                                 <input type="text" class="form-control form-control-lg text-center fw-bold"
-                                       id="code" name="code"
-                                       placeholder="000000"
-                                       maxlength="6"
-                                       autocomplete="one-time-code"
-                                       required autofocus>
+                                       id="code" name="code" placeholder="{{ __('auth.code_placeholder') }}"
+                                       maxlength="6" pattern="[0-9]{6}" required autocomplete="one-time-code">
                             </div>
                             <button type="submit" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
-                                Verify & Continue
+                                {{ __('auth.verify_2fa') }}
                             </button>
                         </form>
-
                     {% else %}
-                        {# Returning user: just enter code #}
+                        {# Verify step: just ask for code #}
                         <div class="text-center mb-4">
-                            <i class="bi bi-shield-check" style="font-size:2.5rem; color:#e63946;"></i>
-                            <h3 class="fw-bold mt-2">Enter your code</h3>
-                            <p class="text-muted small">Open your authenticator app and enter the 6-digit code for CraveCart.</p>
+                            <h3 class="fw-bold mt-2">{{ __('auth.enter_code') }}</h3>
+                            <p class="text-muted small">{{ __('auth.open_authenticator') }}</p>
                         </div>
-
-                        {% if error is defined and error %}
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                {{ error }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endif %}
 
                         <form action="{{ basePath }}/verify-2fa" method="post">
                             <div class="mb-4">
-                                <label for="code" class="form-label fw-semibold small">Verification Code</label>
+                                <label for="code" class="form-label fw-semibold small">{{ __('auth.verify_code') }}</label>
                                 <input type="text" class="form-control form-control-lg text-center fw-bold"
-                                       id="code" name="code"
-                                       placeholder="000000"
-                                       maxlength="6"
-                                       autocomplete="one-time-code"
-                                       required autofocus>
+                                       id="code" name="code" placeholder="{{ __('auth.code_placeholder') }}"
+                                       maxlength="6" pattern="[0-9]{6}" required autocomplete="one-time-code">
                             </div>
                             <button type="submit" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
-                                Verify
+                                {{ __('auth.verify_2fa') }}
                             </button>
                         </form>
                     {% endif %}
 
-                    <hr class="my-4">
-                    <p class="text-center small mb-0">
-                        <a href="{{ basePath }}/login" class="fw-semibold text-decoration-none" style="color:#e63946;">Back to login</a>
+                    <p class="text-center small mb-0 mt-4">
+                        <a href="{{ basePath }}/login" class="fw-semibold text-decoration-none" style="color:#e63946;">{{ __('auth.back_to_login') }}</a>
                     </p>
-
                 </div>
             </div>
         </div>

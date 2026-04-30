@@ -163,7 +163,7 @@ class AdminController extends BaseController
         }
 
         // All updates succeeded - redirect back to profile with a flash message.
-        $this->flash('success', 'Profile updated successfully.');
+        $this->flash('success', __('account.profile_updated'));
         return $this->redirectTo($response, '/admin/profile');
     }
 
@@ -191,7 +191,7 @@ class AdminController extends BaseController
             ]);
         }
 
-        $this->flash('success', 'Category added successfully.');
+        $this->flash('success', __('admin.category_added'));
         return $this->redirectTo($response, '/admin/add');
     }
 
@@ -235,7 +235,7 @@ class AdminController extends BaseController
             ]);
         }
 
-        $this->flash('success', 'Category updated successfully.');
+        $this->flash('success', __('admin.category_updated'));
         return $this->redirectTo($response, '/admin/edit/category/' . $categoryId);
     }
 
@@ -257,7 +257,7 @@ class AdminController extends BaseController
             ]);
         }
 
-        $this->flash('success', 'Cuisine added successfully.');
+        $this->flash('success', __('admin.cuisine_added'));
         return $this->redirectTo($response, '/admin/add');
     }
 
@@ -301,7 +301,7 @@ class AdminController extends BaseController
             ]);
         }
 
-        $this->flash('success', 'Cuisine updated successfully.');
+        $this->flash('success', __('admin.cuisine_updated'));
         return $this->redirectTo($response, '/admin/edit/cuisine/' . $cuisineId);
     }
 
@@ -331,7 +331,7 @@ class AdminController extends BaseController
             ]);
         }
 
-        $this->flash('success', 'Dish added successfully.');
+        $this->flash('success', __('admin.dish_added'));
         return $this->redirectTo($response, '/admin/add');
     }
 
@@ -390,7 +390,7 @@ class AdminController extends BaseController
             ]);
         }
 
-        $this->flash('success', 'Dish updated successfully.');
+        $this->flash('success', __('admin.dish_updated'));
         return $this->redirectTo($response, '/admin/edit/dish/' . $dishId);
     }
 
@@ -398,7 +398,7 @@ class AdminController extends BaseController
     public function deleteDish(Request $request, Response $response, array $args): Response
     {
         Dishes::delete((int) $args['id']);
-        $this->flash('success', 'Dish deleted successfully.');
+        $this->flash('success', __('admin.dish_deleted'));
         return $this->redirectTo($response, '/admin/menu');
     }
 
@@ -406,7 +406,7 @@ class AdminController extends BaseController
     public function deleteCuisine(Request $request, Response $response, array $args): Response
     {
         Cuisines::delete((int) $args['id']);
-        $this->flash('success', 'Cuisine deleted successfully.');
+        $this->flash('success', __('admin.cuisine_deleted'));
         return $this->redirectTo($response, '/admin/add');
     }
 
@@ -414,7 +414,7 @@ class AdminController extends BaseController
     public function deleteCategory(Request $request, Response $response, array $args): Response
     {
         Categories::delete((int) $args['id']);
-        $this->flash('success', 'Category deleted successfully.');
+        $this->flash('success', __('admin.category_deleted'));
         return $this->redirectTo($response, '/admin/add');
     }
 
@@ -428,7 +428,7 @@ class AdminController extends BaseController
 
         if ($orderId > 0 && in_array($status, $allowedStatuses, true)) {
             Orders::updateStatus($orderId, $status);
-            $this->flash('success', 'Order status updated successfully.');
+            $this->flash('success', __('admin.order_status_updated'));
         }
 
         return $this->redirectTo($response, '/admin/orders');

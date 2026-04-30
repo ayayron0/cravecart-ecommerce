@@ -119,7 +119,7 @@ class AccountController extends BaseController
         }
 
         // Redirect back to GET so a page refresh doesn't re-submit the form.
-        $this->flash('success', 'Profile updated successfully.');
+        $this->flash('success', __('account.profile_updated'));
         return $this->redirectTo($response, '/account/profile');
     }
 
@@ -131,24 +131,24 @@ class AccountController extends BaseController
         $order = Orders::findById($orderId);
 
         if ($order === null || (int) $order->user_id !== $userId || $order->status !== 'delivered') {
-            $this->flash('danger', 'Unable to confirm this order.');
+            $this->flash('danger', __('account.unable_to_confirm'));
             return $this->redirectTo($response, '/account/orders');
         }
 
         Orders::updateStatus($orderId, 'completed');
-        $this->flash('success', 'Order confirmed — thank you!');
+        $this->flash('success', __('account.confirm_order'));
         return $this->redirectTo($response, '/account/orders');
     }
 
     public function deleteAccount(Request $request, Response $response, array $args): Response
     {
         if (!Users::delete((int) $_SESSION['user_id'])) {
-            $this->flash('danger', 'We could not delete your account right now. Please try again.');
+            $this->flash('danger', __('account.cannot_delete'));
             return $this->redirectTo($response, '/account/profile');
         }
 
         session_unset();
-        $this->flash('success', 'Your account has been deleted.');
+        $this->flash('success', __('account.account_deleted'));
         $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
         return $response->withStatus(302)->withHeader('Location', $basePath . '/');
     }

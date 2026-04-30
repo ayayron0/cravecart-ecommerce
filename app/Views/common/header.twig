@@ -4,7 +4,7 @@
         {# Logo #}
         <a class="navbar-brand d-flex align-items-center gap-2 me-0" href="{{ basePath }}/" style="text-decoration:none;">
             <span style="background:#e63946; color:#fff; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.85rem; flex-shrink:0;">CC</span>
-            <span style="color:#111827; font-weight:800; font-size:1.2rem; letter-spacing:-.5px;">CraveCart</span>
+            <span style="color:#111827; font-weight:800; font-size:1.2rem; letter-spacing:-.5px;">{{ __('site.name') }}</span>
         </a>
 
         {# Search bar #}
@@ -15,7 +15,7 @@
                         <i class="bi bi-search" style="color:#aaa; font-size:.9rem;"></i>
                     </span>
                     <input type="search" id="search-input" class="form-control border-0 shadow-none"
-                           placeholder="Search for cuisines or dishes..."
+                           placeholder="{{ __('nav.search_placeholder') }}"
                            style="background:transparent; font-size:.9rem; color:#333;"
                            data-search-url="{{ basePath }}/search"
                            autocomplete="off">
@@ -24,6 +24,31 @@
             <div id="search-results" style="display:none; position:absolute; top:calc(100% + 6px); left:0; right:0;
                  background:#fff; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.12);
                  z-index:1050; max-height:360px; overflow-y:auto;"></div>
+        </div>
+
+        {# Language Switcher #}
+        <div class="dropdown">
+            <button class="btn btn-sm dropdown-toggle"
+                    style="background:transparent; color:#555; border:1px solid #ddd; border-radius:8px;"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-globe me-1"></i>
+                {% set locale = currentLocale() %}
+                {% if locale == 'en' %}EN
+                {% elseif locale == 'es' %}ES
+                {% elseif locale == 'fr' %}FR
+                {% else %}EN{% endif %}
+            </button>
+            <ul class="dropdown-menu shadow-sm">
+                {% for code, name in supportedLocales() %}
+                <li>
+                    <a class="dropdown-item{% if currentLocale() == code %} active{% endif %}"
+                       href="?locale={{ code }}">
+                        {% if code == 'en' %}🇺🇸{% elseif code == 'es' %}🇪🇸{% elseif code == 'fr' %}🇫🇷{% endif %}
+                        {{ name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
 
         {# Cart + Auth #}
@@ -41,7 +66,7 @@
                 {% if session.role == 'administrator' %}
                     <a href="{{ basePath }}/admin/orders" class="btn btn-sm px-3 fw-semibold"
                        style="background:#111827; color:#fff; border-radius:8px; border:none;">
-                        <i class="bi bi-speedometer2 me-1"></i> Admin Panel
+                        <i class="bi bi-speedometer2 me-1"></i> {{ __('nav.admin_panel') }}
                     </a>
                 {% endif %}
                 <div class="dropdown">
@@ -53,15 +78,15 @@
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                         {% if session.role != 'administrator' %}
                         <li><a class="dropdown-item" href="{{ basePath }}/account/orders">
-                            <i class="bi bi-bag-check me-2"></i> My Orders
+                            <i class="bi bi-bag-check me-2"></i> {{ __('nav.my_orders') }}
                         </a></li>
                         <li><a class="dropdown-item" href="{{ basePath }}/account/profile">
-                            <i class="bi bi-person-circle me-2"></i> My Profile
+                            <i class="bi bi-person-circle me-2"></i> {{ __('nav.my_profile') }}
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
                         {% endif %}
                         <li><a class="dropdown-item" href="{{ basePath }}/logout">
-                            <i class="bi bi-box-arrow-left me-2"></i> Sign Out
+                            <i class="bi bi-box-arrow-left me-2"></i> {{ __('nav.sign_out') }}
                         </a></li>
                     </ul>
                 </div>
@@ -69,7 +94,7 @@
                 {# Not logged in — show login button #}
                 <a href="{{ basePath }}/login" class="btn btn-sm px-4 fw-semibold"
                    style="background:#e63946; color:#fff; border-radius:8px; border:none;">
-                    Login
+                    {{ __('nav.login') }}
                 </a>
             {% endif %}
         </div>

@@ -1,6 +1,6 @@
 {% extends 'layout.twig' %}
 
-{% block title %}Login — CraveCart{% endblock %}
+{% block title %}{{ __('nav.login') }} — {{ __('site.name') }}{% endblock %}
 
 {% block content %}
 <section class="py-5" style="min-height: calc(100vh - 200px); background:#f8f9fa;">
@@ -9,8 +9,8 @@
             <div class="col-md-5 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 p-4">
                     <div class="text-center mb-4">
-                        <h3 class="fw-bold">Welcome back!</h3>
-                        <p class="text-muted small">Sign in to your CraveCart account</p>
+                        <h3 class="fw-bold">{{ __('auth.welcome_back_title') }}</h3>
+                        <p class="text-muted small">{{ __('auth.sign_in') }}</p>
                     </div>
 
                     {% if error is defined and error %}
@@ -24,15 +24,15 @@
                        basePath is needed in Wampoon because the app lives in a subdirectory. #}
                     <form action="{{ basePath }}/login" method="post">
                         <div class="mb-3">
-                            <label for="email" class="form-label fw-semibold small">Email address</label>
+                            <label for="email" class="form-label fw-semibold small">{{ __('auth.email') }}</label>
                             <input type="email" class="form-control" id="email" name="email"
-                                   placeholder="you@example.com" required>
+                                   placeholder="{{ __('forms.placeholder_email') }}" required>
                         </div>
                         <div class="mb-3">
-                            <label for="password" class="form-label fw-semibold small">Password</label>
+                            <label for="password" class="form-label fw-semibold small">{{ __('auth.password') }}</label>
                             <div class="input-group">
                                 <input type="password" class="form-control" id="password" name="password"
-                                       placeholder="••••••••" required>
+                                       placeholder="{{ __('forms.placeholder_password') }}" required>
                                 <button class="btn btn-outline-secondary" type="button" id="togglePwd">
                                     <i class="bi bi-eye" id="toggleIcon"></i>
                                 </button>
@@ -41,19 +41,19 @@
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="remember" name="remember">
-                                <label class="form-check-label small" for="remember">Remember me</label>
+                                <label class="form-check-label small" for="remember">{{ __('auth.remember_me') }}</label>
                             </div>
-                            <a href="{{ basePath }}/forgot-password" class="small text-decoration-none" style="color:#e63946;">Forgot password?</a>
+                            <a href="{{ basePath }}/forgot-password" class="small text-decoration-none" style="color:#e63946;">{{ __('auth.forgot_password') }}</a>
                         </div>
                         <button type="submit" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
-                            Sign In
+                            {{ __('auth.login') }}
                         </button>
                     </form>
 
                     <hr class="my-4">
                     <p class="text-center small mb-0">
-                        Don't have an account?
-                        <a href="{{ basePath }}/register" class="fw-semibold text-decoration-none" style="color:#e63946;">Create one</a>
+                        {{ __('auth.no_account') }}
+                        <a href="{{ basePath }}/register" class="fw-semibold text-decoration-none" style="color:#e63946;">{{ __('auth.create_one') }}</a>
                     </p>
                 </div>
             </div>

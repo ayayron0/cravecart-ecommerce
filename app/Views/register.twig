@@ -1,6 +1,6 @@
 {% extends 'layout.twig' %}
 
-{% block title %}Create Account — CraveCart{% endblock %}
+{% block title %}{{ __('auth.register') }} — {{ __('site.name') }}{% endblock %}
 
 {% block content %}
 <section class="py-5" style="min-height: calc(100vh - 200px); background:#f8f9fa;">
@@ -9,64 +9,57 @@
             <div class="col-md-6 col-lg-5">
                 <div class="card border-0 shadow-sm rounded-4 p-4">
                     <div class="text-center mb-4">
-                        <h3 class="fw-bold">Create an account</h3>
-                        <p class="text-muted small">Join CraveCart and start ordering</p>
+                        <h3 class="fw-bold">{{ __('auth.create_account') }}</h3>
+                        <p class="text-muted small">{{ __('auth.join_cravecart') }}</p>
                     </div>
 
                     {% if errors is defined and errors %}
-                        <div class="alert alert-danger">
-                            <ul class="mb-0 ps-3">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <ul class="mb-0">
                                 {% for error in errors %}
-                                    <li class="small">{{ error }}</li>
+                                    <li>{{ error }}</li>
                                 {% endfor %}
                             </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     {% endif %}
 
-                    {# action tells the browser where to send the form data when submitted.
-                       basePath is needed in Wampoon because the app lives in a subdirectory. #}
                     <form action="{{ basePath }}/register" method="post">
-                        <div class="row g-3 mb-3">
+                        <div class="row">
                             <div class="col-6">
-                                <label for="first_name" class="form-label fw-semibold small">First name</label>
-                                <input type="text" class="form-control" id="first_name" name="first_name"
-                                       value="{{ old.first_name ?? '' }}" placeholder="John" required>
+                                <div class="mb-3">
+                                    <label for="first_name" class="form-label fw-semibold small">{{ __('auth.first_name') }}</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                </div>
                             </div>
                             <div class="col-6">
-                                <label for="last_name" class="form-label fw-semibold small">Last name</label>
-                                <input type="text" class="form-control" id="last_name" name="last_name"
-                                       value="{{ old.last_name ?? '' }}" placeholder="Doe" required>
+                                <div class="mb-3">
+                                    <label for="last_name" class="form-label fw-semibold small">{{ __('auth.last_name') }}</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                </div>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="email" class="form-label fw-semibold small">Email address</label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                   value="{{ old.email ?? '' }}" placeholder="you@example.com" required>
+                            <label for="email" class="form-label fw-semibold small">{{ __('auth.email') }}</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="{{ __('forms.placeholder_email') }}" required>
                         </div>
-                       
                         <div class="mb-3">
-                            <label for="password" class="form-label fw-semibold small">Password</label>
-                            <input type="password" class="form-control" id="password" name="password"
-                            placeholder="8+ chars, upper, lower, number, symbol"
-                            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$"
-                            title="Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character."
-                            required>
-
+                            <label for="password" class="form-label fw-semibold small">{{ __('auth.password') }}</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="{{ __('forms.placeholder_password') }}" required>
                         </div>
                         <div class="mb-4">
-                            <label for="password_confirm" class="form-label fw-semibold small">Confirm password</label>
-                            <input type="password" class="form-control" id="password_confirm" name="password_confirm"
-                                   placeholder="••••••••" required>
+                            <label for="password_confirm" class="form-label fw-semibold small">{{ __('auth.confirm_password') }}</label>
+                            <input type="password" class="form-control" id="password_confirm" name="password_confirm" placeholder="{{ __('forms.placeholder_password') }}" required>
                         </div>
                         <button type="submit" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
-                            Create Account
+                            {{ __('auth.register') }}
                         </button>
                     </form>
 
                     <hr class="my-4">
                     <p class="text-center small mb-0">
-                        Already have an account?
-                        <a href="{{ basePath }}/login" class="fw-semibold text-decoration-none" style="color:#e63946;">Sign in</a>
+                        {{ __('auth.has_account') }}
+                        <a href="{{ basePath }}/login" class="fw-semibold text-decoration-none" style="color:#e63946;">{{ __('auth.login') }}</a>
                     </p>
                 </div>
             </div>

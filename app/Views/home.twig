@@ -1,5 +1,5 @@
 {% extends 'layout.twig' %}
-{% block title %}CraveCart — What are you craving?{% endblock %}
+{% block title %}{{ __('site.name') }} — {{ __('home.what_are_you_craving') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ asset_url('/css/home.css') }}">
@@ -14,15 +14,15 @@
 {# Hero #}
 <section class="cc-hero">
     <div class="cc-hero-text">
-        <h1>What are you craving?</h1>
-        <p>Explore cuisines from around the world</p>
+        <h1>{{ __('home.what_are_you_craving') }}</h1>
+        <p>{{ __('home.explore_cuisines') }}</p>
     </div>
 </section>
 
 {# Popular Cuisines #}
 <section class="py-5" style="background:#fff;">
     <div class="container">
-        <h2 class="text-center fw-800 mb-4" style="font-weight:800; font-size:1.6rem; letter-spacing:-.02em;">Popular Cuisines</h2>
+        <h2 class="text-center fw-800 mb-4" style="font-weight:800; font-size:1.6rem; letter-spacing:-.02em;">{{ __('home.popular_cuisines') }}</h2>
         <div class="row g-3">
 
              {% for cuisine in cuisines %}

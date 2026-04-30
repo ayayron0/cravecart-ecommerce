@@ -39,12 +39,12 @@ class AuthController extends BaseController
 
         $user = Users::findByEmail($data['email']);
         if ($user == null) {
-            $data['error'] = 'Invalid email or password';
+            $data['error'] = __('auth.login_failed');
             return $this->render($response, 'login.twig', $data);
         }
 
         if (!password_verify($data['password'], $user->password_hash)) {
-            $data['error'] = 'Invalid email or password';
+            $data['error'] = __('auth.login_failed');
             return $this->render($response, 'login.twig', $data);
         }
 
@@ -108,7 +108,7 @@ class AuthController extends BaseController
         if (!$tfa->verifyCode($_SESSION['totp_secret'], $code)) {
             return $this->render($response, 'verify-2fa.twig', [
                 'step'  => 'verify',
-                'error' => 'Invalid code. Please try again.',
+                'error' => __('auth.invalid_code'),
             ]);
         }
 
@@ -130,18 +130,18 @@ class AuthController extends BaseController
 
         if ($_SESSION['role'] !== 'administrator') {
             $this->mergeSessionCartIntoSavedCart($userId);
-            $this->flash('success', $isFirstSetup ? 'Account created! Welcome to CraveCart.' : 'Welcome back!');
+            $this->flash('success', $isFirstSetup ? __('auth.account_created') : __('auth.welcome_back'));
             return $response->withStatus(302)->withHeader('Location', $basePath . '/');
         }
 
-        $this->flash('success', 'Welcome back!');
+        $this->flash('success', __('auth.welcome_back'));
         return $response->withStatus(302)->withHeader('Location', $basePath . '/admin/orders');
     }
 
     public function logout(Request $request, Response $response): Response
     {
         session_unset();
-        $this->flash('success', 'You have been successfully signed out.');
+        $this->flash('success', __('auth.signed_out'));
         $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
         return $response->withStatus(302)->withHeader('Location', $basePath . '/');
     }
@@ -165,7 +165,7 @@ class AuthController extends BaseController
         $fullname = $data['first_name'] . ' ' . $data['last_name'];
         $userId = Users::create($fullname, $data['email'], $data['password'], 'client');
         if ($userId == 0) {
-            return $this->render($response, 'register.twig', ['errors' => ['Error creating user']]);
+            return $this->render($response, 'register.twig', ['errors' => [__('errors.something_went_wrong')]]);
         }
 
         // New user — no TOTP secret yet, go through setup

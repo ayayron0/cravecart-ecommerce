@@ -99,12 +99,12 @@ class CartController extends BaseController
         $dish = Dishes::findById($dishId);
 
         if ($dish === null) {
-            $this->flash('danger', 'That dish could not be found.');
+            $this->flash('danger', __('cart.dish_not_found'));
             return $this->redirectBack($request, $response, '/');
         }
 
         if (!in_array((string) $dish->availability, ['available', 'seasonal'], true)) {
-            $this->flash('warning', 'That dish is currently unavailable.');
+            $this->flash('warning', __('cart.dish_unavailable'));
             return $this->redirectBack($request, $response, '/');
         }
 
@@ -114,7 +114,7 @@ class CartController extends BaseController
 
         $this->persistCurrentCartForClient();
 
-        $this->flash('success', $dish->name . ' was added to your cart.');
+        $this->flash('success', $dish->name . ' ' . __('cart.item_added'));
         return $this->redirectBack($request, $response, '/cart');
     }
 
@@ -125,7 +125,7 @@ class CartController extends BaseController
         $cart = $this->getCurrentCart();
 
         if (!isset($cart[$dishId])) {
-            $this->flash('danger', 'Cart item not found.');
+            $this->flash('danger', __('cart.cart_item_not_found'));
             return $this->redirectTo($response, '/cart');
         }
 
@@ -143,7 +143,7 @@ class CartController extends BaseController
         $cart = $this->getCurrentCart();
 
         if (!isset($cart[$dishId])) {
-            $this->flash('danger', 'Cart item not found.');
+            $this->flash('danger', __('cart.cart_item_not_found'));
             return $this->redirectTo($response, '/cart');
         }
 
@@ -166,7 +166,7 @@ class CartController extends BaseController
         $cart = $this->getCurrentCart();
 
         if (!isset($cart[$dishId])) {
-            $this->flash('danger', 'Cart item not found.');
+            $this->flash('danger', __('cart.cart_item_not_found'));
             return $this->redirectTo($response, '/cart');
         }
 
@@ -174,7 +174,7 @@ class CartController extends BaseController
         $this->setSessionCart($cart);
         $this->persistCurrentCartForClient();
 
-        $this->flash('success', 'Item removed from your cart.');
+        $this->flash('success', __('cart.item_removed'));
         return $this->redirectTo($response, '/cart');
     }
 

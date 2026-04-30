@@ -30,6 +30,8 @@ session_start();
 require_once __DIR__ . '/constants.php';
 // Include the global functions that will be used across the app's various components.
 require __DIR__ . '/functions.php';
+// Include the i18n (internationalization) functions.
+require_once __DIR__ . '/i18n.php';
 
 // Configure the DI container and load dependencies.
 $definitions = require_once __DIR__ . '/container.php';

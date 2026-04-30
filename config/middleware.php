@@ -14,10 +14,13 @@ declare(strict_types=1);
  *   3. Error handling — catches errors and shows a readable message
  */
 
+use App\Middleware\LocaleMiddleware;
 use App\Middleware\SessionTimeoutMiddleware;
 use Slim\App;
 
 return function (App $app): void {
+    // Locale middleware must be first to set language before other middleware
+    $app->add(new LocaleMiddleware());
     $app->add(new SessionTimeoutMiddleware());
     // Parses incoming request bodies (form data, JSON)
     $app->addBodyParsingMiddleware();

@@ -62,6 +62,7 @@ class BrowseController extends BaseController
             return [
                 'id' => (int) $dish->id,
                 'name' => $dish->name,
+                'slug' => $dish->slug,
                 'description' => $dish->description,
                 'price' => (float) $dish->price,
                 'emoji' => '🍽️',

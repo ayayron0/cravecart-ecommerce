@@ -1,5 +1,5 @@
 {% extends 'layout.twig' %}
-{% block title %}{{ cuisine.name }} {{ category.name }} — CraveCart{% endblock %}
+{% block title %}{{ cuisine.name }} {{ category.name }} — {{ __('site.name') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ asset_url('/css/browse.css') }}">
@@ -12,7 +12,7 @@
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb cc-breadcrumb mb-3">
-                <li class="breadcrumb-item"><a href="{{ basePath }}/">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ basePath }}/">{{ __('nav.home') }}</a></li>
                 <li class="breadcrumb-item" style="color:rgba(255,255,255,.7);">{{ category.name }}</li>
                 <li class="breadcrumb-item active" style="color:rgba(255,255,255,.5);">{{ cuisine.name }}</li>
             </ol>
@@ -31,15 +31,15 @@
         <nav class="cc-tabs">
             <a href="{{ basePath }}/browse/food/{{ cuisine.slug }}"
                class="{{ category.slug == 'food' ? 'active' : '' }}">
-                🍽️ Food
+                🍽️ {{ __('categories.food') }}
             </a>
             <a href="{{ basePath }}/browse/desserts/{{ cuisine.slug }}"
                class="{{ category.slug == 'desserts' ? 'active' : '' }}">
-                🍰 Desserts
+                🍰 {{ __('categories.desserts') }}
             </a>
             <a href="{{ basePath }}/browse/drinks/{{ cuisine.slug }}"
                class="{{ category.slug == 'drinks' ? 'active' : '' }}">
-                🥤 Drinks
+                🥤 {{ __('categories.drinks') }}
             </a>
         </nav>
 
@@ -47,7 +47,7 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
             <p class="mb-0 text-muted small">
-                <strong class="text-dark">{{ dishes|length }}</strong> {{ category.name|lower }} available
+                <strong class="text-dark">{{ dishes|length }}</strong> {{ category.name|lower }} {{ __('dishes.available') }}
             </p>
         </div>
 
@@ -63,27 +63,27 @@
                         {% endif %}
                         <span class="position-absolute top-0 end-0 m-2">
                             {% if dish.availability == 'available' %}
-                                <span class="badge-available">Available</span>
+                                <span class="badge-available">{{ __('dishes.available') }}</span>
                             {% elseif dish.availability == 'seasonal' %}
-                                <span class="badge-seasonal">Seasonal</span>
+                                <span class="badge-seasonal">{{ __('dishes.seasonal') }}</span>
                             {% else %}
-                                <span class="badge-unavailable">{{ dish.availability|capitalize }}</span>
+                                <span class="badge-unavailable">{{ __('dishes.unavailable') }}</span>
                             {% endif %}
                         </span>
                     </div>
                     <div class="dish-body">
-                        <p class="dish-name">{{ dish.name }}</p>
+                        <p class="dish-name">{{ __('dishes.names.' ~ dish.slug) ?? dish.name }}</p>
                         <p class="dish-desc">{{ dish.description }}</p>
                         <div class="dish-footer">
                             <span class="dish-price">${{ dish.price|number_format(2) }}</span>
                             {% if dish.availability == 'available' or dish.availability == 'seasonal' %}
                             <form action="{{ basePath }}/cart/add/{{ dish.id }}" method="post" class="mb-0">
                                 <button type="submit" class="btn-add">
-                                    <i class="bi bi-bag-plus"></i> Add
+                                    <i class="bi bi-bag-plus"></i> {{ __('cart.add_to_cart') }}
                                 </button>
                             </form>
                             {% else %}
-                            <span class="text-muted small">Unavailable</span>
+                            <span class="text-muted small">{{ __('dishes.unavailable') }}</span>
                             {% endif %}
                         </div>
                     </div>
@@ -96,10 +96,10 @@
 
         <div class="empty-state">
             <div class="empty-icon">🍽️</div>
-            <h4 class="fw-bold mt-3">Nothing here yet</h4>
-            <p class="text-muted">No {{ category.name|lower }} available for {{ cuisine.name }} cuisine right now.</p>
+            <h4 class="fw-bold mt-3">{{ __('common.no_results') }}</h4>
+            <p class="text-muted">{{ __('cuisines.pick_cuisine', {'category': category.name|lower}) }}</p>
             <a href="{{ basePath }}/" class="btn-cc mt-2 d-inline-block">
-                Back to Home
+                {{ __('nav.home') }}
             </a>
 
         </div>
@@ -108,7 +108,7 @@
 
         <div class="mt-5 pt-2">
             <a href="{{ basePath }}/" class="btn-cc-outline">
-                <i class="bi bi-arrow-left me-2"></i> Back to Home
+                <i class="bi bi-arrow-left me-2"></i> {{ __('nav.home') }}
             </a>
         </div>
 
