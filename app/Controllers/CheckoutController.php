@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Domain\Models\DeliveryAddress;
 use App\Domain\Models\Dishes;
+use App\Services\ExchangeRateService;
 use App\Domain\Models\Orders;
 use App\Domain\Models\OrderDish;
 use App\Domain\Models\SavedCart;
@@ -15,9 +16,11 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 class CheckoutController extends BaseController
 {
+    private ExchangeRateService $exchangeRateService;
     public function __construct(Container $container)
     {
         parent::__construct($container);
+        $this->exchangeRateService = new ExchangeRateService();
     }
 
     public function showCheckout(Request $request, Response $response, array $args): Response
@@ -145,6 +148,8 @@ class CheckoutController extends BaseController
         $deliveryFee = empty($items) ? 0.00 : 2.99;
         $tax         = $subtotal * 0.13;
         $total       = $subtotal + $deliveryFee + $tax;
+        $usdTotal = $this->exchangeRateService->convertCadToUsd($total);
+
 
         return [
             'items'        => $items,
@@ -152,6 +157,9 @@ class CheckoutController extends BaseController
             'delivery_fee' => number_format($deliveryFee, 2),
             'tax'          => number_format($tax, 2),
             'total'        => number_format($total, 2),
+            'usd_total'    => $usdTotal !== null ? number_format($usdTotal, 2) : null,
         ];
     }
 }
+
+

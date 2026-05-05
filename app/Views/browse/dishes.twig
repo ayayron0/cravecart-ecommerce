@@ -1,52 +1,60 @@
 {% extends 'layout.twig' %}
-{% block title %}{{ cuisine.name }} {{ category.name }} — {{ __('site.name') }}{% endblock %}
+{% block title %}{{ cuisine.name }} {{ category.name }} | {{ __('site.name') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ asset_url('/css/browse.css') }}">
 {% endblock %}
 
 {% block content %}
-
-{# ── Page Header ── #}
-<div class="page-header">
+<div class="page-header{% if cuisine.image_url %} page-header-has-image{% endif %}"{% if cuisine.image_url %} style="--cc-banner-image: url('{{ cuisine.image_url|e('html_attr') }}');"{% endif %}>
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb cc-breadcrumb mb-3">
                 <li class="breadcrumb-item"><a href="{{ basePath }}/">{{ __('nav.home') }}</a></li>
-                <li class="breadcrumb-item" style="color:rgba(255,255,255,.7);">{{ category.name }}</li>
-                <li class="breadcrumb-item active" style="color:rgba(255,255,255,.5);">{{ cuisine.name }}</li>
+                <li class="breadcrumb-item">{{ category.name }}</li>
+                <li class="breadcrumb-item active" aria-current="page">{{ cuisine.name }}</li>
             </ol>
         </nav>
-        <div class="cuisine-tag">{{ cuisine.flag }} {{ cuisine.name }}</div>
+
+        <div class="cuisine-tag">
+            <i class="bi bi-globe-asia-australia"></i>
+            <span>{{ cuisine.name }}</span>
+        </div>
         <h1>{{ cuisine.name }} {{ category.name }}</h1>
         <p class="mb-0">{{ cuisine.description }}</p>
     </div>
 </div>
 
-{# ── Dishes ── #}
 <section class="py-5">
     <div class="container">
-
-        {# Category tabs — clicking switches the category in the URL #}
         <nav class="cc-tabs">
-            <a href="{{ basePath }}/browse/food/{{ cuisine.slug }}"
-               class="{{ category.slug == 'food' ? 'active' : '' }}">
-                🍽️ {{ __('categories.food') }}
+            <a href="{{ basePath }}/browse/food/{{ cuisine.slug }}" class="{{ category.slug == 'food' ? 'active' : '' }}">
+                <i class="bi bi-fork-knife"></i>
+                <span>{{ __('categories.food') }}</span>
             </a>
-            <a href="{{ basePath }}/browse/desserts/{{ cuisine.slug }}"
-               class="{{ category.slug == 'desserts' ? 'active' : '' }}">
-                🍰 {{ __('categories.desserts') }}
+            <a href="{{ basePath }}/browse/desserts/{{ cuisine.slug }}" class="{{ category.slug == 'desserts' ? 'active' : '' }}">
+                <i class="bi bi-cake2"></i>
+                <span>{{ __('categories.desserts') }}</span>
             </a>
-            <a href="{{ basePath }}/browse/drinks/{{ cuisine.slug }}"
-               class="{{ category.slug == 'drinks' ? 'active' : '' }}">
-                🥤 {{ __('categories.drinks') }}
+            <a href="{{ basePath }}/browse/drinks/{{ cuisine.slug }}" class="{{ category.slug == 'drinks' ? 'active' : '' }}">
+                <i class="bi bi-cup-straw"></i>
+                <span>{{ __('categories.drinks') }}</span>
             </a>
         </nav>
 
-        {% if dishes|length > 0 %}
+        <div class="cc-cuisine-switcher" aria-label="Browse other cuisines">
+            {% for otherCuisine in cuisines %}
+            <a href="{{ basePath }}/browse/{{ category.slug }}/{{ otherCuisine.slug }}"
+               class="cc-cuisine-pill {{ otherCuisine.slug == cuisine.slug ? 'active' : '' }}">
+                <span class="cc-cuisine-pill-code">{{ otherCuisine.code }}</span>
+                <span>{{ otherCuisine.name }}</span>
+            </a>
+            {% endfor %}
+        </div>
 
+        {% if dishes|length > 0 %}
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <p class="mb-0 text-muted small">
+            <p class="mb-0 text-muted small dish-count">
                 <strong class="text-dark">{{ dishes|length }}</strong> {{ category.name|lower }} {{ __('dishes.available') }}
             </p>
         </div>
@@ -57,9 +65,10 @@
                 <div class="dish-card">
                     <div class="dish-emoji-wrap">
                         {% if dish.image_url %}
-                            <img src="{{ dish.image_url }}" alt="{{ dish.name }}" style="width:100%;height:100%;object-fit:cover;">
+                            <img src="{{ dish.image_url }}" alt="{{ dish.name }}" class="dish-photo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <span class="dish-photo-fallback" style="display:none;"><i class="bi bi-egg-fried"></i></span>
                         {% else %}
-                            <span>{{ dish.emoji }}</span>
+                            <span><i class="bi bi-egg-fried"></i></span>
                         {% endif %}
                         <span class="position-absolute top-0 end-0 m-2">
                             {% if dish.availability == 'available' %}
@@ -72,7 +81,8 @@
                         </span>
                     </div>
                     <div class="dish-body">
-                        <p class="dish-name">{{ __('dishes.names.' ~ dish.slug) ?? dish.name }}</p>
+                        {% set dishNameKey = 'dishes.names.' ~ dish.slug %}
+                        <p class="dish-name">{{ has_translation(dishNameKey) ? __(dishNameKey) : dish.name }}</p>
                         <p class="dish-desc">{{ dish.description }}</p>
                         <div class="dish-footer">
                             <span class="dish-price">${{ dish.price|number_format(2) }}</span>
@@ -91,19 +101,15 @@
             </div>
             {% endfor %}
         </div>
-
         {% else %}
-
         <div class="empty-state">
-            <div class="empty-icon">🍽️</div>
+            <div class="empty-icon"><i class="bi bi-search-heart"></i></div>
             <h4 class="fw-bold mt-3">{{ __('common.no_results') }}</h4>
             <p class="text-muted">{{ __('cuisines.pick_cuisine', {'category': category.name|lower}) }}</p>
             <a href="{{ basePath }}/" class="btn-cc mt-2 d-inline-block">
                 {{ __('nav.home') }}
             </a>
-
         </div>
-
         {% endif %}
 
         <div class="mt-5 pt-2">
@@ -111,8 +117,6 @@
                 <i class="bi bi-arrow-left me-2"></i> {{ __('nav.home') }}
             </a>
         </div>
-
     </div>
 </section>
-
 {% endblock %}

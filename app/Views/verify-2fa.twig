@@ -1,6 +1,6 @@
 {% extends 'layout.twig' %}
 
-{% block title %}{{ __('auth.verify_2fa') }} — {{ __('site.name') }}{% endblock %}
+{% block title %}{{ __('auth.verify_2fa') }} | {{ __('site.name') }}{% endblock %}
 
 {% block content %}
 <section class="py-5" style="min-height: calc(100vh - 200px); background:#f8f9fa;">
@@ -20,7 +20,6 @@
                     {% endif %}
 
                     {% if step == 'setup' %}
-                        {# Setup step: show QR code #}
                         <div class="text-center mb-4">
                             <h3 class="fw-bold mt-2">{{ __('auth.setup_authenticator') }}</h3>
                             <p class="text-muted small">{{ __('auth.scan_qr') }}</p>
@@ -28,7 +27,7 @@
 
                         <div class="text-center mb-4">
                             <div style="max-width:200px; margin:0 auto;">
-                                {{ qr_code|raw }}
+                                <img src="{{ qr_code }}" alt="{{ __('auth.setup_authenticator') }} QR code" class="img-fluid rounded-3 border bg-white p-2">
                             </div>
                         </div>
 
@@ -44,7 +43,6 @@
                             </button>
                         </form>
                     {% else %}
-                        {# Verify step: just ask for code #}
                         <div class="text-center mb-4">
                             <h3 class="fw-bold mt-2">{{ __('auth.enter_code') }}</h3>
                             <p class="text-muted small">{{ __('auth.open_authenticator') }}</p>

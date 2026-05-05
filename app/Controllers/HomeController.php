@@ -57,41 +57,63 @@ class HomeController extends BaseController
 
         // Reject queries shorter than 2 characters to avoid returning the entire
         // dishes table and to reduce unnecessary database load.
-        if(strlen($query) < 2){
+        if (strlen($query) < 2) {
             $response->getBody()->write(json_encode(['error' => 'Search query must be at least 2 characters long']));
             return $response->withHeader('Content-Type', 'application/json');
         }
 
-        $data['dishes'] = Dishes::searchDish($query);
+        $json = $this->withCleanJson(static function () use ($query): string {
+            return json_encode(Dishes::searchDish($query));
+        });
 
         // Write the array as a JSON string to the response body, then set the
         // Content-Type header so the browser knows to parse it as JSON.
-        $response->getBody()->write(json_encode($data['dishes']));
+        $response->getBody()->write($json);
         return $response->withHeader('Content-Type', 'application/json');
     }
 
     // Simple API endpoint for other software to read cuisine data as JSON.
     public function apiCuisines(Request $request, Response $response, array $args): Response
     {
-        $cuisineBeans = Cuisines::getAll();
+        $payload = $this->withCleanJson(static function (): string {
+            $cuisineBeans = Cuisines::getAll();
 
-        $cuisines = array_map(static function ($cuisine): array {
-            return [
-                'id' => (int) $cuisine->id,
-                'name' => (string) $cuisine->name,
-                'code' => (string) $cuisine->code,
-                'slug' => (string) $cuisine->slug,
-                'description' => $cuisine->description ? (string) $cuisine->description : null,
-                'image_url' => $cuisine->image_url ? (string) $cuisine->image_url : null,
-            ];
-        }, $cuisineBeans);
+            $cuisines = array_map(static function ($cuisine): array {
+                return [
+                    'id' => (int) $cuisine->id,
+                    'name' => (string) $cuisine->name,
+                    'code' => (string) $cuisine->code,
+                    'slug' => (string) $cuisine->slug,
+                    'description' => $cuisine->description ? (string) $cuisine->description : null,
+                    'image_url' => $cuisine->image_url ? (string) $cuisine->image_url : null,
+                ];
+            }, $cuisineBeans);
 
-        $response->getBody()->write(json_encode([
-            'count' => count($cuisines),
-            'cuisines' => $cuisines,
-        ]));
+            return json_encode([
+                'count' => count($cuisines),
+                'cuisines' => $cuisines,
+            ]);
+        });
+
+        $response->getBody()->write($payload);
 
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    private function withCleanJson(callable $callback): string
+    {
+        $previousDisplayErrors = ini_get('display_errors');
+        $previousErrorReporting = error_reporting();
+
+        ini_set('display_errors', '0');
+        error_reporting($previousErrorReporting & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
+        try {
+            return $callback();
+        } finally {
+            error_reporting($previousErrorReporting);
+            ini_set('display_errors', (string) $previousDisplayErrors);
+        }
     }
 
     public function error(Request $request, Response $response, array $args): Response

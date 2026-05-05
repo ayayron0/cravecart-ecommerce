@@ -10,16 +10,14 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Domain\Models\Cuisines;
 use App\Domain\Models\Dishes;
 
-
 /*
- * BrowseController — handles the dish browsing page
+ * BrowseController - handles the dish browsing page.
  *
- * WHAT: Shows a list of dishes filtered by cuisine and category.
- * HOW:  The URL /browse/{category}/{slug} passes two values — the category
- *       (food, desserts, drinks) and the cuisine slug (chinese, japanese, etc.)
- *       The controller reads both from $args, fetches matching dishes, and
- *       passes them to browse/dishes.twig.
- * NOTE: Currently uses dummy data — will be replaced with DB queries later.
+ * WHAT: Shows dishes filtered by cuisine and category.
+ * HOW:  The URL /browse/{category}/{slug} provides the category slug
+ *       (food, desserts, drinks) and cuisine slug (chinese, japanese, etc.).
+ *       The controller loads the cuisine, matching dishes, and the cuisine
+ *       switcher list, then passes everything to browse/dishes.twig.
  */
 class BrowseController extends BaseController
 {
@@ -28,11 +26,9 @@ class BrowseController extends BaseController
         parent::__construct($container);
     }
 
-    // Renders the dish browse page for a given cuisine and category
     public function showDishes(Request $request, Response $response, array $args): Response
     {
-        // Read the two URL segments captured by the route {category} and {slug}
-         $cuisineSlug = $args['slug'];
+        $cuisineSlug = $args['slug'];
         $categorySlug = $args['category'];
 
         $cuisineBean = Cuisines::findBySlug($cuisineSlug);
@@ -49,15 +45,12 @@ class BrowseController extends BaseController
         $cuisine = [
             'name' => $cuisineBean->name,
             'slug' => $cuisineBean->slug,
-            'flag' => '🍜',
             'description' => $cuisineBean->description,
+            'image_url' => $cuisineBean->image_url,
         ];
 
         $dishBeans = Dishes::findByCuisineAndCategory($cuisineSlug, $categorySlug);
 
-        // Convert each RedBeanPHP bean into a plain array for the template.
-        // image_url is passed through so the view can show a real photo when one
-        // exists, or fall back to the emoji placeholder when it is null.
         $dishes = array_map(static function ($dish): array {
             return [
                 'id' => (int) $dish->id,
@@ -65,15 +58,24 @@ class BrowseController extends BaseController
                 'slug' => $dish->slug,
                 'description' => $dish->description,
                 'price' => (float) $dish->price,
-                'emoji' => '🍽️',
                 'availability' => $dish->availability,
                 'image_url' => $dish->image_url ?? null,
             ];
         }, $dishBeans);
 
+        $allCuisineBeans = Cuisines::getAll();
+        $cuisines = array_map(static function ($bean): array {
+            return [
+                'name' => (string) $bean->name,
+                'slug' => (string) $bean->slug,
+                'code' => (string) $bean->code,
+            ];
+        }, $allCuisineBeans);
+
         $data = [
             'cuisine' => $cuisine,
             'category' => $category,
+            'cuisines' => $cuisines,
             'dishes' => $dishes,
         ];
 

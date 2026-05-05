@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Domain\Models\Dishes;
 use App\Domain\Models\SavedCart;
+use App\Services\ExchangeRateService;
 use DI\Container;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -20,9 +21,12 @@ use Psr\Http\Message\ServerRequestInterface as Request;
  */
 class CartController extends BaseController
 {
+    private ExchangeRateService $exchangeRateService;
+
     public function __construct(Container $container)
     {
         parent::__construct($container);
+        $this->exchangeRateService = new ExchangeRateService();
     }
 
     // Renders the cart page using the current session cart.
@@ -83,12 +87,15 @@ class CartController extends BaseController
         $subtotal = array_sum(array_map(static fn(array $item): float => $item['price'] * $item['quantity'], $items));
         $deliveryFee = empty($items) ? 0.00 : 2.99;
         $total = $subtotal + $deliveryFee;
+        $usdTotal = $this->exchangeRateService->convertCadToUsd($total);
+
 
         return $this->render($response, 'cart.twig', [
             'items' => $items,
             'subtotal' => number_format($subtotal, 2),
             'delivery_fee' => number_format($deliveryFee, 2),
             'total' => number_format($total, 2),
+            'usd_total' => $usdTotal !== null ? number_format($usdTotal, 2) : null,
         ]);
     }
 
@@ -237,3 +244,6 @@ class CartController extends BaseController
         return $this->redirectTo($response, $fallbackPath);
     }
 }
+
+
+

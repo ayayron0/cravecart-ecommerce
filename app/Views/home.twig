@@ -1,5 +1,5 @@
 {% extends 'layout.twig' %}
-{% block title %}{{ __('site.name') }} — {{ __('home.what_are_you_craving') }}{% endblock %}
+{% block title %}{{ __('site.name') }} | {{ __('home.what_are_you_craving') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ asset_url('/css/home.css') }}">
@@ -10,36 +10,37 @@
 {% endblock %}
 
 {% block content %}
-
-{# Hero #}
 <section class="cc-hero">
-    <div class="cc-hero-text">
+    <div class="container cc-hero-content">
+        <span class="cc-hero-kicker">{{ __('site.name') }}</span>
         <h1>{{ __('home.what_are_you_craving') }}</h1>
         <p>{{ __('home.explore_cuisines') }}</p>
+        <a href="#popular-cuisines" class="btn cc-btn-primary cc-hero-cta">{{ __('home.popular_cuisines') }}</a>
     </div>
 </section>
 
-{# Popular Cuisines #}
-<section class="py-5" style="background:#fff;">
+<section id="popular-cuisines" class="cc-home-section">
     <div class="container">
-        <h2 class="text-center fw-800 mb-4" style="font-weight:800; font-size:1.6rem; letter-spacing:-.02em;">{{ __('home.popular_cuisines') }}</h2>
-        <div class="row g-3">
+        <div class="cc-section-heading text-center">
+            <h2>{{ __('home.popular_cuisines') }}</h2>
+            <p>{{ __('home.explore_cuisines') }}</p>
+        </div>
 
-             {% for cuisine in cuisines %}
-                <div class="col-6 col-md-3">
-                    <a href="{{ basePath }}/browse/food/{{ cuisine.slug }}" class="cuisine-card">
-                        <img src="{{ cuisine.image_url }}" alt="{{ cuisine.name }}">
-                        <div class="overlay"></div>
-                        <div class="card-label">
-                            <span class="code">{{ cuisine.code }}</span>
-                            <span class="name">{{ cuisine.name }}</span>
-                        </div>
-                    </a>
-                </div>
+        <div class="row g-3 g-lg-4">
+            {% for cuisine in cuisines %}
+            <div class="col-6 col-md-4 col-xl-3">
+                <a href="{{ basePath }}/browse/food/{{ cuisine.slug }}" class="cuisine-card">
+                    <img src="{{ cuisine.image_url }}" alt="{{ cuisine.name }}">
+                    <div class="overlay"></div>
+                    <div class="card-label">
+                        <span class="code">{{ cuisine.code }}</span>
+                        <span class="name">{{ cuisine.name }}</span>
+                    </div>
+                </a>
+            </div>
             {% endfor %}
-
         </div>
     </div>
 </section>
-
 {% endblock %}
+

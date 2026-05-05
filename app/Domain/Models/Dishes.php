@@ -44,12 +44,18 @@ class Dishes
              FROM dishes d
              INNER JOIN cuisines c ON d.cuisine_id = c.id
              INNER JOIN categories cat ON d.category_id = cat.id
-             WHERE LOWER(d.name) LIKE ?
+               WHERE LOWER(d.name) LIKE ?
+                  OR LOWER(c.name) LIKE ?
+                  OR LOWER(cat.name) LIKE ?
              ORDER BY d.name ASC',
             // Wrapping with % on both sides turns an exact match into a partial
             // (substring) search. strtolower() matches the LOWER() in the query
             // so capitalisation never blocks a result.
-            ['%' . strtolower($query) . '%']
+            [
+                '%' . strtolower($query) . '%',
+                '%' . strtolower($query) . '%',
+                '%' . strtolower($query) . '%'
+            ]
         );
     }
 

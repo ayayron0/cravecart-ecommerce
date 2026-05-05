@@ -93,6 +93,11 @@
                             <span>{{ __('cart.total') }}</span>
                             <span style="color:#e63946;">${{ total ?? '0.00' }}</span>
                         </div>
+                        {% if usd_total %}
+                        <p class="text-end small text-muted mt-n3 mb-4">
+                            Approx. ${{ usd_total }} USD </p>
+                        {% endif %}
+
                         <a href="{{ basePath }}/checkout" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
                             {{ __('cart.checkout') }} <i class="bi bi-arrow-right ms-1"></i>
                         </a>

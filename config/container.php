@@ -50,6 +50,7 @@ $definitions = [
         // Makes {{ __('nav.home') }} available in every template for i18n
         $twig->addFunction(new \Twig\TwigFunction('__', '__'));
         $twig->addFunction(new \Twig\TwigFunction('trans', 'trans'));
+        $twig->addFunction(new \Twig\TwigFunction('has_translation', 'has_translation'));
 
         // Makes {{ currentLocale() }} and {{ supportedLocales() }} available in every template as functions
         // Using functions instead of globals so the locale can change dynamically during the request
@@ -98,3 +99,5 @@ $definitions = [
 ];
 
 return $definitions;
+
+

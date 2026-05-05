@@ -1,93 +1,324 @@
-/* ============================================================
-   main.css — Global styles for CraveCart
-   Loaded on every page via layout.twig.
-   Page-specific styles go in {% block extra_css %} in each view.
-   ============================================================ */
-
-
-/* ── Fonts
-   WHAT: Applies Poppins to every element on the page.
-   HOW:  The * selector targets every HTML element.
-         Setting font-family here means we never have to set it again anywhere else.
-------------------------------------------------------------*/
-*, *::before, *::after { font-family: 'Poppins', sans-serif; }
-
-
-/* ── Brand colour variables
-   WHAT: CraveCart's colour palette defined as CSS variables.
-   HOW:  Variables are defined inside :root so they are available globally.
-         Instead of typing #e63946 everywhere, we write var(--cc-red) and
-         CSS replaces it with the actual value at render time.
-         To change the brand red across the whole site, you only change it here.
-------------------------------------------------------------*/
 :root {
-    --cc-red:  #e63946;  /* main brand red */
-    --cc-dark: #111827;  /* dark colour used in footer and backgrounds */
-    --cc-navy: #1d2d44;  /* secondary dark accent */
-    --cc-grey: #f3f4f6;  /* light grey for section backgrounds */
+    --cc-red: #e63946;
+    --cc-red-dark: #c92f3c;
+    --cc-dark: #111827;
+    --cc-slate: #475569;
+    --cc-grey: #f8fafc;
+    --cc-border: #e5e7eb;
+    --cc-surface: #ffffff;
+    --cc-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    --cc-shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.06);
 }
 
-body { background: #fff; color: #111827; display: flex; flex-direction: column; min-height: 100vh; }
+*, *::before, *::after {
+    font-family: 'Poppins', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+    background:
+        radial-gradient(circle at top left, rgba(230, 57, 70, 0.08), transparent 32%),
+        linear-gradient(180deg, #fff 0%, #fffaf8 100%);
+    color: var(--cc-dark);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
 main { flex: 1; }
 
+.navbar.cc-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+}
 
-/* ── Navbar
-   WHAT: Adds a subtle shadow under the navbar.
-   HOW:  box-shadow draws a shadow outside the element.
-         The values are: x-offset y-offset blur color.
-------------------------------------------------------------*/
-.navbar { box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+.cc-navbar-inner {
+    display: grid;
+    grid-template-columns: auto minmax(240px, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+}
 
+.cc-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+    text-decoration: none;
+}
 
-/* ── Cards
-   WHAT: Reusable card style used on dish and cuisine cards.
-   HOW:  Any element with class="cc-card" gets these styles automatically.
-         The :hover rule lifts the card up 6px using translateY,
-         giving a floating effect when the user hovers over it.
-------------------------------------------------------------*/
-.cc-card { border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,.07); transition: transform .25s, box-shadow .25s; }
-.cc-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,.13); }
+.cc-brand-mark {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 0.95rem;
+    background: linear-gradient(135deg, var(--cc-red) 0%, #ff7d56 100%);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    box-shadow: 0 10px 20px rgba(230, 57, 70, 0.28);
+}
 
+.cc-brand-mark-sm {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.8rem;
+    font-size: 0.8rem;
+}
 
-/* ── Buttons
-   WHAT: Two button styles — red filled (.btn-cc) and red outlined (.btn-cc-outline).
-   HOW:  .btn-cc is a solid red button.
-         .btn-cc-outline starts transparent with a red border and fills in on hover.
-         Both use var(--cc-red) so they stay in sync with the brand colour above.
-------------------------------------------------------------*/
-.btn-cc { background: var(--cc-red); color: #fff; border: none; border-radius: 10px; font-weight: 600; padding: 10px 26px; transition: .2s; }
-.btn-cc:hover { background: #c1121f; color: #fff; }
-.btn-cc-outline { border: 2px solid var(--cc-red); color: var(--cc-red); border-radius: 10px; font-weight: 600; padding: 9px 24px; transition: .2s; background: transparent; }
-.btn-cc-outline:hover { background: var(--cc-red); color: #fff; }
+.cc-brand-text,
+.cc-footer-brand-text {
+    color: var(--cc-dark);
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.03em;
+}
 
+.cc-search-wrap { position: relative; width: 100%; }
 
-/* ── Breadcrumb
-   WHAT: Navigation trail style (e.g. Home > Food > Japanese).
-   HOW:  Bootstrap generates the ">" separator automatically using the ::before
-         pseudo-element. We override its colour here to match the grey tone.
-------------------------------------------------------------*/
+.cc-search-shell {
+    display: flex;
+    align-items: center;
+    background: rgba(248, 250, 252, 0.95);
+    border: 1px solid var(--cc-border);
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.cc-search-shell:focus-within {
+    border-color: rgba(230, 57, 70, 0.4);
+    box-shadow: 0 0 0 4px rgba(230, 57, 70, 0.08);
+}
+
+.cc-search-icon {
+    padding: 0 0.95rem 0 1rem;
+    color: #94a3b8;
+}
+
+.cc-search-input {
+    border: 0;
+    background: transparent;
+    padding: 0.85rem 1rem 0.85rem 0;
+    font-size: 0.92rem;
+}
+
+.cc-search-input:focus { box-shadow: none; background: transparent; }
+
+.cc-search-results {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.65rem);
+    left: 0;
+    right: 0;
+    background: var(--cc-surface);
+    border: 1px solid rgba(229, 231, 235, 0.85);
+    border-radius: 1rem;
+    box-shadow: var(--cc-shadow);
+    z-index: 1050;
+    max-height: 22rem;
+    overflow-y: auto;
+}
+
+.cc-navbar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.8rem;
+}
+
+.cc-locale-btn,
+.cc-user-btn,
+.cc-btn-primary,
+.cc-btn-dark,
+.cc-btn-sm,
+.cc-icon-link { border-radius: 999px; font-weight: 600; }
+
+.cc-locale-btn,
+.cc-user-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 0.95rem;
+    border: 1px solid var(--cc-border);
+    background: rgba(255, 255, 255, 0.82);
+    color: var(--cc-dark);
+}
+
+.cc-locale-btn:hover,
+.cc-user-btn:hover { background: #fff; border-color: #d1d5db; }
+
+.cc-locale-menu,
+.cc-user-menu {
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    border-radius: 1rem;
+    padding: 0.5rem;
+}
+
+.cc-locale-menu .dropdown-item,
+.cc-user-menu .dropdown-item { border-radius: 0.7rem; font-size: 0.92rem; }
+
+.cc-btn-primary,
+.btn-cc {
+    background: linear-gradient(135deg, var(--cc-red) 0%, #ff7d56 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 12px 24px rgba(230, 57, 70, 0.18);
+}
+
+.cc-btn-primary:hover,
+.btn-cc:hover {
+    background: linear-gradient(135deg, var(--cc-red-dark) 0%, #f46b45 100%);
+    color: #fff;
+}
+
+.cc-btn-dark { background: var(--cc-dark); color: #fff; border: none; }
+.cc-btn-sm { padding: 0.7rem 1rem; }
+
+.cc-icon-link {
+    width: 2.8rem;
+    height: 2.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--cc-border);
+    color: var(--cc-dark);
+    text-decoration: none;
+    font-size: 1.1rem;
+}
+
+.cc-icon-link:hover { color: var(--cc-red); border-color: rgba(230, 57, 70, 0.3); }
+
+.cc-cart-badge {
+    position: absolute;
+    top: 0.15rem;
+    right: 0.15rem;
+    transform: translate(50%, -50%);
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.2rem;
+    border-radius: 999px;
+    background: var(--cc-red);
+    color: #fff;
+    font-size: 0.64rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 12px rgba(230, 57, 70, 0.3);
+}
+
+.alert { border: 0; border-radius: 1rem; box-shadow: var(--cc-shadow-soft); }
+
 .cc-breadcrumb { background: transparent; padding: 0; }
-.cc-breadcrumb .breadcrumb-item + .breadcrumb-item::before { color: #9ca3af; }
-.cc-breadcrumb a { color: var(--cc-red); text-decoration: none; font-weight: 500; }
+.cc-breadcrumb .breadcrumb-item + .breadcrumb-item::before { color: #94a3b8; }
+.cc-breadcrumb a,
+.breadcrumb-link { color: var(--cc-red); text-decoration: none; font-weight: 600; }
 
+.badge-available,
+.badge-seasonal,
+.badge-unavailable {
+    border-radius: 999px;
+    font-size: 0.72rem;
+    padding: 0.35rem 0.7rem;
+    font-weight: 600;
+}
 
-/* ── Badges
-   WHAT: Coloured labels that show a dish's availability status.
-   HOW:  Each class applies a different background and text colour.
-         Usage: <span class="badge-available">Available</span>
-------------------------------------------------------------*/
-.badge-cc          { background: var(--cc-red); color: #fff; border-radius: 6px; font-weight: 500; font-size: .72rem; padding: 4px 10px; }
-.badge-available   { background: #d1fae5; color: #065f46; border-radius: 6px; font-size: .7rem; padding: 3px 9px; font-weight: 500; }
-.badge-seasonal    { background: #fef3c7; color: #92400e; border-radius: 6px; font-size: .7rem; padding: 3px 9px; font-weight: 500; }
-.badge-unavailable { background: #fee2e2; color: #991b1b; border-radius: 6px; font-size: .7rem; padding: 3px 9px; font-weight: 500; }
+.badge-available { background: #dcfce7; color: #166534; }
+.badge-seasonal { background: #fef3c7; color: #92400e; }
+.badge-unavailable { background: #fee2e2; color: #991b1b; }
 
+.btn-cc-outline {
+    border: 1.5px solid rgba(230, 57, 70, 0.3);
+    color: var(--cc-red);
+    border-radius: 999px;
+    font-weight: 600;
+    padding: 0.78rem 1.3rem;
+    background: rgba(255, 255, 255, 0.84);
+    text-decoration: none;
+}
 
-/* ── Footer
-   WHAT: Footer text and link colours.
-   HOW:  These classes are applied to the <footer> in common/footer.twig.
-         Links turn red on hover using the var(--cc-red) variable.
-------------------------------------------------------------*/
-.cc-footer { background: var(--cc-dark); color: #9ca3af; }
-.cc-footer h6 { color: #fff; font-weight: 700; }
-.cc-footer a { color: #9ca3af; text-decoration: none; transition: color .2s; }
-.cc-footer a:hover { color: var(--cc-red); }
+.btn-cc-outline:hover {
+    background: var(--cc-red);
+    border-color: var(--cc-red);
+    color: #fff;
+}
+
+.cc-footer-shell {
+    margin-top: auto;
+    background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+    color: #cbd5e1;
+    padding: 1.6rem 0;
+}
+
+.cc-footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.cc-footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    text-decoration: none;
+}
+
+.cc-footer-brand-text { color: #fff; }
+
+.cc-footer-branding {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.cc-footer-links {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.cc-footer-links a,
+.cc-footer-copy {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 0.92rem;
+}
+
+.cc-footer-links a:hover { color: #fff; }
+
+.form-control,
+.form-select {
+    border-radius: 0.95rem;
+    border-color: var(--cc-border);
+    padding: 0.85rem 1rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: rgba(230, 57, 70, 0.35);
+    box-shadow: 0 0 0 4px rgba(230, 57, 70, 0.08);
+}
+
+@media (max-width: 991.98px) {
+    .cc-navbar-inner { grid-template-columns: 1fr; }
+    .cc-search-wrap { order: 3; }
+    .cc-navbar-actions { justify-content: flex-start; flex-wrap: wrap; }
+}
+
+@media (max-width: 575.98px) {
+    .cc-brand-text,
+    .cc-footer-brand-text { font-size: 1rem; }
+    .cc-search-input { font-size: 0.88rem; }
+    .cc-footer-inner { align-items: flex-start; }
+}

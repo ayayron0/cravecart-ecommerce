@@ -1,71 +1,109 @@
 {% extends 'layout.twig' %}
 
-{% block title %}{{ __('checkout.title') }} — {{ __('site.name') }}{% endblock %}
+{% block title %}{{ __('checkout.title') }} | {{ __('site.name') }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ asset_url('/css/checkout.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-5 checkout-page">
     <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
+        <ol class="breadcrumb cc-breadcrumb mb-4">
             <li class="breadcrumb-item"><a href="{{ basePath }}/" class="breadcrumb-link">{{ __('nav.home') }}</a></li>
             <li class="breadcrumb-item"><a href="{{ basePath }}/cart" class="breadcrumb-link">{{ __('nav.cart') }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ __('checkout.title') }}</li>
         </ol>
     </nav>
 
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="checkout-card">
-                <h6><i class="bi bi-geo-alt me-2 icon-red"></i>{{ __('checkout.delivery_address') }}</h6>
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">{{ __('checkout.full_name') }}</label>
-                        <input type="text" name="name" class="form-control" placeholder="{{ __('checkout.full_name') }}">
+    {% if errors is defined and errors %}
+    <div class="alert alert-danger checkout-alert mb-4">
+        <ul class="mb-0 ps-3">
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form action="{{ basePath }}/checkout/place" method="post">
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-7 col-xl-8">
+                <div class="checkout-card">
+                    <div class="checkout-card-head">
+                        <h6><i class="bi bi-geo-alt me-2 icon-red"></i>{{ __('checkout.delivery_address') }}</h6>
+                        <p class="text-muted mb-0 small">{{ __('cart.secure_checkout') }}</p>
                     </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">{{ __('checkout.street_address') }}</label>
-                        <input type="text" name="street" class="form-control" placeholder="{{ __('checkout.street_address') }}">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small fw-semibold">{{ __('checkout.city') }}</label>
-                        <input type="text" name="city" class="form-control" placeholder="{{ __('checkout.city') }}">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small fw-semibold">{{ __('checkout.postal_code') }}</label>
-                        <input type="text" name="postal_code" class="form-control" placeholder="{{ __('checkout.postal_code') }}">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">{{ __('checkout.order_notes') }} <span class="text-muted fw-normal">({{ __('checkout.optional') }})</span></label>
-                        <input type="text" name="notes" class="form-control" placeholder="{{ __('checkout.order_notes') }}">
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">{{ __('checkout.full_name') }}</label>
+                            <input type="text" name="name" class="form-control"
+                                   value="{{ old.name ?? session.name ?? '' }}"
+                                   placeholder="{{ __('checkout.full_name') }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">{{ __('checkout.street_address') }}</label>
+                            <input type="text" name="street" class="form-control"
+                                   value="{{ old.street ?? '' }}"
+                                   placeholder="{{ __('checkout.street_address') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">{{ __('checkout.city') }}</label>
+                            <input type="text" name="city" class="form-control"
+                                   value="{{ old.city ?? '' }}"
+                                   placeholder="{{ __('checkout.city') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">{{ __('checkout.postal_code') }}</label>
+                            <input type="text" name="postal_code" class="form-control"
+                                   value="{{ old.postalCode ?? '' }}"
+                                   placeholder="{{ __('checkout.postal_code') }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">{{ __('checkout.order_notes') }} <span class="text-muted fw-normal">({{ __('checkout.optional') }})</span></label>
+                            <textarea name="notes" class="form-control checkout-notes" rows="4" placeholder="{{ __('checkout.order_notes') }}">{{ old.notes ?? '' }}</textarea>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
-            <div class="checkout-card checkout-summary">
-                <h6><i class="bi bi-bag me-2 icon-red"></i>{{ __('cart.order_summary') }}</h6>
+            <div class="col-lg-5 col-xl-4">
+                <div class="checkout-card checkout-summary">
+                    <h6><i class="bi bi-bag me-2 icon-red"></i>{{ __('cart.order_summary') }}</h6>
 
-                {% for item in cart_items %}
-                <div class="summary-item">
-                    <span class="item-name">{{ item.name }}</span>
-                    <span class="item-qty">×{{ item.quantity }}</span>
-                    <span class="item-price">${{ (item.price * item.quantity)|number_format(2) }}</span>
-                </div>
-                {% endfor %}
+                    <div class="summary-items">
+                        {% for item in items %}
+                        <div class="summary-item">
+                            <div class="summary-copy">
+                                <span class="item-name">{{ item.name }}</span>
+                                <span class="item-qty">�{{ item.quantity }}</span>
+                            </div>
+                            <span class="item-price">${{ (item.price * item.quantity)|number_format(2) }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
 
-                <div class="summary-row"><span class="text-muted">{{ __('cart.subtotal') }}</span><span>${{ subtotal }}</span></div>
-                <div class="summary-row"><span class="text-muted">{{ __('cart.delivery_fee') }}</span><span>${{ delivery_fee }}</span></div>
-                <div class="summary-row"><span class="text-muted">{{ __('checkout.tax') }}</span><span>${{ tax }}</span></div>
-                <hr>
-                <div class="summary-row total"><span>{{ __('cart.total') }}</span><span>${{ total }}</span></div>
+                    <div class="summary-row"><span class="text-muted">{{ __('cart.subtotal') }}</span><span>${{ subtotal }}</span></div>
+                    <div class="summary-row"><span class="text-muted">{{ __('cart.delivery_fee') }}</span><span>${{ delivery_fee }}</span></div>
+                    <div class="summary-row"><span class="text-muted">{{ __('checkout.tax') }}</span><span>${{ tax }}</span></div>
+                    <hr>
+                    <div class="summary-row total"><span>{{ __('cart.total') }}</span><span>${{ total }}</span></div>
+                    {% if usd_total %}
+                    <div class="summary-row usd-row">
+                        <span>Approx. USD</span>
+                        <span>${{ usd_total }}</span>
+                    </div>
+                    {% endif %}
 
-                <form action="{{ basePath }}/checkout" method="post" class="mt-4">
-                    <button type="submit" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
+                    <button type="submit" class="btn-place-order mt-4">
                         {{ __('checkout.place_order') }}
                     </button>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
 {% endblock %}
+
+

@@ -1,22 +1,17 @@
-<footer style="background:#111827; color:#9ca3af; padding:20px 0; margin-top:auto;">
-    <div class="container">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-
-            {# Logo #}
-            <a href="{{ basePath }}/" class="d-flex align-items-center gap-2" style="text-decoration:none;">
-                <span style="background:#e63946; color:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.75rem; flex-shrink:0;">CC</span>
-                <span style="color:#fff; font-weight:800; font-size:1rem; letter-spacing:-.3px;">CraveCart</span>
+<footer class="cc-footer-shell">
+    <div class="container cc-footer-inner">
+        <div class="cc-footer-branding">
+            <a href="{{ basePath }}/" class="cc-footer-brand">
+                <span class="cc-brand-mark cc-brand-mark-sm">CC</span>
+                <span class="cc-footer-brand-text">{{ __('site.name') }}</span>
             </a>
+            <p class="cc-footer-copy mb-0">{{ __('site.copyright', {'year': "now"|date("Y")}) }}</p>
+        </div>
 
-            {# Links #}
-            <div class="d-flex gap-4">
-                <a href="{{ basePath }}/" style="color:#9ca3af; text-decoration:none; font-size:.88rem;">{{ __('nav.home') }}</a>
-                <a href="{{ basePath }}/about" style="color:#9ca3af; text-decoration:none; font-size:.88rem;">{{ __('nav.about') }}</a>
-            </div>
-
-            {# Copyright #}
-            <p class="mb-0" style="font-size:.8rem;">{{ __('site.copyright', {'year': "now"|date("Y")}) }}</p>
-
+        <div class="cc-footer-links">
+            <a href="{{ basePath }}/">{{ __('nav.home') }}</a>
+            <a href="{{ basePath }}/about">{{ __('nav.about') }}</a>
+            <a href="{{ basePath }}/cart">{{ __('nav.cart') }}</a>
         </div>
     </div>
 </footer>

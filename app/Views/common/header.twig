@@ -1,103 +1,95 @@
-<nav class="navbar navbar-expand-lg py-3" style="background:#fff; border-bottom:1px solid #f0f0f0;">
-    <div class="container d-flex align-items-center gap-3">
-
-        {# Logo #}
-        <a class="navbar-brand d-flex align-items-center gap-2 me-0" href="{{ basePath }}/" style="text-decoration:none;">
-            <span style="background:#e63946; color:#fff; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.85rem; flex-shrink:0;">CC</span>
-            <span style="color:#111827; font-weight:800; font-size:1.2rem; letter-spacing:-.5px;">{{ __('site.name') }}</span>
+<nav class="navbar navbar-expand-lg cc-navbar">
+    <div class="container cc-navbar-inner">
+        <a class="navbar-brand cc-brand" href="{{ basePath }}/">
+            <span class="cc-brand-mark">CC</span>
+            <span class="cc-brand-text">{{ __('site.name') }}</span>
         </a>
 
-        {# Search bar #}
-        <div id="search-wrapper" class="flex-grow-1 mx-3" style="position:relative;">
+        <div id="search-wrapper" class="cc-search-wrap">
             <form role="search" onsubmit="return false;">
-                <div class="input-group" style="background:#f5f5f5; border-radius:50px; overflow:hidden; border:1px solid #ebebeb;">
-                    <span class="input-group-text border-0" style="background:transparent; padding-left:16px;">
-                        <i class="bi bi-search" style="color:#aaa; font-size:.9rem;"></i>
+                <div class="cc-search-shell">
+                    <span class="cc-search-icon">
+                        <i class="bi bi-search"></i>
                     </span>
-                    <input type="search" id="search-input" class="form-control border-0 shadow-none"
+                    <input type="search"
+                           id="search-input"
+                           class="form-control cc-search-input"
                            placeholder="{{ __('nav.search_placeholder') }}"
-                           style="background:transparent; font-size:.9rem; color:#333;"
                            data-search-url="{{ basePath }}/search"
                            autocomplete="off">
                 </div>
             </form>
-            <div id="search-results" style="display:none; position:absolute; top:calc(100% + 6px); left:0; right:0;
-                 background:#fff; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.12);
-                 z-index:1050; max-height:360px; overflow-y:auto;"></div>
+            <div id="search-results" class="cc-search-results"></div>
         </div>
 
-        {# Language Switcher #}
-        <div class="dropdown">
-            <button class="btn btn-sm dropdown-toggle"
-                    style="background:transparent; color:#555; border:1px solid #ddd; border-radius:8px;"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-globe me-1"></i>
-                {% set locale = currentLocale() %}
-                {% if locale == 'en' %}EN
-                {% elseif locale == 'es' %}ES
-                {% elseif locale == 'fr' %}FR
-                {% else %}EN{% endif %}
-            </button>
-            <ul class="dropdown-menu shadow-sm">
-                {% for code, name in supportedLocales() %}
-                <li>
-                    <a class="dropdown-item{% if currentLocale() == code %} active{% endif %}"
-                       href="?locale={{ code }}">
-                        {% if code == 'en' %}🇺🇸{% elseif code == 'es' %}🇪🇸{% elseif code == 'fr' %}🇫🇷{% endif %}
-                        {{ name }}
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
+        <div class="cc-navbar-actions">
+            <div class="dropdown">
+                <button class="btn cc-locale-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-globe2"></i>
+                    {% set locale = currentLocale() %}
+                    <span>
+                        {% if locale == 'en' %}EN
+                        {% elseif locale == 'es' %}ES
+                        {% elseif locale == 'fr' %}FR
+                        {% else %}EN{% endif %}
+                    </span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm cc-locale-menu">
+                    {% for code, name in supportedLocales() %}
+                    <li>
+                        <a class="dropdown-item{% if currentLocale() == code %} active{% endif %}" href="?locale={{ code }}">
+                            {{ name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
 
-        {# Cart + Auth #}
-        <div class="d-flex align-items-center gap-3 flex-shrink-0">
-            <a href="{{ basePath }}/cart" class="position-relative" style="color:#111827; text-decoration:none;">
-                <i class="bi bi-cart3 fs-5"></i>
+            <a href="{{ basePath }}/cart" class="cc-icon-link position-relative" aria-label="{{ __('nav.cart') }}">
+                <i class="bi bi-cart3"></i>
                 {% if cart_count > 0 %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                      style="background:#e63946; font-size:.6rem;">{{ cart_count }}</span>
+                <span class="cc-cart-badge">{{ cart_count }}</span>
                 {% endif %}
             </a>
 
             {% if session.user_id is defined %}
-                {# Logged in — show name and relevant links #}
                 {% if session.role == 'administrator' %}
-                    <a href="{{ basePath }}/admin/orders" class="btn btn-sm px-3 fw-semibold"
-                       style="background:#111827; color:#fff; border-radius:8px; border:none;">
-                        <i class="bi bi-speedometer2 me-1"></i> {{ __('nav.admin_panel') }}
+                    <a href="{{ basePath }}/admin/orders" class="btn cc-btn-dark cc-btn-sm">
+                        <i class="bi bi-speedometer2 me-1"></i>{{ __('nav.admin_panel') }}
                     </a>
                 {% endif %}
+
                 <div class="dropdown">
-                    <button class="btn btn-sm px-3 fw-semibold dropdown-toggle"
-                            style="background:#f3f4f6; color:#111827; border-radius:8px; border:none;"
-                            data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle me-1"></i> {{ session.name }}
+                    <button class="btn cc-user-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i>
+                        <span>{{ session.name }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm cc-user-menu">
                         {% if session.role != 'administrator' %}
-                        <li><a class="dropdown-item" href="{{ basePath }}/account/orders">
-                            <i class="bi bi-bag-check me-2"></i> {{ __('nav.my_orders') }}
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ basePath }}/account/profile">
-                            <i class="bi bi-person-circle me-2"></i> {{ __('nav.my_profile') }}
-                        </a></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ basePath }}/account/orders">
+                                <i class="bi bi-bag-check me-2"></i>{{ __('nav.my_orders') }}
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ basePath }}/account/profile">
+                                <i class="bi bi-person-circle me-2"></i>{{ __('nav.my_profile') }}
+                            </a>
+                        </li>
                         <li><hr class="dropdown-divider"></li>
                         {% endif %}
-                        <li><a class="dropdown-item" href="{{ basePath }}/logout">
-                            <i class="bi bi-box-arrow-left me-2"></i> {{ __('nav.sign_out') }}
-                        </a></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ basePath }}/logout">
+                                <i class="bi bi-box-arrow-left me-2"></i>{{ __('nav.sign_out') }}
+                            </a>
+                        </li>
                     </ul>
                 </div>
             {% else %}
-                {# Not logged in — show login button #}
-                <a href="{{ basePath }}/login" class="btn btn-sm px-4 fw-semibold"
-                   style="background:#e63946; color:#fff; border-radius:8px; border:none;">
+                <a href="{{ basePath }}/login" class="btn cc-btn-primary cc-btn-sm">
                     {{ __('nav.login') }}
                 </a>
             {% endif %}
         </div>
-
     </div>
 </nav>
