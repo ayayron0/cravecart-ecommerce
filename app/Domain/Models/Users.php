@@ -62,6 +62,15 @@ class Users
         return (int) R::store($user) > 0;//update the user in the database and return true if successful
     }
 
+    // Resets a user's password directly — used by the forgot-password flow.
+    public static function resetPasswordById(int $user_id, string $new_password): bool
+    {
+        $user = R::load('users', $user_id);
+        if ($user->id == 0) return false;
+        $user->password_hash = password_hash($new_password, PASSWORD_BCRYPT);
+        return (int) R::store($user) > 0;
+    }
+
     // Updates a user's password after verifying their current one.
     // Returns true on success, false if the user doesn't exist or current password is wrong.
     public static function updatePassword(int $user_id, string $current_password, string $new_password): bool

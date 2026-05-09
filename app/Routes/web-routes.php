@@ -19,6 +19,7 @@ declare(strict_types=1);
  */
 
 use App\Controllers\HomeController;
+use App\Controllers\NotificationController;
 use App\Controllers\AuthController;
 use App\Controllers\BrowseController;
 use App\Controllers\AdminController;
@@ -46,6 +47,10 @@ return static function (Slim\App $app): void {
     $app->get('/search', [HomeController::class, 'search'])
         ->setName('home.search');
 
+    // Notifications API — requires an active session.
+    $app->get('/api/notifications',       [NotificationController::class, 'index'])->setName('api.notifications');
+    $app->post('/api/notifications/read', [NotificationController::class, 'markRead'])->setName('api.notifications.read');
+
     // Simple public API endpoint for external integrations.
     $app->get('/api/cuisines', [HomeController::class, 'apiCuisines'])
         ->setName('home.api.cuisines');
@@ -69,6 +74,10 @@ return static function (Slim\App $app): void {
 
     //handles the register post request
     $app->post('/register', [AuthController::class, 'register'])->setName('auth.register.post');
+
+    $app->get('/forgot-password',  [AuthController::class, 'showForgotPassword'])->setName('auth.forgot-password');
+    $app->post('/forgot-password', [AuthController::class, 'forgotPassword'])->setName('auth.forgot-password.post');
+    $app->post('/reset-password',  [AuthController::class, 'resetPassword'])->setName('auth.reset-password.post');
 
     
     // Browse dishes by category and cuisine (e.g. /browse/food/chinese)

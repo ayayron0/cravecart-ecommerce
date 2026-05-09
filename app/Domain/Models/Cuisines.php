@@ -9,10 +9,26 @@ use RedBeanPHP\R;
 
 class Cuisines
 {
-    //get all cuisines (sorted by name)
+    //get all cuisines (sorted by name), with name/description in the current locale
     public static function getAll(): array
     {
-        return R::findAll('cuisines', ' ORDER BY name ASC ');
+        $s       = self::localeSuffix();
+        $nameSql = $s ? "COALESCE(NULLIF(name{$s}, ''), name)" : 'name';
+        $descSql = $s ? "COALESCE(NULLIF(description{$s}, ''), description)" : 'description';
+
+        return R::getAll(
+            "SELECT id, {$nameSql} AS name, code, slug, {$descSql} AS description, image_url
+             FROM cuisines ORDER BY name ASC"
+        );
+    }
+
+    private static function localeSuffix(): string
+    {
+        $locale = get_locale();
+        return match ($locale) {
+            'fr', 'es' => '_' . $locale,
+            default    => '',
+        };
     }
 
     public static function findById(int $id): ?OODBBean

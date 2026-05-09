@@ -58,7 +58,19 @@
         "invalid_code": "Código inválido. Por favor intenta de nuevo.",
         "account_created": "¡Cuenta creada! Bienvenido a CraveCart.",
         "verify_2fa": "Verificar 2FA",
-        "code_placeholder": "Ingresa código de 6 dígitos"
+        "code_placeholder": "Ingresa código de 6 dígitos",
+        "forgot_password_title": "¿Contraseña olvidada?",
+        "forgot_password_subtitle": "Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.",
+        "forgot_password_sent": "Si existe una cuenta con ese correo, se ha enviado un enlace de restablecimiento. Revisa tu bandeja de entrada.",
+        "send_reset_link": "Verificar correo",
+        "update_password": "Actualizar",
+        "email_not_found": "No se encontró ninguna cuenta con ese correo electrónico.",
+        "passwords_do_not_match": "Las contraseñas no coinciden.",
+        "password_too_short": "La contraseña debe tener al menos 8 caracteres.",
+        "reset_password_title": "Restablecer tu contraseña",
+        "new_password": "Nueva contraseña",
+        "confirm_new_password": "Confirmar nueva contraseña",
+        "password_reset_success": "¡Contraseña actualizada! Inicia sesión con tu nueva contraseña."
     },
     "cart": {
         "title": "Carrito de Compras",

@@ -55,7 +55,7 @@
         {% if dishes|length > 0 %}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <p class="mb-0 text-muted small dish-count">
-                <strong class="text-dark">{{ dishes|length }}</strong> {{ category.name|lower }} {{ __('dishes.available') }}
+                <strong class="text-dark">{{ dishes|length }}</strong> {{ __('categories.' ~ category.slug) }} {{ __('dishes.available') }}
             </p>
         </div>
 
@@ -105,7 +105,7 @@
         <div class="empty-state">
             <div class="empty-icon"><i class="bi bi-search-heart"></i></div>
             <h4 class="fw-bold mt-3">{{ __('common.no_results') }}</h4>
-            <p class="text-muted">{{ __('cuisines.pick_cuisine', {'category': category.name|lower}) }}</p>
+            <p class="text-muted">{{ __('cuisines.pick_cuisine', {'category': __('categories.' ~ category.slug)}) }}</p>
             <a href="{{ basePath }}/" class="btn-cc mt-2 d-inline-block">
                 {{ __('nav.home') }}
             </a>

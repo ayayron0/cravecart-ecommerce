@@ -42,35 +42,40 @@ class BrowseController extends BaseController
             'slug' => $categorySlug,
         ];
 
+        $locale  = get_locale();
         $cuisine = [
-            'name' => $cuisineBean->name,
-            'slug' => $cuisineBean->slug,
-            'description' => $cuisineBean->description,
-            'image_url' => $cuisineBean->image_url,
+            'name'        => ($locale !== 'en' && $cuisineBean->{'name_' . $locale})
+                                 ? $cuisineBean->{'name_' . $locale}
+                                 : $cuisineBean->name,
+            'slug'        => $cuisineBean->slug,
+            'description' => ($locale !== 'en' && $cuisineBean->{'description_' . $locale})
+                                 ? $cuisineBean->{'description_' . $locale}
+                                 : $cuisineBean->description,
+            'image_url'   => $cuisineBean->image_url,
         ];
 
-        $dishBeans = Dishes::findByCuisineAndCategory($cuisineSlug, $categorySlug);
+        $dishRows = Dishes::findByCuisineAndCategory($cuisineSlug, $categorySlug);
 
-        $dishes = array_map(static function ($dish): array {
+        $dishes = array_map(static function (array $dish): array {
             return [
-                'id' => (int) $dish->id,
-                'name' => $dish->name,
-                'slug' => $dish->slug,
-                'description' => $dish->description,
-                'price' => (float) $dish->price,
-                'availability' => $dish->availability,
-                'image_url' => $dish->image_url ?? null,
+                'id'           => (int) $dish['id'],
+                'name'         => $dish['name'],
+                'slug'         => $dish['slug'],
+                'description'  => $dish['description'],
+                'price'        => (float) $dish['price'],
+                'availability' => $dish['availability'],
+                'image_url'    => $dish['image_url'] ?? null,
             ];
-        }, $dishBeans);
+        }, $dishRows);
 
-        $allCuisineBeans = Cuisines::getAll();
-        $cuisines = array_map(static function ($bean): array {
+        $allCuisines = Cuisines::getAll();
+        $cuisines    = array_map(static function (array $bean): array {
             return [
-                'name' => (string) $bean->name,
-                'slug' => (string) $bean->slug,
-                'code' => (string) $bean->code,
+                'name' => (string) $bean['name'],
+                'slug' => (string) $bean['slug'],
+                'code' => (string) $bean['code'],
             ];
-        }, $allCuisineBeans);
+        }, $allCuisines);
 
         $data = [
             'cuisine' => $cuisine,

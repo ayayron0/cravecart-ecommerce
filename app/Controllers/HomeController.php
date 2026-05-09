@@ -78,14 +78,14 @@ class HomeController extends BaseController
         $payload = $this->withCleanJson(static function (): string {
             $cuisineBeans = Cuisines::getAll();
 
-            $cuisines = array_map(static function ($cuisine): array {
+            $cuisines = array_map(static function (array $cuisine): array {
                 return [
-                    'id' => (int) $cuisine->id,
-                    'name' => (string) $cuisine->name,
-                    'code' => (string) $cuisine->code,
-                    'slug' => (string) $cuisine->slug,
-                    'description' => $cuisine->description ? (string) $cuisine->description : null,
-                    'image_url' => $cuisine->image_url ? (string) $cuisine->image_url : null,
+                    'id'          => (int) $cuisine['id'],
+                    'name'        => (string) $cuisine['name'],
+                    'code'        => (string) $cuisine['code'],
+                    'slug'        => (string) $cuisine['slug'],
+                    'description' => $cuisine['description'] ? (string) $cuisine['description'] : null,
+                    'image_url'   => $cuisine['image_url'] ? (string) $cuisine['image_url'] : null,
                 ];
             }, $cuisineBeans);
 

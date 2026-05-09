@@ -57,6 +57,23 @@
                     <a href="{{ basePath }}/admin/orders" class="btn cc-btn-dark cc-btn-sm">
                         <i class="bi bi-speedometer2 me-1"></i>{{ __('nav.admin_panel') }}
                     </a>
+                {% else %}
+                    <div class="dropdown" id="cc-notif-dropdown">
+                        <button class="cc-icon-link position-relative border-0 bg-transparent" data-bs-toggle="dropdown"
+                                aria-label="Notifications" id="cc-notif-btn">
+                            <i class="bi bi-bell"></i>
+                            <span class="cc-cart-badge d-none" id="cc-notif-badge"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm p-0" id="cc-notif-menu"
+                            style="min-width:300px; max-height:360px; overflow-y:auto;">
+                            <li class="px-3 py-2 border-bottom">
+                                <span class="fw-semibold small">Notifications</span>
+                            </li>
+                            <li id="cc-notif-empty" class="px-3 py-3 text-muted small text-center">
+                                No new notifications
+                            </li>
+                        </ul>
+                    </div>
                 {% endif %}
 
                 <div class="dropdown">

@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Domain\Models\Categories;
 use App\Domain\Models\Cuisines;
 use App\Domain\Models\Dishes;
+use App\Domain\Models\Notifications;
 use App\Domain\Models\OrderDish;
 use App\Domain\Models\Orders;
 use App\Domain\Models\Users;
@@ -428,6 +429,20 @@ class AdminController extends BaseController
 
         if ($orderId > 0 && in_array($status, $allowedStatuses, true)) {
             Orders::updateStatus($orderId, $status);
+
+            $order = Orders::findById($orderId);
+            if ($order !== null) {
+                $labels = [
+                    'processing' => 'is now being processed',
+                    'wrapping'   => 'is being wrapped up',
+                    'shipped'    => 'is on its way',
+                    'delivered'  => 'has been delivered',
+                ];
+                $label   = $labels[$status] ?? $status;
+                $message = "Your order #{$orderId} {$label}.";
+                Notifications::create((int) $order->user_id, $message);
+            }
+
             $this->flash('success', __('admin.order_status_updated'));
         }
 

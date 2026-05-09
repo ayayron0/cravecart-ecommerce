@@ -58,7 +58,19 @@
         "invalid_code": "Code invalide. Veuillez réessayer.",
         "account_created": "Compte créé! Bienvenue sur CraveCart.",
         "verify_2fa": "Vérifier 2FA",
-        "code_placeholder": "Entrez le code à 6 chiffres"
+        "code_placeholder": "Entrez le code à 6 chiffres",
+        "forgot_password_title": "Mot de passe oublié ?",
+        "forgot_password_subtitle": "Entrez votre e-mail et nous vous enverrons un lien de réinitialisation.",
+        "forgot_password_sent": "Si un compte avec cet e-mail existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte de réception.",
+        "send_reset_link": "Vérifier l'e-mail",
+        "update_password": "Mettre à jour",
+        "email_not_found": "Aucun compte trouvé avec cette adresse e-mail.",
+        "passwords_do_not_match": "Les mots de passe ne correspondent pas.",
+        "password_too_short": "Le mot de passe doit contenir au moins 8 caractères.",
+        "reset_password_title": "Réinitialiser votre mot de passe",
+        "new_password": "Nouveau mot de passe",
+        "confirm_new_password": "Confirmer le nouveau mot de passe",
+        "password_reset_success": "Mot de passe mis à jour ! Connectez-vous avec votre nouveau mot de passe."
     },
     "cart": {
         "title": "Panier",
