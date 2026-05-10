@@ -432,14 +432,14 @@ class AdminController extends BaseController
 
             $order = Orders::findById($orderId);
             if ($order !== null) {
-                $labels = [
-                    'processing' => 'is now being processed',
-                    'wrapping'   => 'is being wrapped up',
-                    'shipped'    => 'is on its way',
-                    'delivered'  => 'has been delivered',
+                $keys = [
+                    'processing' => 'order_processing',
+                    'wrapping'   => 'order_wrapping',
+                    'shipped'    => 'order_shipped',
+                    'delivered'  => 'order_delivered',
                 ];
-                $label   = $labels[$status] ?? $status;
-                $message = "Your order #{$orderId} {$label}.";
+                $key     = $keys[$status] ?? 'order_processing';
+                $message = "notifications.{$key}:{$orderId}";
                 Notifications::create((int) $order->user_id, $message);
             }
 

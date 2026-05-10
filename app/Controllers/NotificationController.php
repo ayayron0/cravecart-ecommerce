@@ -28,9 +28,18 @@ class NotificationController extends BaseController
 
         $notifications = Notifications::findUnreadByUserId((int) $userId);
 
+        $translated = array_map(static function (array $n): array {
+            // Message format: "notifications.order_shipped:5"
+            if (str_contains($n['message'], ':')) {
+                [$key, $orderId] = explode(':', $n['message'], 2);
+                $n['message'] = __($key, ['id' => $orderId]);
+            }
+            return $n;
+        }, $notifications);
+
         $response->getBody()->write(json_encode([
-            'count'         => count($notifications),
-            'notifications' => $notifications,
+            'count'         => count($translated),
+            'notifications' => $translated,
         ]));
 
         return $response->withHeader('Content-Type', 'application/json');

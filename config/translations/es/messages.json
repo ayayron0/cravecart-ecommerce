@@ -289,6 +289,14 @@
         "repeat_new_password": "Repetir nueva contraseña",
         "enter_current_password": "Ingresa contraseña actual"
     },
+    "notifications": {
+        "order_processing": "Tu pedido #%id% está siendo procesado.",
+        "order_wrapping":   "Tu pedido #%id% está siendo empaquetado.",
+        "order_shipped":    "Tu pedido #%id% está en camino.",
+        "order_delivered":  "Tu pedido #%id% ha sido entregado.",
+        "title":            "Notificaciones",
+        "empty":            "Sin nuevas notificaciones"
+    },
     "errors": {
         "page_not_found": "Página No Encontrada",
         "page_not_found_message": "La página que buscas no existe o ha sido movida.",
