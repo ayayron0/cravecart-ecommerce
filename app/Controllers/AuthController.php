@@ -27,60 +27,6 @@ class AuthController extends BaseController
         return $this->render($response, 'login.twig');
     }
 
-    public function showForgotPassword(Request $request, Response $response): Response
-    {
-        return $this->render($response, 'forgot-password.twig');
-    }
-
-    public function forgotPassword(Request $request, Response $response): Response
-    {
-        $email = trim($request->getParsedBody()['email'] ?? '');
-        $user  = Users::findByEmail($email);
-
-        if ($user === null) {
-            return $this->render($response, 'forgot-password.twig', [
-                'error'     => __('auth.email_not_found'),
-                'old_email' => $email,
-            ]);
-        }
-
-        return $this->render($response, 'forgot-password.twig', [
-            'found_email' => $email,
-        ]);
-    }
-
-    public function resetPassword(Request $request, Response $response): Response
-    {
-        $email    = trim($request->getParsedBody()['email'] ?? '');
-        $password = $request->getParsedBody()['password'] ?? '';
-        $confirm  = $request->getParsedBody()['confirm_password'] ?? '';
-        $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
-
-        $user = Users::findByEmail($email);
-        if ($user === null) {
-            return $response->withStatus(302)->withHeader('Location', $basePath . '/forgot-password');
-        }
-
-        if (strlen($password) < 8) {
-            return $this->render($response, 'forgot-password.twig', [
-                'found_email' => $email,
-                'error'       => __('auth.password_too_short'),
-            ]);
-        }
-
-        if ($password !== $confirm) {
-            return $this->render($response, 'forgot-password.twig', [
-                'found_email' => $email,
-                'error'       => __('auth.passwords_do_not_match'),
-            ]);
-        }
-
-        Users::resetPasswordById((int) $user->id, $password);
-
-        $this->flash('success', __('auth.password_reset_success'));
-        return $response->withStatus(302)->withHeader('Location', $basePath . '/login');
-    }
-
     public function showRegister(Request $request, Response $response): Response
     {
         return $this->render($response, 'register.twig');

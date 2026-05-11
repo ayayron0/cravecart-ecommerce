@@ -12,12 +12,12 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 /*
- * CartController — handles the shopping cart page
+ * CartController - handles the shopping cart page.
  *
- * WHAT: Shows the current cart, lets users add dishes, update quantities,
- *       and remove items.
- * HOW:  Uses the session cart for the current browser state, and mirrors the
- *       cart to saved_cart for logged-in clients so it persists across logins.
+ * WHAT: Shows the current cart and lets users add, update, or remove dishes.
+ * HOW:  The session cart is the current source of truth for the browser.
+ *       When a client is logged in, the controller also mirrors the cart to
+ *       saved_cart so it can survive logout/login cycles.
  */
 class CartController extends BaseController
 {
@@ -51,8 +51,7 @@ class CartController extends BaseController
             $items[] = [
                 'id' => $dishId,
                 'name' => $dish['name'],
-                'emoji' => '🍽️',
-                'category' => ($dish['cuisine_name'] ?? '') . ' · ' . ($dish['category_name'] ?? ''),
+                'category' => ($dish['cuisine_name'] ?? '') . ' / ' . ($dish['category_name'] ?? ''),
                 'price' => (float) $dish['price'],
                 'quantity' => $quantity,
                 'image_url' => $dish['image_url'] ?? null,
@@ -72,23 +71,24 @@ class CartController extends BaseController
             $userId = $this->getClientUserId();
             if ($userId !== null) {
                 SavedCart::clearByUserId($userId);
+
                 foreach ($cleanCart as $dishId => $quantity) {
                     $dish = Dishes::findById($dishId);
                     if ($dish !== null) {
                         SavedCart::addItem($userId, $dishId, $quantity, (float) $dish->price);
                     }
                 }
+
                 $this->refreshSessionCartFromSavedCart($userId);
             }
         }
 
-        // array_map loops over every item and calculates price × quantity for each.
+        // array_map loops over every item and calculates price x quantity for each.
         // array_sum then adds all those subtotals together into one number.
         $subtotal = array_sum(array_map(static fn(array $item): float => $item['price'] * $item['quantity'], $items));
         $deliveryFee = empty($items) ? 0.00 : 2.99;
         $total = $subtotal + $deliveryFee;
         $usdTotal = $this->exchangeRateService->convertCadToUsd($total);
-
 
         return $this->render($response, 'cart.twig', [
             'items' => $items,
@@ -244,6 +244,3 @@ class CartController extends BaseController
         return $this->redirectTo($response, $fallbackPath);
     }
 }
-
-
-

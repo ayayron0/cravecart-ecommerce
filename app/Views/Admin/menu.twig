@@ -1,5 +1,5 @@
 {% extends 'Admin/layout.twig' %}
-{% block title %}Menu — CraveCart Admin{% endblock %}
+{% block title %}Menu | CraveCart Admin{% endblock %}
 {% block page_title %}Menu Management{% endblock %}
 
 {% block content %}
@@ -33,7 +33,7 @@
                 {% for dish in dishes %}
                     <div class="menu-card">
                         <div class="menu-card-top">
-                            <span class="dish-emoji">{{ dish.emoji }}</span>
+                            <span class="dish-emoji"><i class="bi bi-egg-fried"></i></span>
                             <span class="status-badge status-{{ dish.availability }}">
                                 {{ dish.availability|capitalize }}
                             </span>

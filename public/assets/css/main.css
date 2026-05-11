@@ -322,3 +322,57 @@ main { flex: 1; }
     .cc-search-input { font-size: 0.88rem; }
     .cc-footer-inner { align-items: flex-start; }
 }
+
+.cc-error-shell {
+    padding: 5rem 0 6rem;
+}
+
+.cc-error-card {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 3rem 2.2rem;
+    text-align: center;
+    background:
+        radial-gradient(circle at top right, rgba(230, 57, 70, 0.12), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 248, 0.96));
+    border: 1px solid rgba(229, 231, 235, 0.9);
+    border-radius: 2rem;
+    box-shadow: var(--cc-shadow);
+}
+
+.cc-error-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5.5rem;
+    padding: 0.55rem 1.25rem;
+    margin-bottom: 1.35rem;
+    border-radius: 999px;
+    background: rgba(230, 57, 70, 0.1);
+    color: var(--cc-red);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.cc-error-title {
+    font-size: clamp(2rem, 4vw, 3.3rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    margin-bottom: 1rem;
+}
+
+.cc-error-copy {
+    max-width: 34rem;
+    margin: 0 auto;
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+.cc-error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}

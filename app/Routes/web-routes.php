@@ -75,11 +75,6 @@ return static function (Slim\App $app): void {
     //handles the register post request
     $app->post('/register', [AuthController::class, 'register'])->setName('auth.register.post');
 
-    $app->get('/forgot-password',  [AuthController::class, 'showForgotPassword'])->setName('auth.forgot-password');
-    $app->post('/forgot-password', [AuthController::class, 'forgotPassword'])->setName('auth.forgot-password.post');
-    $app->post('/reset-password',  [AuthController::class, 'resetPassword'])->setName('auth.reset-password.post');
-
-    
     // Browse dishes by category and cuisine (e.g. /browse/food/chinese)
     $app->get('/browse/{category}/{slug}', [BrowseController::class, 'showDishes'])
     ->setName('browse.dishes');

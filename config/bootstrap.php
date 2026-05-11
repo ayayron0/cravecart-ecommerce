@@ -26,10 +26,9 @@ if ($autoloadPath !== false && is_file($autoloadPath)) {
 // Start the session so $_SESSION is available everywhere in the app.
 session_start();
 
-// Keep real errors visible during development, but hide PHP 8.5 deprecation
-// noise from third-party libraries so it does not break page output.
+// Keep deprecation noise from third-party libraries out of production output.
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
-ini_set('display_errors', '1');
+ini_set('display_errors', '0');
 
 // Load the app's global constants.
 require_once __DIR__ . '/constants.php';

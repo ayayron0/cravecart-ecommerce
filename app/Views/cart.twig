@@ -1,6 +1,6 @@
 {% extends 'layout.twig' %}
 
-{% block title %}{{ __('cart.your_cart') }} — {{ __('site.name') }}{% endblock %}
+{% block title %}{{ __('cart.your_cart') }} | {{ __('site.name') }}{% endblock %}
 
 {% block content %}
 <section class="py-5">
@@ -33,7 +33,7 @@
                                                 {% if item.image_url %}
                                                     <img src="{{ item.image_url }}" alt="{{ item.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:.75rem;">
                                                 {% else %}
-                                                    {{ item.emoji ?? '🍽️' }}
+                                                    <i class="bi bi-egg-fried text-muted"></i>
                                                 {% endif %}
                                             </div>
                                             <div>
@@ -45,7 +45,7 @@
                                     <td class="text-center">
                                         <div class="input-group input-group-sm" style="width:100px; margin:auto;">
                                             <form action="{{ basePath }}/cart/decrease/{{ item.id }}" method="post" class="mb-0">
-                                                <button type="submit" class="btn btn-outline-secondary">−</button>
+                                                <button type="submit" class="btn btn-outline-secondary">-</button>
                                             </form>
                                             <span class="form-control text-center">{{ item.quantity }}</span>
                                             <form action="{{ basePath }}/cart/increase/{{ item.id }}" method="post" class="mb-0">
@@ -94,8 +94,7 @@
                             <span style="color:#e63946;">${{ total ?? '0.00' }}</span>
                         </div>
                         {% if usd_total %}
-                        <p class="text-end small text-muted mt-n3 mb-4">
-                            Approx. ${{ usd_total }} USD </p>
+                        <p class="text-end small text-muted mt-n3 mb-4">Approx. ${{ usd_total }} USD</p>
                         {% endif %}
 
                         <a href="{{ basePath }}/checkout" class="btn w-100 text-white fw-semibold" style="background-color:#e63946;">
@@ -112,7 +111,7 @@
         {% else %}
 
         <div class="text-center py-5">
-            <div style="font-size:5rem;">🛒</div>
+            <div style="font-size:5rem;"><i class="bi bi-cart-x text-muted"></i></div>
             <h4 class="fw-bold mt-3">{{ __('cart.empty') }}</h4>
             <p class="text-muted">{{ __('cart.nothing_added') }}</p>
             <a href="{{ basePath }}/" class="btn mt-2 text-white px-4" style="background-color:#e63946;">
