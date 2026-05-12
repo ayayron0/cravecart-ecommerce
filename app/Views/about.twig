@@ -1,38 +1,138 @@
 {% extends 'layout.twig' %}
 {% block title %}{{ __('about.title') }} — {{ __('site.name') }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .about-page { background:#fff; min-height:80vh; padding:60px 0; }
+    .about-card { background:#f9fafb; border:1px solid #f0f0f0; border-radius:14px; padding:24px; height:100%; }
+    .about-icon { color:#e63946; font-size:1.4rem; margin-bottom:12px; }
+    .about-badge { display:inline-flex; align-items:center; gap:6px; border:1px solid #e5e7eb;
+                   border-radius:50px; padding:4px 14px; font-size:.82rem; color:#374151; margin-bottom:12px; }
+    .about-badge i { color:#e63946; }
+    .about-cta { background:#f9fafb; border:1px solid #f0f0f0; border-radius:16px; padding:48px 24px; text-align:center; margin-top:48px; }
+    .about-cta .btn-get-started { background:#e63946; color:#fff; border:none; border-radius:50px;
+                                   padding:12px 32px; font-weight:700; font-size:.95rem; }
+    .about-cta .btn-get-started:hover { background:#c1121f; }
+    .about-divider { border-color:#f0f0f0; margin:48px 0; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5" style="max-width:760px;">
+<div class="about-page">
+<div class="container" style="max-width:860px;">
 
-    <h1 style="font-weight:900; letter-spacing:-.04em;">{{ __('about.title') }} <span style="color:#e63946;">{{ __('site.name') }}</span></h1>
-    <p class="text-muted mb-5">{{ __('about.subtitle') }}</p>
-
-    <div class="mb-4">
-        <h5 class="fw-bold">{{ __('about.who_we_are') }}</h5>
-        <p class="text-muted" style="line-height:1.75;">
-            {{ __('about.who_we_are_desc')|default('CraveCart is a food ordering platform built for people who take their meals seriously. From rich Indian curries to delicate Japanese desserts, we partner with the best local restaurants so you can explore global cuisine without leaving home.') }}
+    {# Hero #}
+    <div class="text-center mb-5">
+        <div class="mb-4" style="width:72px; height:72px; background:#e07a5f; border-radius:18px;
+             display:flex; align-items:center; justify-content:center; margin:0 auto;
+             font-weight:800; font-size:1.4rem; color:#fff; letter-spacing:-.5px;">
+            CC
+        </div>
+        <h1 style="font-weight:900; letter-spacing:-.04em;">
+            {{ __('about.title') }} <span style="color:#e63946;">{{ __('site.name') }}</span>
+        </h1>
+        <p class="text-muted-light mt-3" style="font-size:1.05rem; max-width:520px; margin:0 auto;">
+            Life's too short for bad food and long waits. CraveCart brings the good stuff straight to your door.
         </p>
     </div>
 
-    <div class="mb-4">
-        <h5 class="fw-bold">{{ __('about.what_we_offer') }}</h5>
-        <ul class="text-muted ps-3" style="line-height:2;">
-            <li>{{ __('about.curated_selection') }}</li>
-            <li>{{ __('about.simple_ordering') }}</li>
-            <li>{{ __('about.clean_experience') }}</li>
-        </ul>
-    </div>
+    <hr class="about-divider">
 
+    {# Mission #}
     <div class="mb-5">
-        <h5 class="fw-bold">{{ __('about.our_mission') }}</h5>
-        <p class="text-muted" style="line-height:1.75;">
-            {{ __('about.mission_desc')|default('Good food should be easy to find and easy to order. That\'s it.') }}
+        <h2 style="font-weight:800; font-size:1.5rem; margin-bottom:16px;">Our mission</h2>
+        <p class="text-muted" style="line-height:1.85; font-size:1rem;">
+            We built CraveCart to simplify the restaurant ordering experience from start to finish.
+            Instead of switching back and forth from phone calls to paper menus, everything can be done in one place. Our website provides a clean, fast,
+            and user-friendly platform where customers can explore the full menu, manage their cart,
+            and place orders with delivery details in just a few clicks.
         </p>
     </div>
 
-    <a href="{{ basePath }}/" class="btn fw-semibold px-4 py-2 text-white" style="background:#e63946; border-radius:10px;">
-        {{ __('cuisines.browse') }}
-    </a>
+    <hr class="about-divider">
 
+    {# What you can do #}
+    <div class="mb-5">
+        <h2 style="font-weight:800; font-size:1.5rem; margin-bottom:24px;">What you can do?</h2>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="about-card">
+                    <div class="about-icon"><i class="bi bi-journal-text"></i></div>
+                    <p class="fw-bold mb-1">Browse the menu</p>
+                    <p class="text-muted-light small mb-0">Explore all available dishes and filter by category to find what you're craving.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="about-card">
+                    <div class="about-icon"><i class="bi bi-cart3"></i></div>
+                    <p class="fw-bold mb-1">Manage your cart</p>
+                    <p class="text-muted-light small mb-0">Add or remove dishes. Your cart updates in real time before checkout.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="about-card">
+                    <div class="about-icon"><i class="bi bi-truck"></i></div>
+                    <p class="fw-bold mb-1">Place an order</p>
+                    <p class="text-muted-light small mb-0">Provide your delivery details and confirm your order with a simple click.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="about-card">
+                    <div class="about-icon"><i class="bi bi-clock-history"></i></div>
+                    <p class="fw-bold mb-1">Track orders</p>
+                    <p class="text-muted-light small mb-0">Stay updated on your order status from the moment it's placed.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="about-card">
+                    <div class="about-icon"><i class="bi bi-search"></i></div>
+                    <p class="fw-bold mb-1">Search a dish</p>
+                    <p class="text-muted-light small mb-0">Find any dish instantly with real-time search</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="about-card">
+                    <div class="about-icon"><i class="bi bi-globe"></i></div>
+                    <p class="fw-bold mb-1">Multilingual</p>
+                    <p class="text-muted-light small mb-0">Fully available in English, French, and Spanish to serve a wider audience.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="about-divider">
+
+    {# Who we serve #}
+    <div class="mb-2">
+        <h2 style="font-weight:800; font-size:1.5rem; margin-bottom:24px;">Who is this for?</h2>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="about-card">
+                    <div class="about-badge"><i class="bi bi-person"></i> Customers</div>
+                    <p class="text-muted-light small mb-0">
+                        You Hungry? We got you. Just Browse the menu, load up your cart, and get it delivered. As simple as that!
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="about-card">
+                    <div class="about-badge"><i class="bi bi-speedometer2"></i> Administrators</div>
+                    <p class="text-muted-light small mb-0">
+                        Restaurant staff gets a secure dashboard to run the show behind the scenes. Manage dishes, categories, and orders without breaking a sweat
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# CTA #}
+    <div class="about-cta">
+        <p class="text-muted-light mb-3" style="font-size:1rem;">Ready to place your first order?</p>
+        <a href="{{ basePath }}/" class="btn-get-started btn">
+            Get started <i class="bi bi-arrow-up-right ms-1"></i>
+        </a>
+    </div>
+
+</div>
 </div>
 {% endblock %}
