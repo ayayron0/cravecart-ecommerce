@@ -34,8 +34,10 @@ define('APP_ROOT_DIR_NAME', $configuredAppRoot);
 // Define the path of the application's views directory.
 const APP_VIEWS_PATH = APP_BASE_DIR_PATH . '/app/Views';
 
-// Define the public assets directory name and full path.
-const APP_ASSETS_DIR      = '/public/assets';
+// Define the public assets URL path and full filesystem path.
+// Because Apache/Nginx serves the app from the public/ directory itself,
+// browser URLs should point to /assets/... rather than /public/assets/...
+const APP_ASSETS_DIR      = '/assets';
 const APP_ASSETS_DIR_PATH = APP_BASE_DIR_PATH . '/public/assets';
 
 // Debug mode — true in dev, false in production.
