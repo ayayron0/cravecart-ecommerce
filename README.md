@@ -5,12 +5,14 @@ CraveCart is a web-based food ordering system designed for a restaurant. It allo
 ---
 
 ## Team Members
-- Arend, Markies  
-- Banh, Steve  
-- Hossain, Aaron  
-- Waleed, Muhammad Nazam  
+
+- Arend, Markies
+- Banh, Steve
+- Hossain, Aaron
+- Waleed, Muhammad Nazam
 
 ---
 
 ## Note
-This project is for educational purposes.
+
+This project is for educational purposes for vanier computer science ecommerce class winter 2026.
