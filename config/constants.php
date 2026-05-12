@@ -5,10 +5,31 @@ declare(strict_types=1);
 // Define the path of the application's root directory.
 define('APP_BASE_DIR_PATH', dirname(__DIR__, 1));
 
-// Holds the name of the app's root directory.
-// In Docker, this can be set via environment variable; otherwise, uses the folder name.
-// NOTE: the APP_ROOT_DIR_NAME constant is used to set the base path of the application. Do not remove or change it.
-define('APP_ROOT_DIR_NAME', $_ENV['APP_ROOT_DIR'] ?? basename(dirname(__FILE__, 2)));
+// Holds the app's base path without a leading slash.
+// Examples:
+//   - '' for a VPS/domain root like https://example.com/
+//   - 'cravecart-ecommerce' for a subfolder install like http://localhost/cravecart-ecommerce/
+//
+// Priority:
+//   1. APP_ROOT_DIR environment variable if explicitly provided
+//   2. Auto-detected from the current script path
+$configuredAppRoot = $_ENV['APP_ROOT_DIR'] ?? getenv('APP_ROOT_DIR') ?: null;
+
+if (is_string($configuredAppRoot)) {
+    $configuredAppRoot = trim($configuredAppRoot);
+}
+
+if ($configuredAppRoot === null || $configuredAppRoot === false) {
+    $scriptDirectory = $_SERVER['SCRIPT_NAME'] ?? '';
+    $scriptDirectory = str_replace('\\', '/', dirname($scriptDirectory));
+    $configuredAppRoot = ($scriptDirectory === '/' || $scriptDirectory === '.' || $scriptDirectory === '')
+        ? ''
+        : trim($scriptDirectory, '/');
+} else {
+    $configuredAppRoot = trim((string) $configuredAppRoot, "/\\");
+}
+
+define('APP_ROOT_DIR_NAME', $configuredAppRoot);
 
 // Define the path of the application's views directory.
 const APP_VIEWS_PATH = APP_BASE_DIR_PATH . '/app/Views';
