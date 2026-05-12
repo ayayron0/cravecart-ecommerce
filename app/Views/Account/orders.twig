@@ -34,12 +34,12 @@
     {% else %}
         {% for order in history_orders %}
         <div class="order-card">
-            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-2">
-                <div>
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                <div style="flex:1; min-width:0;">
                     <p class="order-id mb-1">{{ __('orders.order_label') }} #{{ order.order_number }} &bull; {{ order.created_at }}</p>
                     <p class="order-items mb-0">{{ order.items }}</p>
                 </div>
-                <div class="text-end">
+                <div class="text-end" style="flex-shrink:0;">
                     <p class="order-total mb-1">${{ order.total }}</p>
                     {% if order.status == 'cancelled' %}
                         <span class="status-badge status-cancelled">{{ __('orders.cancelled') }}</span>
@@ -65,12 +65,12 @@
         {% for order in active_orders %}
         <div class="order-card">
 
-            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
-                <div>
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+                <div style="flex:1; min-width:0;">
                     <p class="order-id mb-1">{{ __('orders.order_label') }} #{{ order.order_number }} &bull; {{ order.created_at }}</p>
                     <p class="order-items mb-0">{{ order.items }}</p>
                 </div>
-                <div class="text-end">
+                <div class="text-end" style="flex-shrink:0;">
                     <p class="order-total mb-1">${{ order.total }}</p>
                     {% set statusLabels = {
                         'processing': __('account.processing'),

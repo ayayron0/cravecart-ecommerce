@@ -74,8 +74,10 @@ class AdminController extends BaseController
 
             $itemNames = array_map(
                 static function (array $item) use ($toSlug): string {
-                    $key = 'dishes_names.' . $toSlug($item['dish_name']);
-                    return has_translation($key) ? __($key) : $item['dish_name'];
+                    $key  = 'dishes_names.' . $toSlug($item['dish_name']);
+                    $name = has_translation($key) ? __($key) : $item['dish_name'];
+                    $qty  = (int) $item['quantity'];
+                    return $qty > 1 ? "{$name} x{$qty}" : $name;
                 },
                 $items
             );
@@ -123,8 +125,10 @@ class AdminController extends BaseController
 
             $itemNames = array_map(
                 static function (array $item) use ($toSlug): string {
-                    $key = 'dishes_names.' . $toSlug($item['dish_name']);
-                    return has_translation($key) ? __($key) : $item['dish_name'];
+                    $key  = 'dishes_names.' . $toSlug($item['dish_name']);
+                    $name = has_translation($key) ? __($key) : $item['dish_name'];
+                    $qty  = (int) $item['quantity'];
+                    return $qty > 1 ? "{$name} x{$qty}" : $name;
                 },
                 $items
             );

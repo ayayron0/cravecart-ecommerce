@@ -27,19 +27,21 @@
 
 <section class="py-5">
     <div class="container">
+        {% set categoryIcons = {
+            'food':     'bi-fork-knife',
+            'desserts': 'bi-cake2',
+            'drinks':   'bi-cup-straw'
+        } %}
         <nav class="cc-tabs">
-            <a href="{{ basePath }}/browse/food/{{ cuisine.slug }}" class="{{ category.slug == 'food' ? 'active' : '' }}">
-                <i class="bi bi-fork-knife"></i>
-                <span>{{ __('categories.food') }}</span>
+            {% for cat in categories %}
+            {% set catKey = 'categories.' ~ cat.slug %}
+            {% set catLabel = __(catKey) %}
+            <a href="{{ basePath }}/browse/{{ cat.slug }}/{{ cuisine.slug }}"
+               class="{{ category.slug == cat.slug ? 'active' : '' }}">
+                <i class="bi {{ categoryIcons[cat.slug] ?? 'bi-grid' }}"></i>
+                <span>{{ catLabel == catKey ? cat.name : catLabel }}</span>
             </a>
-            <a href="{{ basePath }}/browse/desserts/{{ cuisine.slug }}" class="{{ category.slug == 'desserts' ? 'active' : '' }}">
-                <i class="bi bi-cake2"></i>
-                <span>{{ __('categories.desserts') }}</span>
-            </a>
-            <a href="{{ basePath }}/browse/drinks/{{ cuisine.slug }}" class="{{ category.slug == 'drinks' ? 'active' : '' }}">
-                <i class="bi bi-cup-straw"></i>
-                <span>{{ __('categories.drinks') }}</span>
-            </a>
+            {% endfor %}
         </nav>
 
         <div class="cc-cuisine-switcher" aria-label="Browse other cuisines">

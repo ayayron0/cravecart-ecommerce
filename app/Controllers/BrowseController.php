@@ -7,6 +7,7 @@ namespace App\Controllers;
 use DI\Container;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use App\Domain\Models\Categories;
 use App\Domain\Models\Cuisines;
 use App\Domain\Models\Dishes;
 
@@ -77,11 +78,21 @@ class BrowseController extends BaseController
             ];
         }, $allCuisines);
 
+        // Load all categories from DB so the tabs are dynamic.
+        $allCategories = Categories::getAll();
+        $categories = array_map(static function ($cat): array {
+            return [
+                'name' => (string) $cat->name,
+                'slug' => strtolower(trim((string) $cat->name)),
+            ];
+        }, $allCategories);
+
         $data = [
-            'cuisine' => $cuisine,
-            'category' => $category,
-            'cuisines' => $cuisines,
-            'dishes' => $dishes,
+            'cuisine'    => $cuisine,
+            'category'   => $category,
+            'cuisines'   => $cuisines,
+            'categories' => $categories,
+            'dishes'     => $dishes,
         ];
 
         return $this->render($response, 'browse/dishes.twig', $data);

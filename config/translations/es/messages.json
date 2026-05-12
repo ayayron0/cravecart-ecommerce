@@ -325,6 +325,7 @@
         "order_wrapping":   "Tu pedido #%id% está siendo empaquetado.",
         "order_shipped":    "Tu pedido #%id% está en camino.",
         "order_delivered":  "Tu pedido #%id% ha sido entregado.",
+        "order_cancelled":  "Tu pedido #%id% ha sido cancelado.",
         "title":            "Notificaciones",
         "empty":            "Sin nuevas notificaciones",
         "clear_all":        "Limpiar Todo"

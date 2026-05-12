@@ -7,35 +7,12 @@
 
     if (!badge) return; // not logged in or is admin — nothing to do
 
-    let shownIds = new Set();
-
     function timeAgo(dateStr) {
         const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
         if (diff < 60)  return 'Just now';
         if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
         if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
         return Math.floor(diff / 86400) + 'd ago';
-    }
-
-    function showToast(message) {
-        const container = document.getElementById('cc-toast-container') || (() => {
-            const el = document.createElement('div');
-            el.id = 'cc-toast-container';
-            el.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
-            document.body.appendChild(el);
-            return el;
-        })();
-
-        const toast = document.createElement('div');
-        toast.className = 'toast show align-items-center text-white border-0';
-        toast.style.cssText = 'background:#e63946;min-width:280px;';
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body"><i class="bi bi-bell-fill me-2"></i>${message}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button>
-            </div>`;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 5000);
     }
 
     function renderMenu(notifications) {
@@ -74,14 +51,6 @@
                     badge.classList.add('d-none');
                 }
 
-                // Toast for any new ones we haven't shown yet
-                notifications.forEach(n => {
-                    if (!shownIds.has(n.id)) {
-                        shownIds.add(n.id);
-                        showToast(n.message);
-                    }
-                });
-
                 renderMenu(notifications);
             })
             .catch(() => {}); // silent fail — network hiccup shouldn't break the page
@@ -95,7 +64,6 @@
             fetch(`${BASE_PATH}/api/notifications/read`, { method: 'POST' })
                 .then(() => {
                     badge.classList.add('d-none');
-                    shownIds.clear();
                     renderMenu([]);
                 })
                 .catch(() => {});

@@ -47,14 +47,15 @@ class AccountController extends BaseController
             return trim((string) $s, '-');
         };
 
-        $orderNumber = count($orderBeans);
-        $mapped = array_map(function ($order) use (&$orderNumber, $toSlug): array {
+        $mapped = array_map(function ($order) use ($toSlug): array {
             $items = OrderDish::findDetailedByOrderId((int) $order->id);
 
             $itemNames = array_map(
                 static function (array $item) use ($toSlug): string {
-                    $key = 'dishes_names.' . $toSlug($item['dish_name']);
-                    return has_translation($key) ? __($key) : $item['dish_name'];
+                    $key  = 'dishes_names.' . $toSlug($item['dish_name']);
+                    $name = has_translation($key) ? __($key) : $item['dish_name'];
+                    $qty  = (int) $item['quantity'];
+                    return $qty > 1 ? "{$name} x{$qty}" : $name;
                 },
                 $items
             );
@@ -66,8 +67,8 @@ class AccountController extends BaseController
             };
 
             return [
-                'id'         => $order->id,
-                'order_number' => $orderNumber--,
+                'id'           => $order->id,
+                'order_number' => $order->id,
                 'items'      => empty($itemNames) ? __('admin.no_items_found') : implode(', ', $itemNames),
                 'total'      => number_format((float) $order->total, 2),
                 'status'     => $status,

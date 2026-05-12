@@ -43,17 +43,17 @@
 {# Orders list #}
 {% for order in orders %}
 <div class="order-card">
-    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+    <div class="d-flex align-items-start justify-content-between gap-3">
 
         {# Order info #}
-        <div>
+        <div style="flex:1; min-width:0;">
             <p class="order-id mb-1">#{{ order.id }} &mdash; {{ order.created_at }}</p>
             <p class="order-name mb-1">{{ order.customer_name }}</p>
             <p class="order-items mb-0">{{ order.items }}</p>
         </div>
 
         {# Right side: total + status + buttons #}
-        <div class="text-end">
+        <div class="text-end" style="flex-shrink:0;">
             <p class="order-total mb-2">${{ order.total }}</p>
             {% set statusLabels = {
                 'processing': __('admin.processing_orders'),

@@ -90,7 +90,7 @@
 }
 .order-card .order-id    { font-size: .78rem; color: #6b7280; }
 .order-card .order-name  { font-weight: 700; font-size: 1rem; }
-.order-card .order-items { font-size: .85rem; color: #374151; }
+.order-card .order-items { font-size: .85rem; color: #374151; white-space: normal; word-break: break-word; max-width: 70%; }
 .order-card .order-total { font-weight: 800; color: #e63946; font-size: 1.05rem; }
 
 .status-btn {
