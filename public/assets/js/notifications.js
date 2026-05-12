@@ -87,10 +87,11 @@
             .catch(() => {}); // silent fail — network hiccup shouldn't break the page
     }
 
-    // Mark all read only after the dropdown closes — so the user can read them first
-    const dropdownEl = document.getElementById('cc-notif-dropdown');
-    dropdownEl.addEventListener('hidden.bs.dropdown', () => {
-        if (!badge.classList.contains('d-none')) {
+    // Clear All button — only clears when the user explicitly clicks it.
+    const clearBtn = document.getElementById('cc-notif-clear');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // prevent dropdown from closing on click
             fetch(`${BASE_PATH}/api/notifications/read`, { method: 'POST' })
                 .then(() => {
                     badge.classList.add('d-none');
@@ -98,8 +99,8 @@
                     renderMenu([]);
                 })
                 .catch(() => {});
-        }
-    });
+        });
+    }
 
     poll();                         // run immediately on page load
     setInterval(poll, 30_000);      // then every 30 seconds

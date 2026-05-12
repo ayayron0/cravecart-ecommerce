@@ -1,22 +1,22 @@
 {% extends 'Admin/layout.twig' %}
 {% block title %}Menu | CraveCart Admin{% endblock %}
-{% block page_title %}Menu Management{% endblock %}
+{% block page_title %}{{ __('admin.menu') }}{% endblock %}
 
 {% block content %}
 
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <div>
-        <h6 class="fw-bold mb-1">All Dishes</h6>
-        <p class="text-muted mb-0 small">{{ dishCount }} total dishes across all categories</p>
+        <h6 class="fw-bold mb-1">{{ __('admin.all_dishes') }}</h6>
+        <p class="text-muted mb-0 small">{{ __('admin.total_dishes', {'count': dishCount}) }}</p>
     </div>
 </div>
 
 {% if groupedDishes is empty %}
     <div class="add-form text-center py-5">
-        <h5 class="fw-bold mb-2">No dishes yet</h5>
-        <p class="text-muted mb-3">Start by adding your first dish.</p>
+        <h5 class="fw-bold mb-2">{{ __('admin.no_dishes') }}</h5>
+        <p class="text-muted mb-3">{{ __('admin.start_adding') }}</p>
         <a href="{{ basePath }}/admin/add" class="btn text-white fw-semibold px-4" style="background:#e63946;">
-            Add Dish
+            {{ __('admin.add_dish') }}
         </a>
     </div>
 {% else %}
@@ -24,8 +24,8 @@
         <div class="menu-section mb-4">
             <div class="menu-section-header">
                 <div>
-                    <h5 class="mb-1 fw-bold">{{ categoryName }}</h5>
-                    <p class="text-muted small mb-0">{{ dishes|length }} dish{{ dishes|length == 1 ? '' : 'es' }}</p>
+                    <h5 class="mb-1 fw-bold">{{ __('categories.' ~ categoryName|lower) }}</h5>
+                    <p class="text-muted small mb-0">{{ dishes|length }} {{ __('admin.dishes_label') }}</p>
                 </div>
             </div>
 
@@ -35,29 +35,30 @@
                         <div class="menu-card-top">
                             <span class="dish-emoji"><i class="bi bi-egg-fried"></i></span>
                             <span class="status-badge status-{{ dish.availability }}">
-                                {{ dish.availability|capitalize }}
+                                {{ __('dishes.' ~ dish.availability) }}
                             </span>
                         </div>
 
                         <div class="menu-card-body">
                             <p class="dish-name mb-1">{{ dish.name }}</p>
                             <p class="dish-meta mb-2">{{ dish.cuisine }}</p>
-                            <p class="dish-desc mb-3">{{ dish.description ?: 'No description yet.' }}</p>
+                            <p class="dish-desc mb-3">{{ dish.description ?: __('admin.no_description') }}</p>
                         </div>
 
                         <div class="menu-card-footer">
                             <span class="dish-price">${{ dish.price }}</span>
                             <div class="d-flex gap-2">
                                 <a href="{{ basePath }}/admin/edit/dish/{{ dish.id }}" class="btn-edit text-decoration-none">
-                                    <i class="bi bi-pencil-square"></i> Edit
+                                    <i class="bi bi-pencil-square"></i> {{ __('admin.edit') }}
                                 </a>
 
-                                <form action="{{ basePath }}/admin/delete/dish/{{ dish.id }}" method="post" class="mb-0">
-                                    <button type="submit" class="btn-delete"
-                                            onclick="return confirm('Delete {{ dish.name }}?')">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-                                </form>
+                                <button type="button" class="btn-delete"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-item-name="{{ dish.name }}"
+                                        data-action="{{ basePath }}/admin/delete/dish/{{ dish.id }}">
+                                    <i class="bi bi-trash"></i> {{ __('admin.delete') }}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -66,5 +67,33 @@
         </div>
     {% endfor %}
 {% endif %}
+
+{# Delete confirmation modal — shared by all delete buttons on this page.
+   The dish name and form action are injected dynamically by delete-modal.js. #}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius:16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="deleteModalLabel">{{ __('admin.delete_dish') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-0">{{ __('admin.confirm_delete_msg') }} (<strong id="deleteModalItemName"></strong>)</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">{{ __('admin.cancel') }}</button>
+                <form id="deleteModalForm" method="post" class="mb-0">
+                    <button type="submit" class="btn text-white fw-semibold rounded-3" style="background:#e63946;">
+                        <i class="bi bi-trash me-1"></i> {{ __('admin.delete') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{{ asset_url('/js/delete-modal.js') }}"></script>
+{% endblock %}
 
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'Admin/layout.twig' %}
 {% block title %}Add New — CraveCart Admin{% endblock %}
-{% block page_title %}Add New{% endblock %}
+{% block page_title %}{{ __('admin.add_new') }}{% endblock %}
 
 {% block content %}
 
@@ -19,28 +19,28 @@
     {# ── Add Cuisine ── #}
     <div class="col-lg-6">
         <div class="add-form">
-            <h6 class="fw-bold mb-4"><i class="bi bi-globe me-2" style="color:#e63946;"></i>Add Cuisine</h6>
+            <h6 class="fw-bold mb-4"><i class="bi bi-globe me-2" style="color:#e63946;"></i>{{ __('admin.add_cuisine') }}</h6>
             <form action="{{ basePath }}/admin/add/cuisine" method="post">
                 <div class="row g-3">
                     <div class="col-8">
-                        <label class="form-label small fw-semibold">Cuisine Name</label>
-                        <input type="text" name="name" class="form-control" placeholder="e.g. Chinese" required>
+                        <label class="form-label small fw-semibold">{{ __('admin.cuisine_name') }}</label>
+                        <input type="text" name="name" class="form-control" placeholder="{{ __('admin.placeholder_cuisine') }}" required>
                     </div>
                     <div class="col-4">
-                        <label class="form-label small fw-semibold">Code</label>
+                        <label class="form-label small fw-semibold">{{ __('admin.code') }}</label>
                         <input type="text" name="code" class="form-control" placeholder="CN" maxlength="5" required>
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-semibold">Description</label>
-                        <input type="text" name="description" class="form-control" placeholder="Short description">
+                        <label class="form-label small fw-semibold">{{ __('admin.description') }}</label>
+                        <input type="text" name="description" class="form-control" placeholder="{{ __('admin.placeholder_description') }}">
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-semibold">Image URL</label>
-                        <input type="text" name="image_url" class="form-control" placeholder="https://...">
+                        <label class="form-label small fw-semibold">{{ __('admin.image_url') }}</label>
+                        <input type="text" name="image_url" class="form-control" placeholder="{{ __('admin.placeholder_image') }}">
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn text-white fw-semibold px-4" style="background:#e63946;">
-                            <i class="bi bi-plus-lg me-1"></i> Add Cuisine
+                            <i class="bi bi-plus-lg me-1"></i> {{ __('admin.add_cuisine') }}
                         </button>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
             {# Existing cuisines list #}
             {% if cuisines %}
             <hr class="my-4">
-            <p class="small fw-semibold text-muted mb-2">Existing Cuisines</p>
+            <p class="small fw-semibold text-muted mb-2">{{ __('admin.existing_cuisines') }}</p>
             <ul class="list-unstyled mb-0">
                 {% for cuisine in cuisines %}
                 <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
@@ -60,12 +60,13 @@
                 <i class="bi bi-pencil-square"></i>
             </a>
 
-            <form action="{{ basePath }}/admin/delete/cuisine/{{ cuisine.id }}" method="post" class="mb-0">
-            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
-               onclick="return confirm('Delete {{ cuisine.name }}?')">
+            <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteModal"
+                    data-item-name="{{ cuisine.name }}"
+                    data-action="{{ basePath }}/admin/delete/cuisine/{{ cuisine.id }}">
                 <i class="bi bi-trash"></i>
             </button>
-            </form>
         </div>
 
                 </li>
@@ -78,20 +79,20 @@
     {# ── Add Category ── #}
     <div class="col-lg-6">
         <div class="add-form">
-            <h6 class="fw-bold mb-4"><i class="bi bi-tag me-2" style="color:#e63946;"></i>Add Category</h6>
+            <h6 class="fw-bold mb-4"><i class="bi bi-tag me-2" style="color:#e63946;"></i>{{ __('admin.add_category') }}</h6>
             <form action="{{ basePath }}/admin/add/category" method="post">
                 <div class="row g-3">
                     <div class="col-12">
-                        <label class="form-label small fw-semibold">Category Name</label>
-                        <input type="text" name="name" class="form-control" placeholder="e.g. Desserts" required>
+                        <label class="form-label small fw-semibold">{{ __('admin.category_name') }}</label>
+                        <input type="text" name="name" class="form-control" placeholder="{{ __('admin.placeholder_category') }}" required>
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-semibold">Description</label>
-                        <input type="text" name="description" class="form-control" placeholder="Short description">
+                        <label class="form-label small fw-semibold">{{ __('admin.description') }}</label>
+                        <input type="text" name="description" class="form-control" placeholder="{{ __('admin.placeholder_description') }}">
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn text-white fw-semibold px-4" style="background:#e63946;">
-                            <i class="bi bi-plus-lg me-1"></i> Add Category
+                            <i class="bi bi-plus-lg me-1"></i> {{ __('admin.add_category') }}
                         </button>
                     </div>
                 </div>
@@ -100,7 +101,7 @@
             {# Existing categories list #}
             {% if categories %}
             <hr class="my-4">
-            <p class="small fw-semibold text-muted mb-2">Existing Categories</p>
+            <p class="small fw-semibold text-muted mb-2">{{ __('admin.existing_categories') }}</p>
             <ul class="list-unstyled mb-0">
                 {% for category in categories %}
                 <li class="d-flex align-items-center justify-content-between py-1 border-bottom">
@@ -111,12 +112,13 @@
                     <i class="bi bi-pencil-square"></i>
             </a>
 
-            <form action="{{ basePath }}/admin/delete/category/{{ category.id }}" method="post" class="mb-0">
-                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2"
-                    onclick="return confirm('Delete {{ category.name }}?')">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </form>
+            <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteModal"
+                    data-item-name="{{ category.name }}"
+                    data-action="{{ basePath }}/admin/delete/category/{{ category.id }}">
+                <i class="bi bi-trash"></i>
+            </button>
         </div>
                 </li>
                 {% endfor %}
@@ -128,54 +130,54 @@
     {# ── Add Dish ── #}
     <div class="col-12">
         <div class="add-form">
-            <h6 class="fw-bold mb-4"><i class="bi bi-egg-fried me-2" style="color:#e63946;"></i>Add Dish</h6>
+            <h6 class="fw-bold mb-4"><i class="bi bi-egg-fried me-2" style="color:#e63946;"></i>{{ __('admin.add_dish') }}</h6>
             <form action="{{ basePath }}/admin/add/dish" method="post">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">Dish Name</label>
-                        <input type="text" name="name" class="form-control" placeholder="e.g. Kung Pao Chicken" required>
+                        <label class="form-label small fw-semibold">{{ __('admin.dish_name') }}</label>
+                        <input type="text" name="name" class="form-control" placeholder="{{ __('admin.placeholder_dish') }}" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">Cuisine</label>
+                        <label class="form-label small fw-semibold">{{ __('admin.cuisine_label') }}</label>
                         <select name="cuisine_id" class="form-select" required>
-                            <option value="">Select cuisine...</option>
+                            <option value="">{{ __('admin.select_cuisine') }}</option>
                             {% for cuisine in cuisines %}
                                 <option value="{{ cuisine.id }}">{{ cuisine.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">Category</label>
+                        <label class="form-label small fw-semibold">{{ __('admin.category_label') }}</label>
                         <select name="category_id" class="form-select" required>
-                            <option value="">Select category...</option>
+                            <option value="">{{ __('admin.select_category') }}</option>
                             {% for category in categories %}
                                 <option value="{{ category.id }}">{{ category.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Description</label>
-                        <input type="text" name="description" class="form-control" placeholder="Short description">
+                        <label class="form-label small fw-semibold">{{ __('admin.description') }}</label>
+                        <input type="text" name="description" class="form-control" placeholder="{{ __('admin.placeholder_description') }}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small fw-semibold">Price ($)</label>
+                        <label class="form-label small fw-semibold">{{ __('admin.price_label') }}</label>
                         <input type="number" name="price" step="0.01" min="0" class="form-control" placeholder="12.99" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small fw-semibold">Availability</label>
+                        <label class="form-label small fw-semibold">{{ __('admin.availability') }}</label>
                         <select name="availability" class="form-select">
-                            <option value="available">Available</option>
-                            <option value="seasonal">Seasonal</option>
-                            <option value="unavailable">Unavailable</option>
+                            <option value="available">{{ __('dishes.available') }}</option>
+                            <option value="seasonal">{{ __('dishes.seasonal') }}</option>
+                            <option value="unavailable">{{ __('dishes.unavailable') }}</option>
                         </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-semibold">Image URL</label>
-                        <input type="text" name="image_url" class="form-control" placeholder="https://...">
+                        <label class="form-label small fw-semibold">{{ __('admin.image_url') }}</label>
+                        <input type="text" name="image_url" class="form-control" placeholder="{{ __('admin.placeholder_image') }}">
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn text-white fw-semibold px-4" style="background:#e63946;">
-                            <i class="bi bi-plus-lg me-1"></i> Add Dish
+                            <i class="bi bi-plus-lg me-1"></i> {{ __('admin.add_dish') }}
                         </button>
                     </div>
                 </div>
@@ -184,5 +186,32 @@
     </div>
 
 </div>
+
+{# Delete confirmation modal — shared by cuisine and category delete buttons. #}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius:16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="deleteModalLabel">{{ __('admin.confirm_delete') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-0">{{ __('admin.confirm_delete_msg') }} (<strong id="deleteModalItemName"></strong>)</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">{{ __('admin.cancel') }}</button>
+                <form id="deleteModalForm" method="post" class="mb-0">
+                    <button type="submit" class="btn text-white fw-semibold rounded-3" style="background:#e63946;">
+                        <i class="bi bi-trash me-1"></i> {{ __('admin.delete') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{{ asset_url('/js/delete-modal.js') }}"></script>
+{% endblock %}
 
 {% endblock %}

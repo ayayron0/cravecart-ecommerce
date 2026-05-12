@@ -1,0 +1,61 @@
+{% extends 'Admin/layout.twig' %}
+{% block title %}{{ __('admin.order_history') }} — CraveCart Admin{% endblock %}
+{% block page_title %}{{ __('admin.order_history') }}{% endblock %}
+
+{% block content %}
+
+<p class="text-muted small mb-4">{{ __('admin.today_history') }}</p>
+
+{# Summary cards — today's stats only #}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-4">
+        <div class="bg-white border rounded-3 p-3 text-center">
+            <p class="text-muted small mb-1">{{ __('admin.completed_today') }}</p>
+            <h3 class="fw-800 mb-0" style="font-weight:800; color:#065f46;">{{ completedToday }}</h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+        <div class="bg-white border rounded-3 p-3 text-center">
+            <p class="text-muted small mb-1">{{ __('admin.cancelled_today') }}</p>
+            <h3 class="fw-800 mb-0" style="font-weight:800; color:#e63946;">{{ cancelledToday }}</h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+        <div class="bg-white border rounded-3 p-3 text-center">
+            <p class="text-muted small mb-1">{{ __('admin.revenue_today') }}</p>
+            <h3 class="fw-800 mb-0" style="font-weight:800; color:#1d4ed8;">${{ revenueToday }}</h3>
+        </div>
+    </div>
+</div>
+
+{# Orders list #}
+{% if orders is empty %}
+    <div class="add-form text-center py-5">
+        <h5 class="fw-bold mb-2">{{ __('admin.no_history_today') }}</h5>
+    </div>
+{% else %}
+    {% for order in orders %}
+    <div class="order-card">
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+
+            <div>
+                <p class="order-id mb-1">#{{ order.id }} &mdash; {{ order.created_at }}</p>
+                <p class="order-name mb-1">{{ order.customer_name }}</p>
+                <p class="order-items mb-0 text-muted small">{{ order.items }}</p>
+            </div>
+
+            <div class="text-end">
+                <p class="order-total mb-2">${{ order.total }}</p>
+                {% if order.status == 'completed' %}
+                    <span class="status-badge status-completed">{{ __('account.completed') }}</span>
+                {% else %}
+                    <span class="status-badge status-cancelled">{{ __('orders.cancelled') }}</span>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}

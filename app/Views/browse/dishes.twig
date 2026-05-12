@@ -11,7 +11,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb cc-breadcrumb mb-3">
                 <li class="breadcrumb-item"><a href="{{ basePath }}/">{{ __('nav.home') }}</a></li>
-                <li class="breadcrumb-item">{{ category.name }}</li>
+                <li class="breadcrumb-item">{{ __('categories.' ~ category.slug) }}</li>
                 <li class="breadcrumb-item active" aria-current="page">{{ cuisine.name }}</li>
             </ol>
         </nav>
@@ -20,7 +20,7 @@
             <i class="bi bi-globe-asia-australia"></i>
             <span>{{ cuisine.name }}</span>
         </div>
-        <h1>{{ cuisine.name }} {{ category.name }}</h1>
+        <h1>{{ cuisine.name }} {{ __('categories.' ~ category.slug) }}</h1>
         <p class="mb-0">{{ cuisine.description }}</p>
     </div>
 </div>

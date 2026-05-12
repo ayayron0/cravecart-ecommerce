@@ -66,8 +66,12 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm p-0" id="cc-notif-menu"
                             style="min-width:300px; max-height:360px; overflow-y:auto;">
-                            <li class="px-3 py-2 border-bottom">
+                            <li class="px-3 py-2 border-bottom d-flex align-items-center justify-content-between">
                                 <span class="fw-semibold small">{{ __('notifications.title') }}</span>
+                                <button id="cc-notif-clear" class="btn btn-link btn-sm p-0 text-muted text-decoration-none"
+                                        style="font-size:.75rem;">
+                                    {{ __('notifications.clear_all') }}
+                                </button>
                             </li>
                             <li id="cc-notif-empty" class="px-3 py-3 text-muted small text-center">
                                 {{ __('notifications.empty') }}

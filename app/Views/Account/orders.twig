@@ -1,6 +1,6 @@
 {% extends 'Account/layout.twig' %}
-{% block title %}My Orders | CraveCart{% endblock %}
-{% block page_title %}My Orders{% endblock %}
+{% block title %}{{ __('nav.my_orders') }} | {{ __('site.name') }}{% endblock %}
+{% block page_title %}{{ __('nav.my_orders') }}{% endblock %}
 
 {% block content %}
 
@@ -9,7 +9,7 @@
     <li class="nav-item">
         <a class="nav-link {% if tab != 'history' %}active{% endif %}"
            href="{{ basePath }}/account/orders">
-            Active Orders
+            {{ __('account.active_orders') }}
             {% if active_orders|length > 0 %}
                 <span class="badge rounded-pill ms-1" style="background:#e63946;">{{ active_orders|length }}</span>
             {% endif %}
@@ -18,7 +18,7 @@
     <li class="nav-item">
         <a class="nav-link {% if tab == 'history' %}active{% endif %}"
            href="{{ basePath }}/account/orders?tab=history">
-            Order History
+            {{ __('account.order_history') }}
         </a>
     </li>
 </ul>
@@ -29,19 +29,23 @@
     {% if history_orders is empty %}
     <div class="account-empty">
         <i class="bi bi-clock-history account-empty-icon"></i>
-        <p class="mt-3 text-muted">No completed orders yet.</p>
+        <p class="mt-3 text-muted">{{ __('account.no_completed_orders') }}</p>
     </div>
     {% else %}
         {% for order in history_orders %}
         <div class="order-card">
             <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-2">
                 <div>
-                    <p class="order-id mb-1">Order #{{ order.order_number }} &bull; {{ order.created_at }}</p>
+                    <p class="order-id mb-1">{{ __('orders.order_label') }} #{{ order.order_number }} &bull; {{ order.created_at }}</p>
                     <p class="order-items mb-0">{{ order.items }}</p>
                 </div>
                 <div class="text-end">
                     <p class="order-total mb-1">${{ order.total }}</p>
-                    <span class="status-badge status-completed">Completed</span>
+                    {% if order.status == 'cancelled' %}
+                        <span class="status-badge status-cancelled">{{ __('orders.cancelled') }}</span>
+                    {% else %}
+                        <span class="status-badge status-completed">{{ __('account.completed') }}</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -54,8 +58,8 @@
     {% if active_orders is empty %}
     <div class="account-empty">
         <i class="bi bi-bag-x account-empty-icon"></i>
-        <p class="mt-3 text-muted">You have no active orders.</p>
-        <a href="{{ basePath }}/" class="btn btn-cc mt-2">Start Ordering</a>
+        <p class="mt-3 text-muted">{{ __('account.no_active_orders_msg') }}</p>
+        <a href="{{ basePath }}/" class="btn btn-cc mt-2">{{ __('account.start_ordering') }}</a>
     </div>
     {% else %}
         {% for order in active_orders %}
@@ -63,12 +67,18 @@
 
             <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
                 <div>
-                    <p class="order-id mb-1">Order #{{ order.order_number }} &bull; {{ order.created_at }}</p>
+                    <p class="order-id mb-1">{{ __('orders.order_label') }} #{{ order.order_number }} &bull; {{ order.created_at }}</p>
                     <p class="order-items mb-0">{{ order.items }}</p>
                 </div>
                 <div class="text-end">
                     <p class="order-total mb-1">${{ order.total }}</p>
-                    <span class="status-badge status-{{ order.status }}">{{ order.status|capitalize }}</span>
+                    {% set statusLabels = {
+                        'processing': __('account.processing'),
+                        'wrapping':   __('account.wrapping'),
+                        'shipped':    __('account.shipped'),
+                        'delivered':  __('account.delivered')
+                    } %}
+                    <span class="status-badge status-{{ order.status }}">{{ statusLabels[order.status] ?? order.status|capitalize }}</span>
                 </div>
             </div>
 
@@ -76,22 +86,22 @@
             <div class="order-stepper mt-3">
                 <div class="step {{ order.status in ['processing','wrapping','shipped','delivered'] ? 'done' : '' }}">
                     <div class="step-dot"></div>
-                    <span>Processing</span>
+                    <span>{{ __('account.processing') }}</span>
                 </div>
                 <div class="step-line {{ order.status in ['wrapping','shipped','delivered'] ? 'done' : '' }}"></div>
                 <div class="step {{ order.status in ['wrapping','shipped','delivered'] ? 'done' : '' }}">
                     <div class="step-dot"></div>
-                    <span>Wrapping</span>
+                    <span>{{ __('account.wrapping') }}</span>
                 </div>
                 <div class="step-line {{ order.status in ['shipped','delivered'] ? 'done' : '' }}"></div>
                 <div class="step {{ order.status in ['shipped','delivered'] ? 'done' : '' }}">
                     <div class="step-dot"></div>
-                    <span>Shipped</span>
+                    <span>{{ __('account.shipped') }}</span>
                 </div>
                 <div class="step-line {{ order.status == 'delivered' ? 'done' : '' }}"></div>
                 <div class="step {{ order.status == 'delivered' ? 'done' : '' }}">
                     <div class="step-dot"></div>
-                    <span>Delivered</span>
+                    <span>{{ __('account.delivered') }}</span>
                 </div>
             </div>
 
@@ -100,7 +110,18 @@
             <div class="mt-3">
                 <form action="{{ basePath }}/account/orders/{{ order.id }}/confirm" method="post">
                     <button type="submit" class="btn btn-cc btn-sm px-4">
-                        <i class="bi bi-check-circle me-1"></i> Confirm Delivery
+                        <i class="bi bi-check-circle me-1"></i> {{ __('account.confirm_delivery') }}
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+            {# Cancel button — only available while order is still pending (processing) #}
+            {% if order.status == 'processing' %}
+            <div class="mt-2">
+                <form action="{{ basePath }}/account/orders/{{ order.id }}/cancel" method="post">
+                    <button type="submit" class="btn btn-sm btn-outline-danger px-4">
+                        <i class="bi bi-x-circle me-1"></i> {{ __('admin.cancel_order') }}
                     </button>
                 </form>
             </div>

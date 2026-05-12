@@ -25,6 +25,44 @@ class Orders
         return R::findAll('orders', ' user_id = ? ORDER BY ordered_at DESC, id DESC ', [$userId]);
     }
 
+    // Returns all completed and cancelled orders with customer details.
+    // Used by the admin order history page.
+    public static function findHistory(): array
+    {
+        return R::getAll(
+            'SELECT
+                o.id,
+                o.user_id,
+                o.subtotal,
+                o.taxes,
+                o.total,
+                o.status,
+                o.notes,
+                o.ordered_at,
+                u.name AS customer_name,
+                u.email AS customer_email,
+                da.street,
+                da.city,
+                da.postal_code
+             FROM orders o
+             INNER JOIN users u ON o.user_id = u.id
+             INNER JOIN delivery_address da ON o.address_id = da.id
+             WHERE o.status IN (\'completed\', \'cancelled\')
+             ORDER BY o.ordered_at DESC, o.id DESC'
+        );
+    }
+
+    // Returns today's completed and cancelled orders for summary stats.
+    public static function findTodayHistory(): array
+    {
+        return R::getAll(
+            'SELECT o.total, o.status
+             FROM orders o
+             WHERE o.status IN (\'completed\', \'cancelled\')
+               AND DATE(o.ordered_at) = CURDATE()'
+        );
+    }
+
     // Get all orders with user and address details (JOIN)
     public static function findAllDetailed(): array
     {

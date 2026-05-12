@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ currentLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,31 +24,31 @@
             <div class="cc-dot">CC</div>
             <div>
                 <span>CraveCart</span>
-                <small>My Account</small>
+                <small>{{ __('account.my_account') }}</small>
             </div>
         </div>
 
-        <span class="sidebar-label">Account</span>
+        <span class="sidebar-label">{{ __('admin.account') }}</span>
         <a href="{{ basePath }}/account/orders" class="sidebar-link {{ activeNav == 'orders' ? 'active' : '' }}">
-            <i class="bi bi-bag-check"></i> My Orders
+            <i class="bi bi-bag-check"></i> {{ __('nav.my_orders') }}
         </a>
         <a href="{{ basePath }}/account/profile" class="sidebar-link {{ activeNav == 'profile' ? 'active' : '' }}">
-            <i class="bi bi-person-circle"></i> My Profile
+            <i class="bi bi-person-circle"></i> {{ __('account.profile') }}
         </a>
 
-        <span class="sidebar-label sidebar-label-bottom">Navigation</span>
+        <span class="sidebar-label sidebar-label-bottom">{{ __('account.navigation') }}</span>
         <a href="{{ basePath }}/" class="sidebar-link">
-            <i class="bi bi-house"></i> Back to Site
+            <i class="bi bi-house"></i> {{ __('admin.back_to_site') }}
         </a>
         <a href="{{ basePath }}/logout" class="sidebar-link sidebar-link-danger">
-            <i class="bi bi-box-arrow-left"></i> Sign Out
+            <i class="bi bi-box-arrow-left"></i> {{ __('nav.sign_out') }}
         </a>
     </aside>
 
     {# Main area #}
     <div class="admin-main">
         <div class="admin-topbar">
-            <h5>{% block page_title %}My Account{% endblock %}</h5>
+            <h5>{% block page_title %}{{ __('account.my_account') }}{% endblock %}</h5>
             <span class="text-muted small">{{ session.name }}</span>
         </div>
         <div class="admin-content">

@@ -82,6 +82,7 @@ return static function (Slim\App $app): void {
     // Admin routes
    $app->group('/admin', function ($group) {
         $group->get('/orders',          [AdminController::class, 'orders'])->setName('admin.orders');
+        $group->get('/orders/history',  [AdminController::class, 'orderHistory'])->setName('admin.orders.history');
         $group->post('/orders/{id}/status', [AdminController::class, 'updateOrderStatus'])->setName('admin.orders.status');
         $group->get('/menu',            [AdminController::class, 'menu'])->setName('admin.menu');
         $group->get('/add',             [AdminController::class, 'showAdd'])->setName('admin.add');
@@ -99,6 +100,7 @@ return static function (Slim\App $app): void {
         $group->post('/delete/dish/{id}',     [AdminController::class, 'deleteDish'])->setName('admin.delete.dish');
         $group->post('/delete/cuisine/{id}',  [AdminController::class, 'deleteCuisine'])->setName('admin.delete.cuisine');
         $group->post('/delete/category/{id}', [AdminController::class, 'deleteCategory'])->setName('admin.delete.category');
+        $group->post('/orders/{id}/cancel', [AdminController::class, 'cancelOrder'])->setName('admin.cancel.order');
     })->add(new AdminMiddleware());
 
     // Account routes
@@ -108,6 +110,7 @@ return static function (Slim\App $app): void {
         $group->get('/profile', [AccountController::class, 'showProfile'])->setName('account.profile');
         $group->post('/profile', [AccountController::class, 'updateProfile'])->setName('account.profile.update');
         $group->post('/delete', [AccountController::class, 'deleteAccount'])->setName('account.delete');
+        $group->post('/orders/{id}/cancel', [AccountController::class, 'cancelOrder'])->setName('account.cancel.order');
     })->add(new AccountMiddleware());
 
     // 2FA verification

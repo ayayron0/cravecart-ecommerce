@@ -107,6 +107,12 @@ class Users
         return (int) R::store($user) > 0;
     }
 
+    // Returns all users with the administrator role.
+    public static function findAdmins(): array
+    {
+        return R::findAll('users', ' role = ? ', ['administrator']);
+    }
+
     // Deletes the user row. Related rows are handled by database foreign keys.
     public static function delete(int $user_id): bool
     {

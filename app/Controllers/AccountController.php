@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Domain\Models\Notifications;
 use App\Domain\Models\OrderDish;
 use App\Domain\Models\Orders;
 use App\Domain\Models\Users;
@@ -35,12 +36,26 @@ class AccountController extends BaseController
     {
         $orderBeans = Orders::findByUserId((int) $_SESSION['user_id']);
 
+        // Converts the database dish name into a translation catalog slug key.
+        // e.g. "Pad Thai" → "pad-thai", "Salmon Roll (8 pcs)" → "salmon-roll"
+        // Needed because the catalog keys use kebab-case slugs but the DB stores full display names.
+        $toSlug = static function (string $name): string {
+            $s = preg_replace('/\s*\([^)]*\)/', '', $name);
+            $s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s) ?: $s;
+            $s = strtolower(trim((string) $s));
+            $s = preg_replace('/[^a-z0-9]+/', '-', $s);
+            return trim((string) $s, '-');
+        };
+
         $orderNumber = count($orderBeans);
-        $mapped = array_map(function ($order) use (&$orderNumber): array {
+        $mapped = array_map(function ($order) use (&$orderNumber, $toSlug): array {
             $items = OrderDish::findDetailedByOrderId((int) $order->id);
 
             $itemNames = array_map(
-                static fn(array $item): string => $item['dish_name'],
+                static function (array $item) use ($toSlug): string {
+                    $key = 'dishes_names.' . $toSlug($item['dish_name']);
+                    return has_translation($key) ? __($key) : $item['dish_name'];
+                },
                 $items
             );
 
@@ -53,15 +68,15 @@ class AccountController extends BaseController
             return [
                 'id'         => $order->id,
                 'order_number' => $orderNumber--,
-                'items'      => empty($itemNames) ? 'No items found' : implode(', ', $itemNames),
+                'items'      => empty($itemNames) ? __('admin.no_items_found') : implode(', ', $itemNames),
                 'total'      => number_format((float) $order->total, 2),
                 'status'     => $status,
                 'created_at' => date('M j, Y', strtotime((string) $order->ordered_at)),
             ];
         }, $orderBeans);
 
-        $activeOrders  = array_values(array_filter($mapped, fn($o) => $o['status'] !== 'completed'));
-        $historyOrders = array_values(array_filter($mapped, fn($o) => $o['status'] === 'completed'));
+        $activeOrders  = array_values(array_filter($mapped, fn($o) => !in_array($o['status'], ['completed', 'cancelled'])));
+        $historyOrders = array_values(array_filter($mapped, fn($o) => in_array($o['status'], ['completed', 'cancelled'])));
 
         return $this->render($response, 'Account/orders.twig', [
             'active_orders'  => $activeOrders,
@@ -151,6 +166,30 @@ class AccountController extends BaseController
         $this->flash('success', __('account.account_deleted'));
         $basePath = APP_ROOT_DIR_NAME ? '/' . APP_ROOT_DIR_NAME : '';
         return $response->withStatus(302)->withHeader('Location', $basePath . '/');
+    }
+
+    public function cancelOrder(Request $request, Response $response, array $args): Response
+    {
+        $orderId = (int) $args['id'];
+
+        $order = Orders::findById($orderId);
+
+        if ($orderId > 0 && $order !== null) {
+            
+            if($order->user_id == $_SESSION['user_id']) {
+
+                if($order->status === 'pending'){
+
+                    Orders::updateStatus($orderId, 'cancelled');
+                    Notifications::create((int) $order->user_id, "notifications.order_cancelled:{$orderId}");
+                    $this->flash('success', __('account.order_cancelled'));
+                }else{
+                    $this->flash('danger', __('account.unable_to_cancel'));
+                }
+            }
+        }
+
+        return $this->redirectTo($response, '/account/orders');
     }
 
     // Small redirect helper so we do not repeat base path logic.

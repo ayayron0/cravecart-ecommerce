@@ -1,6 +1,6 @@
 {% extends 'Admin/layout.twig' %}
 {% block title %}Orders — CraveCart Admin{% endblock %}
-{% block page_title %}Orders{% endblock %}
+{% block page_title %}{{ __('admin.orders') }}{% endblock %}
 
 {% block extra_css %}{% endblock %}
 
@@ -10,13 +10,13 @@
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-lg-3">
         <div class="bg-white border rounded-3 p-3 text-center">
-            <p class="text-muted small mb-1">Total Orders</p>
+            <p class="text-muted small mb-1">{{ __('admin.total_orders') }}</p>
             <h3 class="fw-800 mb-0" style="font-weight:800;">{{ orders|length }}</h3>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
         <div class="bg-white border rounded-3 p-3 text-center">
-            <p class="text-muted small mb-1">Processing</p>
+            <p class="text-muted small mb-1">{{ __('admin.processing_orders') }}</p>
             <h3 class="fw-800 mb-0" style="font-weight:800; color:#92400e;">
                 {{ orders|filter(o => o.status == 'processing')|length }}
             </h3>
@@ -24,7 +24,7 @@
     </div>
     <div class="col-sm-6 col-lg-3">
         <div class="bg-white border rounded-3 p-3 text-center">
-            <p class="text-muted small mb-1">Shipped</p>
+            <p class="text-muted small mb-1">{{ __('admin.shipped_orders') }}</p>
             <h3 class="fw-800 mb-0" style="font-weight:800; color:#5b21b6;">
                 {{ orders|filter(o => o.status == 'shipped')|length }}
             </h3>
@@ -32,7 +32,7 @@
     </div>
     <div class="col-sm-6 col-lg-3">
         <div class="bg-white border rounded-3 p-3 text-center">
-            <p class="text-muted small mb-1">Delivered</p>
+            <p class="text-muted small mb-1">{{ __('admin.delivered_orders') }}</p>
             <h3 class="fw-800 mb-0" style="font-weight:800; color:#065f46;">
                 {{ orders|filter(o => o.status == 'delivered')|length }}
             </h3>
@@ -55,29 +55,47 @@
         {# Right side: total + status + buttons #}
         <div class="text-end">
             <p class="order-total mb-2">${{ order.total }}</p>
+            {% set statusLabels = {
+                'processing': __('admin.processing_orders'),
+                'wrapping':   __('account.wrapping'),
+                'shipped':    __('account.shipped'),
+                'delivered':  __('account.delivered'),
+                'cancelled':  __('account.cancelled'),
+                'completed':  __('account.completed')
+            } %}
             <span class="status-badge status-{{ order.status }} mb-3 d-inline-block">
-                {{ order.status|capitalize }}
+                {{ statusLabels[order.status] ?? order.status|capitalize }}
             </span>
     <div class="d-flex gap-2 flex-wrap justify-content-end mt-2">
+     {% if order.status != 'cancelled' and order.status != 'completed' %}
      <form action="{{ basePath }}/admin/orders/{{ order.id }}/status" method="post" class="mb-0">
         <input type="hidden" name="status" value="processing">
-        <button type="submit" class="status-btn btn-processing">Processing</button>
+        <button type="submit" class="status-btn btn-processing">{{ __('admin.processing_orders') }}</button>
      </form>
 
      <form action="{{ basePath }}/admin/orders/{{ order.id }}/status" method="post" class="mb-0">
         <input type="hidden" name="status" value="wrapping">
-        <button type="submit" class="status-btn btn-wrapping">Wrapping Up</button>
+        <button type="submit" class="status-btn btn-wrapping">{{ __('account.wrapping') }}</button>
      </form>
 
      <form action="{{ basePath }}/admin/orders/{{ order.id }}/status" method="post" class="mb-0">
         <input type="hidden" name="status" value="shipped">
-        <button type="submit" class="status-btn btn-shipped">Shipped</button>
+        <button type="submit" class="status-btn btn-shipped">{{ __('account.shipped') }}</button>
      </form>
 
      <form action="{{ basePath }}/admin/orders/{{ order.id }}/status" method="post" class="mb-0">
         <input type="hidden" name="status" value="delivered">
-        <button type="submit" class="status-btn btn-delivered">Delivered</button>
+        <button type="submit" class="status-btn btn-delivered">{{ __('account.delivered') }}</button>
      </form>
+
+     <button type="button" class="status-btn btn-cancelled"
+             data-bs-toggle="modal"
+             data-bs-target="#cancelModal"
+             data-item-name="Order #{{ order.id }}"
+             data-action="{{ basePath }}/admin/orders/{{ order.id }}/cancel">
+         {{ __('admin.cancel_order') }}
+     </button>
+     {% endif %}
     </div>
 
       </div>
@@ -85,5 +103,32 @@
       </div>
 </div>
 {% endfor %}
+
+{# Cancel order confirmation modal #}
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius:16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="cancelModalLabel">{{ __('admin.cancel_order') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-0">{{ __('admin.confirm_cancel_msg') }} (<strong id="cancelModalItemName"></strong>)</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">{{ __('admin.keep_order') }}</button>
+                <form id="cancelModalForm" method="post" class="mb-0">
+                    <button type="submit" class="btn text-white fw-semibold rounded-3" style="background:#e63946;">
+                        <i class="bi bi-x-circle me-1"></i> {{ __('admin.cancel_order') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{{ asset_url('/js/cancel-modal.js') }}"></script>
+{% endblock %}
 
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'Account/layout.twig' %}
-{% block title %}My Profile — CraveCart{% endblock %}
-{% block page_title %}My Profile{% endblock %}
+{% block title %}{{ __('account.profile') }} — {{ __('site.name') }}{% endblock %}
+{% block page_title %}{{ __('account.profile') }}{% endblock %}
 
 {% block content %}
 <div class="account-profile-wrap">
@@ -20,14 +20,14 @@
 
         {# Account info #}
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-            <h6 class="fw-bold mb-4"><i class="bi bi-person me-2 cc-red"></i>Account Info</h6>
+            <h6 class="fw-bold mb-4"><i class="bi bi-person me-2 cc-red"></i>{{ __('account.account_info') }}</h6>
             <div class="row g-3">
                 <div class="col-12">
-                    <label class="form-label small fw-semibold">Name</label>
+                    <label class="form-label small fw-semibold">{{ __('auth.name') }}</label>
                     <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
                 </div>
                 <div class="col-12">
-                    <label class="form-label small fw-semibold">Email Address</label>
+                    <label class="form-label small fw-semibold">{{ __('account.email_address') }}</label>
                     <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
                 </div>
             </div>
@@ -35,37 +35,37 @@
 
         {# Password change — only processed if the user fills these in #}
         <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
-            <h6 class="fw-bold mb-1"><i class="bi bi-lock me-2 cc-red"></i>Change Password</h6>
-            <p class="text-muted small mb-4">Leave these blank if you don't want to change your password.</p>
+            <h6 class="fw-bold mb-1"><i class="bi bi-lock me-2 cc-red"></i>{{ __('account.change_password') }}</h6>
+            <p class="text-muted small mb-4">{{ __('account.leave_blank') }}</p>
             <div class="row g-3">
                 <div class="col-12">
-                    <label class="form-label small fw-semibold">Current Password</label>
-                    <input type="password" name="current_password" class="form-control" placeholder="Enter current password">
+                    <label class="form-label small fw-semibold">{{ __('account.current_password') }}</label>
+                    <input type="password" name="current_password" class="form-control" placeholder="{{ __('forms.enter_current_password') }}">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small fw-semibold">New Password</label>
-                    <input type="password" name="new_password" class="form-control" placeholder="At least 8 characters">
+                    <label class="form-label small fw-semibold">{{ __('account.new_password') }}</label>
+                    <input type="password" name="new_password" class="form-control" placeholder="{{ __('forms.at_least_8_chars') }}">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label small fw-semibold">Confirm New Password</label>
-                    <input type="password" name="confirm_password" class="form-control" placeholder="Repeat new password">
+                    <label class="form-label small fw-semibold">{{ __('account.confirm_new_password') }}</label>
+                    <input type="password" name="confirm_password" class="form-control" placeholder="{{ __('forms.repeat_new_password') }}">
                 </div>
             </div>
         </div>
 
         <button type="submit" class="btn btn-cc px-4 py-2">
-            <i class="bi bi-check-lg me-1"></i> Save Changes
+            <i class="bi bi-check-lg me-1"></i> {{ __('forms.save_changes') }}
         </button>
 
     </form>
 
     {# Danger zone — delete account #}
     <div class="card border-danger border-0 shadow-sm rounded-4 p-4 mt-4">
-        <h6 class="fw-bold mb-1 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h6>
-        <p class="text-muted small mb-3">Once you delete your account, all your data will be permanently removed.</p>
+        <h6 class="fw-bold mb-1 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ __('account.danger_zone') }}</h6>
+        <p class="text-muted small mb-3">{{ __('account.delete_account_warning') }}</p>
         <button type="button" class="btn btn-outline-danger btn-sm px-4"
                 data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-            <i class="bi bi-trash me-1"></i> Delete My Account
+            <i class="bi bi-trash me-1"></i> {{ __('account.delete_account') }}
         </button>
     </div>
 </div>
@@ -75,16 +75,16 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">Delete Account</h5>
+                <h5 class="modal-title fw-bold">{{ __('account.delete_account') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-muted small">
-                Are you sure? This will permanently delete your account and all your orders. This cannot be undone.
+                {{ __('account.delete_account_confirm') }}
             </div>
             <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('account.cancel') }}</button>
                 <form action="{{ basePath }}/account/delete" method="post">
-                    <button type="submit" class="btn btn-danger btn-sm">Yes, delete my account</button>
+                    <button type="submit" class="btn btn-danger btn-sm">{{ __('account.delete_confirm_btn') }}</button>
                 </form>
             </div>
         </div>

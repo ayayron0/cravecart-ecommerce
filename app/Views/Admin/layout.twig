@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ currentLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,30 +22,33 @@
             <div class="cc-dot">CC</div>
             <div>
                 <span>CraveCart</span>
-                <small>Admin Panel</small>
+                <small>{{ __('nav.admin_panel') }}</small>
             </div>
         </div>
 
-        <span class="sidebar-label">Manage</span>
+        <span class="sidebar-label">{{ __('admin.manage') }}</span>
         <a href="{{ basePath }}/admin/orders" class="sidebar-link {{ activeNav == 'orders' ? 'active' : '' }}">
-            <i class="bi bi-bag-check"></i> Orders
+            <i class="bi bi-bag-check"></i> {{ __('admin.orders') }}
+        </a>
+        <a href="{{ basePath }}/admin/orders/history" class="sidebar-link {{ activeNav == 'order_history' ? 'active' : '' }}">
+            <i class="bi bi-clock-history"></i> {{ __('admin.order_history') }}
         </a>
         <a href="{{ basePath }}/admin/menu" class="sidebar-link {{ activeNav == 'menu' ? 'active' : '' }}">
-            <i class="bi bi-egg-fried"></i> Menu
+            <i class="bi bi-egg-fried"></i> {{ __('nav.menu_management') }}
         </a>
         <a href="{{ basePath }}/admin/add" class="sidebar-link {{ activeNav == 'add' ? 'active' : '' }}">
-            <i class="bi bi-plus-circle"></i> Add New
+            <i class="bi bi-plus-circle"></i> {{ __('admin.add_new') }}
         </a>
 
-        <span class="sidebar-label sidebar-label-bottom">Account</span>
+        <span class="sidebar-label sidebar-label-bottom">{{ __('admin.account') }}</span>
         <a href="{{ basePath }}/admin/profile" class="sidebar-link {{ activeNav == 'profile' ? 'active' : '' }}">
-            <i class="bi bi-person-circle"></i> My Profile
+            <i class="bi bi-person-circle"></i> {{ __('account.profile') }}
         </a>
         <a href="{{ basePath }}/" class="sidebar-link">
-            <i class="bi bi-house"></i> Back to Site
+            <i class="bi bi-house"></i> {{ __('admin.back_to_site') }}
         </a>
         <a href="{{ basePath }}/logout" class="sidebar-link sidebar-link-danger">
-            <i class="bi bi-box-arrow-left"></i> Sign Out
+            <i class="bi bi-box-arrow-left"></i> {{ __('nav.sign_out') }}
         </a>
     </aside>
 
@@ -53,7 +56,7 @@
     <div class="admin-main">
         <div class="admin-topbar">
             <h5>{% block page_title %}Dashboard{% endblock %}</h5>
-            <span class="text-muted small">Admin</span>
+            <span class="text-muted small">{{ __('nav.admin') }}</span>
         </div>
         <div class="admin-content">
             {% if flash %}

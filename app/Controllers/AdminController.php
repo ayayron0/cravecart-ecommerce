@@ -50,34 +50,111 @@ class AdminController extends BaseController
     {
         $orderRows = Orders::findAllDetailed();
 
-        $orders = array_map(function (array $order): array {
+         // Converts the database dish name into a translation catalog slug key.
+        // e.g. "Pad Thai" → "pad-thai", "Salmon Roll (8 pcs)" → "salmon-roll"
+        // Needed because the catalog keys use kebab-case slugs but the DB stores full display names.
+        $toSlug = static function (string $name): string {
+            $s = preg_replace('/\s*\([^)]*\)/', '', $name);
+            $s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s) ?: $s;
+            $s = strtolower(trim((string) $s));
+            $s = preg_replace('/[^a-z0-9]+/', '-', $s);
+            return trim((string) $s, '-');
+        };
+
+        $orders = [];
+        foreach ($orderRows as $order) {
+            $rawStatus = strtolower((string) $order['status']);
+
+            // Completed and cancelled orders belong in Order History, not here.
+            if (in_array($rawStatus, ['completed', 'cancelled'])) {
+                continue;
+            }
+
             $items = OrderDish::findDetailedByOrderId((int) $order['id']);
 
             $itemNames = array_map(
-                static fn(array $item): string => $item['dish_name'],
+                static function (array $item) use ($toSlug): string {
+                    $key = 'dishes_names.' . $toSlug($item['dish_name']);
+                    return has_translation($key) ? __($key) : $item['dish_name'];
+                },
                 $items
             );
 
             // Map DB statuses to the UI labels used by the admin dashboard.
-            $status = match (strtolower((string) $order['status'])) {
-                'pending' => 'processing',
+            $status = match ($rawStatus) {
+                'pending'     => 'processing',
                 'in progress' => 'wrapping',
-                default => strtolower((string) $order['status']),
+                default       => $rawStatus,
             };
 
-            return [
-                'id' => $order['id'],
+            $orders[] = [
+                'id'            => $order['id'],
                 'customer_name' => $order['customer_name'],
-                'items' => empty($itemNames) ? 'No items found' : implode(', ', $itemNames),
-                'total' => number_format((float) $order['total'], 2),
-                'status' => $status,
-                'created_at' => date('M j, Y g:i A', strtotime((string) $order['ordered_at'])),
+                'items'         => empty($itemNames) ? __('admin.no_items_found') : implode(', ', $itemNames),
+                'total'         => number_format((float) $order['total'], 2),
+                'status'        => $status,
+                'created_at'    => date('M j, Y g:i A', strtotime((string) $order['ordered_at'])),
+            ];
+        }
+
+        return $this->render($response, 'Admin/orders.twig', [
+            'orders'    => $orders,
+            'activeNav' => 'orders',
+        ]);
+    }
+
+    // Renders all completed and cancelled orders.
+    // Summary cards show today's counts; the list shows full history.
+    public function orderHistory(Request $request, Response $response, array $args): Response
+    {
+        $toSlug = static function (string $name): string {
+            $s = preg_replace('/\s*\([^)]*\)/', '', $name);
+            $s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s) ?: $s;
+            $s = strtolower(trim((string) $s));
+            $s = preg_replace('/[^a-z0-9]+/', '-', $s);
+            return trim((string) $s, '-');
+        };
+
+        // Full history list — all completed and cancelled orders
+        $orderRows = Orders::findHistory();
+
+        $orders = array_map(function (array $order) use ($toSlug): array {
+            $items = OrderDish::findDetailedByOrderId((int) $order['id']);
+
+            $itemNames = array_map(
+                static function (array $item) use ($toSlug): string {
+                    $key = 'dishes_names.' . $toSlug($item['dish_name']);
+                    return has_translation($key) ? __($key) : $item['dish_name'];
+                },
+                $items
+            );
+
+            return [
+                'id'            => $order['id'],
+                'customer_name' => $order['customer_name'],
+                'customer_email'=> $order['customer_email'],
+                'items'         => empty($itemNames) ? __('admin.no_items_found') : implode(', ', $itemNames),
+                'total'         => number_format((float) $order['total'], 2),
+                'status'        => strtolower((string) $order['status']),
+                'created_at'    => date('M j, Y g:i A', strtotime((string) $order['ordered_at'])),
             ];
         }, $orderRows);
 
-        return $this->render($response, 'Admin/orders.twig', [
-            'orders' => $orders,
-            'activeNav' => 'orders',
+        // Summary stats derived from the full history list.
+        $completedToday = count(array_filter($orders, fn($o) => $o['status'] === 'completed'));
+        $cancelledToday = count(array_filter($orders, fn($o) => $o['status'] === 'cancelled'));
+        $revenueToday   = array_sum(array_map(
+            fn($o) => $o['status'] === 'completed' ? (float) str_replace(',', '', $o['total']) : 0,
+            $orders
+        ));
+
+        return $this->render($response, 'Admin/order-history.twig', [
+            'orders'         => $orders,
+            'completedToday' => $completedToday,
+            'cancelledToday' => $cancelledToday,
+            'revenueToday'   => number_format($revenueToday, 2),
+            'activeNav'      => 'order_history',
+            'today'          => date('F j, Y'),
         ]);
     }
 
@@ -444,6 +521,22 @@ class AdminController extends BaseController
             }
 
             $this->flash('success', __('admin.order_status_updated'));
+        }
+
+        return $this->redirectTo($response, '/admin/orders');
+    }
+
+    public function cancelOrder(Request $request, Response $response, array $args): Response
+    {
+        $orderId = (int) $args['id'];
+
+        $order = Orders::findById($orderId);
+
+        if ($orderId > 0 && $order !== null) {
+            
+            Orders::updateStatus($orderId, 'cancelled');
+            Notifications::create((int) $order->user_id, "notifications.order_cancelled:{$orderId}");
+            $this->flash('success', __('admin.order_cancelled'));
         }
 
         return $this->redirectTo($response, '/admin/orders');
